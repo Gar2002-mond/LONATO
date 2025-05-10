@@ -145,3 +145,4 @@ TEMPLATES[0]["DIRS"] = [BASE_DIR / "templates"]
 LOGIN_REDIRECT_URL = 'dashboard' 
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = '/' # Redirige vers la page d'accueil

@@ -10,6 +10,7 @@ module.exports = {
       fontFamily: {
         sans: [
           "Inter",
+          "popins",
           "system-ui",
           "-apple-system",
           "BlinkMacSystemFont",
@@ -19,19 +20,29 @@ module.exports = {
           "sans-serif",
         ],
       },
+      //   colors: {
+      //     primary: {
+      //       50: "#f0f9ff",
+      //       100: "#e0f2fe",
+      //       200: "#bae6fd",
+      //       300: "#7dd3fc",
+      //       400: "#38bdf8",
+      //       500: "#0ea5e9",
+      //       600: "#0284c7",
+      //       700: "#0369a1",
+      //       800: "#075985",
+      //       900: "#0c4a6e",
+      //     },
+      //   },
       colors: {
-        primary: {
-          50: "#f0f9ff",
-          100: "#e0f2fe",
-          200: "#bae6fd",
-          300: "#7dd3fc",
-          400: "#38bdf8",
-          500: "#0ea5e9",
-          600: "#0284c7",
-          700: "#0369a1",
-          800: "#075985",
-          900: "#0c4a6e",
-        },
+        "custom-primary": "#000000",
+        "custom-bg-body": "#F8F9FA",
+        "custom-bg-input": "#F1F3F5",
+        "custom-text": "#212529",
+        "custom-muted": "#6C757D",
+      },
+      borderRadius: {
+        card: "1rem", // exemple 16px
       },
     },
   },

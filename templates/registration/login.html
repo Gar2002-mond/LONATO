@@ -1,71 +1,122 @@
-{% extends 'base.html' %}
-
-{% block auth_content %}
-<div class="hero min-h-screen bg-base-200">
-    <div class="hero-content flex-col lg:flex-row">
-        <div class="text-center lg:text-left lg:mr-10 hidden lg:block">
-            <h1 class="text-5xl font-bold text-primary">LONATO</h1>
-            <h2 class="text-3xl font-bold mt-2">Connexion</h2>
-            <p class="py-6">Veuillez vous authentifier pour accéder au système de gestion LOTO.</p>
-        </div>
-        <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
-            <div class="card-body">
-                <div class="flex justify-center mb-4">
-                    <div class="avatar">
-                        <div class="w-20 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                            <img src="https://ui-avatars.com/api/?name=LONATO&background=1c64f2&color=fff&bold=true&size=128" />
-                        </div>
-                    </div>
-                </div>
-                <h2 class="text-2xl font-bold text-center mb-4">Authentification</h2>
-                
-                {% if form.errors %}
-                <div class="alert alert-error mb-4">
-                    <i class="bx bxs-error-circle"></i>
-                    <span>Nom d'utilisateur ou mot de passe incorrect.</span>
-                </div>
-                {% endif %}
-                
-                <form method="post" action="{% url 'login' %}" hx-boost="true">
-                    {% csrf_token %}
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Nom d'utilisateur</span>
-                        </label>
-                        <input type="text" name="username" placeholder="Entrez votre nom d'utilisateur" class="input input-bordered" required autofocus />
-                    </div>
-                    <div class="form-control mt-4">
-                        <label class="label">
-                            <span class="label-text">Mot de passe</span>
-                        </label>
-                        <input type="password" name="password" placeholder="Entrez votre mot de passe" class="input input-bordered" required />
-                        <label class="label">
-                            <a href="{% url 'password_reset' %}" class="label-text-alt link link-hover">Mot de passe oublié?</a>
-                        </label>
-                    </div>
-                    <div class="form-control mt-6">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bx bx-log-in-circle mr-2"></i> Se connecter
-                        </button>
-                    </div>
-                    
-                    <input type="hidden" name="next" value="{{ next|default:'/dashboard/' }}" />
-                </form>
-                
-                <div class="divider mt-6">ou</div>
-                
-                <div class="text-center">
-                    <a href="{% url 'home' %}" class="link link-hover text-primary">
-                        <i class="bx bx-arrow-back mr-1"></i> Retour à l'accueil
-                    </a>
-                </div>
-                
-                <div class="text-center mt-6">
-                    <p class="text-sm text-gray-500">© {% now "Y" %} LONATO - Tous droits réservés</p>
-                    <p class="text-xs text-gray-400 mt-1">Version 1.0.0</p>
-                </div>
-            </div>
-        </div>
+{% extends 'base.html' %} {% load static %} {% block auth_content %}
+<div
+  class="min-h-screen font-['Poppins',_sans-serif] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 text-gray-900"
+>
+  <div
+    class="max-w-4xl w-full bg-white rounded-2xl border border-gray-100 shadow-2xl flex flex-col md:flex-row overflow-hidden my-8"
+  >
+    <!-- Section Image -->
+    <div class="md:w-1/2 relative hidden md:block">
+      <img
+        src="{% static 'images/lonato.jpg' %}"
+        alt="Lonato Background"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-black opacity-30"></div>
     </div>
+
+    <!-- Section Contenu/Formulaire -->
+    <div
+      class="w-full md:w-1/2 p-8 sm:p-10 md:p-12 flex flex-col justify-center"
+    >
+      <div class="text-center md:text-left mb-10">
+        <h1 class="text-4xl font-bold text-black mb-4">LONATO</h1>
+        <h2 class="text-2xl font-semibold text-gray-900">Bienvenue !</h2>
+        <p class="text-gray-500 mt-1">
+          Connectez-vous pour accéder à votre espace.
+        </p>
+      </div>
+
+      {% if form.errors %}
+      <div
+        class="mb-5 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm"
+      >
+        <p>Nom d'utilisateur ou mot de passe incorrect. Veuillez réessayer.</p>
+      </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'login' %}" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Champ Nom d'utilisateur -->
+        <div class="relative">
+          <input
+            id="username"
+            name="username"
+            type="text"
+            required
+            autofocus
+            placeholder="Nom d'utilisateur"
+            class="peer w-full h-14 px-4 text-base text-gray-900 bg-gray-100 rounded-lg border border-transparent focus:outline-none focus:border-black focus:ring-2 focus:ring-black transition-colors placeholder-transparent"
+          />
+          <label
+            for="username"
+            class="absolute left-4 -top-2.5 px-1 bg-white text-xs text-gray-500 transition-all duration-200 ease-in-out peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-black"
+          >
+            Nom d'utilisateur
+          </label>
+        </div>
+
+        <!-- Champ Mot de passe -->
+        <div class="relative">
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            placeholder="Mot de passe"
+            class="peer w-full h-14 px-4 text-base text-gray-900 bg-gray-100 rounded-lg border border-transparent focus:outline-none focus:border-black focus:ring-2 focus:ring-black transition-colors placeholder-transparent"
+          />
+          <label
+            for="password"
+            class="absolute left-4 -top-2.5 px-1 bg-white text-xs text-gray-500 transition-all duration-200 ease-in-out peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-black"
+          >
+            Mot de passe
+          </label>
+        </div>
+
+        <div class="flex items-center justify-end text-sm mt-4">
+          <a
+            href="{% url 'password_reset' %}"
+            class="font-medium text-black hover:text-gray-700"
+          >
+            Mot de passe oublié ?
+          </a>
+        </div>
+
+        <input
+          type="hidden"
+          name="next"
+          value="{{ next|default:'/dashboard/' }}"
+        />
+
+        <div class="mt-8">
+          <button
+            type="submit"
+            class="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm font-medium text-white bg-black hover:bg-gray-800 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-black transition-colors transform hover:scale-105"
+          >
+            Se connecter
+            <i class="bx bx-right-arrow-alt text-xl ml-2"></i>
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-8 text-center">
+        <a
+          href="{% url 'home' %}"
+          class="text-sm text-gray-500 hover:text-black transition-colors"
+        >
+          <i class="bx bx-arrow-back mr-1 align-middle"></i>
+          Retour à l'accueil
+        </a>
+      </div>
+
+      <div class="text-center mt-10">
+        <p class="text-xs text-gray-400">
+          © {% now "Y" %} LONATO – Tous droits réservés. Version 1.0.0
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

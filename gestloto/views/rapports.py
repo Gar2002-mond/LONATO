@@ -14,10 +14,11 @@ from datetime import timedelta, datetime
 from openpyxl.utils import get_column_letter
 import openpyxl
 from openpyxl.styles import Font,Alignment
-from django.db.models import Sum, F, Value, Q, OuterRef, Subquery, DecimalField
-from django.db.models.functions import Coalesce, TruncMonth, TruncDay, ExtractYear, ExtractWeek
+from django.db.models import Sum, Value, F, CharField, Case, When, IntegerField, DateField, OuterRef, Subquery, Count, Avg, Max, Min, ExpressionWrapper, fields
+from django.db.models.functions import Coalesce, TruncMonth, TruncDay, Cast, ExtractYear, ExtractMonth, ExtractDay
+from decimal import Decimal # S'assurer que Decimal est importé
+from ..models import Agent, ChiffreAffaire, Depense, Collecteur, ActiviteCollecteur, Machine, PenaliteCommission
 
-from decimal import Decimal # Pour les valeurs par défaut
 def _format_excel_sheet(ws, headers, header_row=1, data_start_row=2, column_widths=None, 
                         date_column_indices=None, currency_column_indices=None, 
                         number_column_indices=None, percentage_column_indices=None, 
@@ -729,17 +730,13 @@ def export_agents_report_view(request):
 
     commissions_subquery = PenaliteCommission.objects.filter(
         agent=OuterRef('pk'),
-        type_operation='commission',
-        date_commission__gte=date_debut,
-        date_commission__lte=date_fin
-    ).values('agent').annotate(total_commissions=Sum('montant_commission')).values('total_commissions')
+        montant_commission__gt=Decimal('0') # Condition pour identifier une commission
+    ).values('agent').annotate(total_comm=Sum('montant_commission')).values('total_comm')
 
     penalites_subquery = PenaliteCommission.objects.filter(
         agent=OuterRef('pk'),
-        type_operation='penalite',
-        date_penalite__gte=date_debut,
-        date_penalite__lte=date_fin
-    ).values('agent').annotate(total_penalites=Sum('montant_penalite')).values('total_penalites')
+        montant_penalite__gt=Decimal('0') # Condition pour identifier une pénalité
+    ).values('agent').annotate(total_pen=Sum('montant_penalite')).values('total_pen')
 
     agents_data = agents_queryset.annotate(
         chiffre_affaires=Coalesce(Subquery(ca_subquery, output_field=DecimalField(**decimal_field_params)), Value(Decimal('0.00'), output_field=DecimalField(**decimal_field_params))),
@@ -822,7 +819,7 @@ def export_agents_report_view(request):
         headers_comm = ["Date", "Motif", "Montant Commission"]
         ws_comm_details.append(headers_comm)
         comm_details_qs = PenaliteCommission.objects.filter(
-            agent=agent_obj, type_operation='commission',
+            agent=agent_obj, montant_commission__gt=Decimal('0'),
             date_commission__gte=date_debut, date_commission__lte=date_fin
         ).order_by('-date_commission')
         for comm_entry in comm_details_qs:
@@ -838,7 +835,7 @@ def export_agents_report_view(request):
         headers_pen = ["Date", "Motif", "Montant Pénalité"]
         ws_pen_details.append(headers_pen)
         pen_details_qs = PenaliteCommission.objects.filter(
-            agent=agent_obj, type_operation='penalite',
+            agent=agent_obj, montant_penalite__gt=Decimal('0'),
             date_penalite__gte=date_debut, date_penalite__lte=date_fin
         ).order_by('-date_penalite')
         for pen_entry in pen_details_qs:
@@ -866,7 +863,8 @@ def export_agents_report_view(request):
 
         # Commissions Mensuelles
         comm_mensuel = PenaliteCommission.objects.filter(
-            agent=agent_obj, type_operation='commission', date_commission__gte=date_debut, date_commission__lte=date_fin
+            agent=agent_obj, montant_commission__gt=Decimal('0'),
+            date_commission__gte=date_debut, date_commission__lte=date_fin
         ).annotate(mois=TruncMonth('date_commission')).values('mois').annotate(total_comm=Sum('montant_commission')).order_by('mois')
         for item in comm_mensuel:
             mois_key = item['mois'].strftime('%Y-%m')
@@ -875,7 +873,8 @@ def export_agents_report_view(request):
 
         # Pénalités Mensuelles
         pen_mensuel = PenaliteCommission.objects.filter(
-            agent=agent_obj, type_operation='penalite', date_penalite__gte=date_debut, date_penalite__lte=date_fin
+            agent=agent_obj, montant_penalite__gt=Decimal('0'),
+            date_penalite__gte=date_debut, date_penalite__lte=date_fin
         ).annotate(mois=TruncMonth('date_penalite')).values('mois').annotate(total_pen=Sum('montant_penalite')).order_by('mois')
         for item in pen_mensuel:
             mois_key = item['mois'].strftime('%Y-%m')
@@ -1001,6 +1000,10 @@ def export_ca_report_view(request):
         detail_headers = ["Année", "Semaine", "Ventes", "Annulations", "Paiements", "Solde Net", "Commission", "Nb Enreg."]
         currency_cols_detail = [3, 4, 5, 6, 7]
         num_cols_detail = [1, 2, 8]
+        # Note: Django's ExtractWeek might behave differently across database backends or might not be available.
+        # Consider using TruncWeek if available and suitable, or custom logic for week calculation.
+        # For simplicity, assuming ExtractWeek works as intended here.
+        from django.db.models.functions import ExtractWeek # Ensure ExtractWeek is imported if used
         detail_data = ca_queryset.annotate(year=ExtractYear('date_chiffre_affaire'), week=ExtractWeek('date_chiffre_affaire')) \
             .values('year', 'week').annotate(**aggregations).order_by('year', 'week')
         for row in detail_data: ws_detail.append([row['year'], row['week'], row['total_ventes'], row['total_annulations'], row['total_paiements'], row['total_solde'], row['total_commission'], row['nombre_enregistrements']])
