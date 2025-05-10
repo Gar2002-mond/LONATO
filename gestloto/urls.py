@@ -1,4 +1,6 @@
 from django.urls import path
+
+from gestloto.views import rapports
 from . import views
 from .views import (
     dashboard_view, agent_list, agent_detail, agent_create, agent_update, agent_delete,
@@ -29,6 +31,7 @@ urlpatterns = [
     path('collecteurs/create/', collecteur_create, name='collecteur_create'),
     path('collecteurs/<int:pk>/update/', collecteur_update, name='collecteur_update'),
     path('collecteurs/<int:pk>/delete/', collecteur_delete, name='collecteur_delete'),
+     path('export/collecteurs/', rapports.export_collecteurs_report_view, name='export_collecteurs_report'),
     
     # Gestion des machines
     path('machines/', machine_list, name='machine_list'),
@@ -49,6 +52,7 @@ urlpatterns = [
     path('depenses/create/', depense_create, name='depense_create'),
     path('depenses/<int:pk>/update/', depense_update, name='depense_update'),
     path('depenses/<int:pk>/delete/', depense_delete, name='depense_delete'),
+    path('export/depenses/', rapports.export_depenses_report_view, name='export_depenses_report'),
     
     # Gestion des activités des collecteurs
     path('activites-collecteurs/', activite_collecteur_list, name='activite_collecteur_list'),

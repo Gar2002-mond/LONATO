@@ -11,6 +11,7 @@ from .rapports import rapport_chiffre_affaire, rapport_depense, rapport_collecte
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
+
 def home(request):
     """Vue de la page d'accueil"""
     if request.user.is_authenticated:

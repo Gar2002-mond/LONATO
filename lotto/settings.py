@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'gestloto',
+    # 'daisyui_dashboard',
     
 ]
 
@@ -130,7 +131,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
-    "/var/www/static/",
+    # "/var/www/static/",
 ]
 
 
@@ -139,3 +140,8 @@ TEMPLATES[0]["DIRS"] = [BASE_DIR / "templates"]
 
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # AUTH_USER_MODEL = 'accounts.CustomUser'
+
+# Authentication settings
+LOGIN_REDIRECT_URL = 'dashboard' 
+LOGIN_URL = 'login'
+LOGOUT_REDIRECT_URL = 'home'

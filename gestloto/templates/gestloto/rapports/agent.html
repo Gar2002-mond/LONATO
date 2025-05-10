@@ -1,0 +1,503 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapport Agents - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="#">Rapports</a></li>
+<li>Agents</li>
+{% endblock %}
+
+{% block page_title %}Rapport des Agents{% endblock %}
+{% block page_subtitle %}Analyse détaillée des performances des agents{% endblock %}
+
+{% block page_actions %}
+<div class="flex gap-2">
+    <button class="btn btn-outline" onclick="window.print()">
+        <i class="bx bx-printer mr-2"></i> Imprimer
+    </button>
+    <button class="btn btn-primary" hx-get="{% url 'export_agents_report' %}?{{ request.GET.urlencode }}" hx-swap="none">
+        <i class="bx bx-download mr-2"></i> Exporter Excel
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filtres -->
+<div class="card bg-base-100 shadow-xl mb-6 print:hidden">
+    <div class="card-body">
+        <h3 class="text-lg font-medium mb-4">Filtres du rapport</h3>
+        <form hx-get="{% url 'rapport_agent' %}" class="flex flex-wrap gap-4" hx-target="#rapport-content" hx-indicator="#loading">
+            <div class="form-control w-full md:w-64">
+                <label class="label">
+                    <span class="label-text">Période</span>
+                </label>
+                <select name="periode" class="select select-bordered" hx-get="{% url 'rapport_agent' %}" hx-target="#rapport-content" hx-indicator="#loading" hx-trigger="change">
+                    <option value="7" {% if request.GET.periode == '7' %}selected{% endif %}>7 derniers jours</option>
+                    <option value="30" {% if request.GET.periode == '30' %}selected{% endif %}>30 derniers jours</option>
+                    <option value="90" {% if request.GET.periode == '90' %}selected{% endif %}>3 derniers mois</option>
+                    <option value="180" {% if request.GET.periode == '180' %}selected{% endif %}>6 derniers mois</option>
+                    <option value="365" {% if request.GET.periode == '365' %}selected{% endif %}>Année en cours</option>
+                    <option value="custom" {% if request.GET.periode == 'custom' %}selected{% endif %}>Période personnalisée</option>
+                </select>
+            </div>
+            
+            <div class="form-control w-full md:w-64" id="date-debut-container" {% if request.GET.periode != 'custom' %}style="display: none;"{% endif %}>
+                <label class="label">
+                    <span class="label-text">Date début</span>
+                </label>
+                <input type="date" name="date_debut" value="{{ request.GET.date_debut|default:'' }}" class="input input-bordered">
+            </div>
+            
+            <div class="form-control w-full md:w-64" id="date-fin-container" {% if request.GET.periode != 'custom' %}style="display: none;"{% endif %}>
+                <label class="label">
+                    <span class="label-text">Date fin</span>
+                </label>
+                <input type="date" name="date_fin" value="{{ request.GET.date_fin|default:'' }}" class="input input-bordered">
+            </div>
+            
+            <div class="form-control w-full md:w-64">
+                <label class="label">
+                    <span class="label-text">Agent</span>
+                </label>
+                <select name="agent" class="select select-bordered">
+                    <option value="">Tous les agents</option>
+                    {% for agent in agents %}
+                        <option value="{{ agent.id }}" {% if request.GET.agent == agent.id|stringformat:"i" %}selected{% endif %}>
+                            {{ agent.nom_agent }} {{ agent.prenom_agent }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-control w-full md:w-64">
+                <label class="label">
+                    <span class="label-text">Trier par</span>
+                </label>
+                <select name="tri" class="select select-bordered">
+                    <option value="ca" {% if request.GET.tri == 'ca' %}selected{% endif %}>Chiffre d'affaires</option>
+                    <option value="commission" {% if request.GET.tri == 'commission' %}selected{% endif %}>Commission</option>
+                    <option value="machines" {% if request.GET.tri == 'machines' %}selected{% endif %}>Nombre de machines</option>
+                </select>
+            </div>
+            
+            <div class="form-control w-full md:w-64">
+                <label class="label">
+                    <span class="label-text">Vue</span>
+                </label>
+                <select name="vue" class="select select-bordered">
+                    <option value="ca" {% if request.GET.vue == 'ca' %}selected{% endif %}>Chiffres d'affaires</option>
+                    <option value="commissions" {% if request.GET.vue == 'commissions' %}selected{% endif %}>Commissions</option>
+                    <option value="penalites" {% if request.GET.vue == 'penalites' %}selected{% endif %}>Pénalités</option>
+                    <option value="balance" {% if request.GET.vue == 'balance' %}selected{% endif %}>Balance</option>
+                </select>
+            </div>
+            
+            <div class="form-control mt-8">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-filter mr-2"></i> Générer le rapport
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading indicator -->
+<div id="loading" class="htmx-indicator flex justify-center my-4">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+</div>
+
+<!-- En-tête du rapport (pour l'impression) -->
+<div class="hidden print:block mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold">LONATO - GESTLOTO</h1>
+            <p class="text-gray-600">Rapport des Agents</p>
+        </div>
+        <div class="text-right">
+            <p>Date d'édition: {% now "d/m/Y H:i" %}</p>
+            <p>Période: {{ periode_texte }}</p>
+        </div>
+    </div>
+    <hr class="my-4">
+</div>
+
+<!-- Contenu du rapport -->
+<div id="rapport-content">
+    <!-- Résumé -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="card-title text-xl mb-4">Résumé global</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Chiffre d'affaires total</div>
+                        <div class="stat-value text-primary">{{ resume.total_ca|floatformat:0 }}</div>
+                        <div class="stat-desc">FCFA</div>
+                    </div>
+                </div>
+                
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Commissions totales</div>
+                        <div class="stat-value text-success">{{ resume.total_commission|floatformat:0 }}</div>
+                        <div class="stat-desc">FCFA</div>
+                    </div>
+                </div>
+                
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Pénalités totales</div>
+                        <div class="stat-value text-error">{{ resume.total_penalite|floatformat:0 }}</div>
+                        <div class="stat-desc">FCFA</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Nombre d'agents actifs</div>
+                        <div class="stat-value">{{ resume.nb_agents_actifs }}</div>
+                        <div class="stat-desc">Sur {{ resume.nb_agents_total }} au total</div>
+                    </div>
+                    
+                    <div class="stat">
+                        <div class="stat-title">Machines utilisées</div>
+                        <div class="stat-value">{{ resume.nb_machines }}</div>
+                    </div>
+                </div>
+                
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Balance totale</div>
+                        <div class="stat-value {% if resume.balance >= 0 %}text-success{% else %}text-error{% endif %}">
+                            {{ resume.balance|floatformat:0 }}
+                        </div>
+                        <div class="stat-desc">FCFA (Commissions - Pénalités)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Graphique d'évolution -->
+    <div class="card bg-base-100 shadow-xl mb-6 print:break-inside-avoid">
+        <div class="card-body">
+            <h2 class="card-title text-xl mb-4">Évolution des performances</h2>
+            <div class="bg-base-200 h-80 rounded-lg flex items-center justify-center">
+                <!-- Intégrer un graphique linéaire ici -->
+                <p class="text-center text-gray-500">
+                    <i class="bx bx-line-chart text-6xl"></i><br>
+                    Graphique d'évolution
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tableau des agents -->
+    <div class="card bg-base-100 shadow-xl mb-6 print:break-inside-avoid">
+        <div class="card-body">
+            <h2 class="card-title text-xl mb-4">Performance des agents</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th class="bg-base-200">Rang</th>
+                            <th class="bg-base-200">Agent</th>
+                            <th class="bg-base-200 text-right">Chiffre d'affaires</th>
+                            <th class="bg-base-200 text-right">Commissions</th>
+                            <th class="bg-base-200 text-right">Pénalités</th>
+                            <th class="bg-base-200 text-right">Balance</th>
+                            <th class="bg-base-200 text-center">Machines</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for agent in agents_data %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="flex items-center">
+                                    <div class="avatar mr-3">
+                                        <div class="w-10 rounded-full">
+                                            <img src="https://ui-avatars.com/api/?name={{ agent.nom_agent }}&background=1c64f2&color=fff" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold">{{ agent.nom_agent }} {{ agent.prenom_agent }}</div>
+                                        <div class="text-xs opacity-70">{{ agent.reference_agent }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-right font-bold">{{ agent.total_ca|floatformat:0 }} FCFA</td>
+                            <td class="text-right text-success">{{ agent.total_commission|floatformat:0 }} FCFA</td>
+                            <td class="text-right text-error">{{ agent.total_penalite|floatformat:0 }} FCFA</td>
+                            <td class="text-right font-bold {% if agent.balance >= 0 %}text-success{% else %}text-error{% endif %}">
+                                {{ agent.balance|floatformat:0 }} FCFA
+                            </td>
+                            <td class="text-center">
+                                <div class="badge badge-neutral">{{ agent.nb_machines }}</div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">Aucune donnée disponible pour cette période</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2" class="font-bold">TOTAL</td>
+                            <td class="text-right font-bold">{{ resume.total_ca|floatformat:0 }} FCFA</td>
+                            <td class="text-right font-bold text-success">{{ resume.total_commission|floatformat:0 }} FCFA</td>
+                            <td class="text-right font-bold text-error">{{ resume.total_penalite|floatformat:0 }} FCFA</td>
+                            <td class="text-right font-bold {% if resume.balance >= 0 %}text-success{% else %}text-error{% endif %}">
+                                {{ resume.balance|floatformat:0 }} FCFA
+                            </td>
+                            <td class="text-center font-bold">{{ resume.nb_machines }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    {% if agent_selectionne %}
+    <!-- Détail de l'agent sélectionné -->
+    <div class="card bg-base-100 shadow-xl mb-6 print:break-inside-avoid">
+        <div class="card-body">
+            <h2 class="card-title text-xl mb-4">
+                <div class="flex items-center">
+                    <div class="avatar mr-3">
+                        <div class="w-12 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                            <img src="https://ui-avatars.com/api/?name={{ agent_selectionne.nom_agent }}&background=1c64f2&color=fff" />
+                        </div>
+                    </div>
+                    Détails pour {{ agent_selectionne.nom_agent }} {{ agent_selectionne.prenom_agent }}
+                </div>
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Chiffre d'affaires</div>
+                        <div class="stat-value">{{ agent_details.total_ca|floatformat:0 }}</div>
+                        <div class="stat-desc">FCFA</div>
+                    </div>
+                </div>
+                
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Commissions</div>
+                        <div class="stat-value text-success">{{ agent_details.total_commission|floatformat:0 }}</div>
+                        <div class="stat-desc">FCFA</div>
+                    </div>
+                </div>
+                
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Pénalités</div>
+                        <div class="stat-value text-error">{{ agent_details.total_penalite|floatformat:0 }}</div>
+                        <div class="stat-desc">FCFA</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="divider">Machines gérées</div>
+            
+            <div class="flex flex-wrap gap-4 mb-6">
+                {% for machine in agent_machines %}
+                <div class="card w-full md:w-80 bg-base-200 shadow-md">
+                    <div class="card-body p-4">
+                        <h3 class="card-title text-lg">
+                            <i class="bx bx-laptop text-primary text-xl mr-2"></i>
+                            {{ machine.numero_terminal }}
+                        </h3>
+                        <p>{{ machine.nom_point_vente }}</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-sm">CA: {{ machine.total_ca|floatformat:0 }} FCFA</span>
+                            <div class="badge badge-primary">{{ machine.nb_transactions }} transactions</div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="alert alert-warning">
+                    <i class="bx bx-info-circle"></i>
+                    <span>Cet agent ne gère actuellement aucune machine.</span>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if request.GET.vue == 'ca' or not request.GET.vue %}
+            <div class="divider">Chiffres d'affaires récents</div>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th class="bg-base-200">Date</th>
+                            <th class="bg-base-200">Machine</th>
+                            <th class="bg-base-200 text-right">Ventes</th>
+                            <th class="bg-base-200 text-right">Annulations</th>
+                            <th class="bg-base-200 text-right">Paiements</th>
+                            <th class="bg-base-200 text-right">Solde</th>
+                            <th class="bg-base-200 text-right">Commission</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ca in agent_chiffres_affaire %}
+                        <tr>
+                            <td>{{ ca.date_chiffre_affaire|date:"d/m/Y" }}</td>
+                            <td>{{ ca.machine.numero_terminal }}</td>
+                            <td class="text-right">{{ ca.ventes_totales|floatformat:0 }} FCFA</td>
+                            <td class="text-right">{{ ca.annulations_totales|floatformat:0 }} FCFA</td>
+                            <td class="text-right">{{ ca.paiements_totaux|floatformat:0 }} FCFA</td>
+                            <td class="text-right font-bold">{{ ca.solde_total|floatformat:0 }} FCFA</td>
+                            <td class="text-right text-success">{{ ca.montant_commission|floatformat:0 }} FCFA</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">Aucun chiffre d'affaires pour cette période</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+            
+            {% if request.GET.vue == 'commissions' %}
+            <div class="divider">Commissions reçues</div>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th class="bg-base-200">Date</th>
+                            <th class="bg-base-200">Machine</th>
+                            <th class="bg-base-200">Point de vente</th>
+                            <th class="bg-base-200 text-right">Montant</th>
+                            <th class="bg-base-200">Observations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for commission in agent_commissions %}
+                        <tr>
+                            <td>{{ commission.date_commission|date:"d/m/Y" }}</td>
+                            <td>{{ commission.machine.numero_terminal }}</td>
+                            <td>{{ commission.machine.nom_point_vente }}</td>
+                            <td class="text-right font-bold text-success">{{ commission.montant_commission|floatformat:0 }} FCFA</td>
+                            <td>{{ commission.observations|truncatechars:50|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">Aucune commission pour cette période</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+            
+            {% if request.GET.vue == 'penalites' %}
+            <div class="divider">Pénalités reçues</div>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th class="bg-base-200">Date</th>
+                            <th class="bg-base-200">Machine</th>
+                            <th class="bg-base-200">Point de vente</th>
+                            <th class="bg-base-200 text-right">Montant</th>
+                            <th class="bg-base-200">Motif</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for penalite in agent_penalites %}
+                        <tr>
+                            <td>{{ penalite.date_penalite|date:"d/m/Y" }}</td>
+                            <td>{{ penalite.machine.numero_terminal }}</td>
+                            <td>{{ penalite.machine.nom_point_vente }}</td>
+                            <td class="text-right font-bold text-error">{{ penalite.montant_penalite|floatformat:0 }} FCFA</td>
+                            <td>{{ penalite.motif_penalite|truncatechars:50|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">Aucune pénalité pour cette période</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+            
+            {% if request.GET.vue == 'balance' %}
+            <div class="divider">Balance des commissions et pénalités</div>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th class="bg-base-200">Mois</th>
+                            <th class="bg-base-200 text-right">Commissions</th>
+                            <th class="bg-base-200 text-right">Pénalités</th>
+                            <th class="bg-base-200 text-right">Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for balance in agent_balance_mensuelle %}
+                        <tr>
+                            <td>{{ balance.mois_texte }} {{ balance.annee }}</td>
+                            <td class="text-right text-success">{{ balance.total_commission|floatformat:0 }} FCFA</td>
+                            <td class="text-right text-error">{{ balance.total_penalite|floatformat:0 }} FCFA</td>
+                            <td class="text-right font-bold {% if balance.balance >= 0 %}text-success{% else %}text-error{% endif %}">
+                                {{ balance.balance|floatformat:0 }} FCFA
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4">Aucune donnée disponible</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="font-bold">TOTAL</td>
+                            <td class="text-right font-bold text-success">{{ agent_details.total_commission|floatformat:0 }} FCFA</td>
+                            <td class="text-right font-bold text-error">{{ agent_details.total_penalite|floatformat:0 }} FCFA</td>
+                            <td class="text-right font-bold {% if agent_details.balance >= 0 %}text-success{% else %}text-error{% endif %}">
+                                {{ agent_details.balance|floatformat:0 }} FCFA
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Footer for printing -->
+    <div class="hidden print:block mt-8">
+        <div class="text-center text-gray-500 text-sm">
+            <p>Rapport généré le {% now "d/m/Y à H:i" %} par {{ user.username }}</p>
+            <p>LONATO GESTLOTO - Système de gestion des activités de loterie</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const periodeSelect = document.querySelector('select[name="periode"]');
+        const dateDebutContainer = document.getElementById('date-debut-container');
+        const dateFinContainer = document.getElementById('date-fin-container');
+        
+        periodeSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                dateDebutContainer.style.display = 'block';
+                dateFinContainer.style.display = 'block';
+            } else {
+                dateDebutContainer.style.display = 'none';
+                dateFinContainer.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

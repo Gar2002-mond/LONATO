@@ -1,68 +1,64 @@
-{% extends 'base.html' %} {% block auth_content %}
-<div
-  class="hero min-h-screen bg-[url('/static/images/pagne.jpg')] bg-cover bg-center relative"
->
-  <div
-    class="absolute inset-0 bg-gradient-to-br from-primary/40 to-secondary/40 backdrop-blur-lg"
-  ></div>
-  <div class="relative z-10 flex justify-center items-center h-full px-4">
-    <div
-      class="card w-full max-w-sm shadow-2xl bg-white/30 backdrop-blur-md border border-white/20 rounded-2xl"
-    >
-      <div class="card-body p-8">
-        <h2 class="text-3xl font-extrabold text-center text-primary mb-6">
-          Connexion
-        </h2>
-        <form method="post" action="{% url 'login' %}" class="space-y-5">
-          {% csrf_token %} {% if form.errors %}
-          <div class="alert alert-error shadow-lg flex items-center space-x-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="stroke-current flex-shrink-0 h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span>Erreur ! Vérifiez vos identifiants.</span>
+{% extends 'base.html' %} {% load static %} {% block auth_content %}
+<div class="hero min-h-screen bg-gradient-to-b from-base-200 to-base-300">
+  <div class="hero-content flex-col lg:flex-row-reverse max-w-5xl">
+    <div class="text-center lg:text-left lg:ml-10 lg:w-1/2">
+      <h1 class="text-5xl font-bold text-primary">LONATO</h1>
+      <h2 class="text-3xl font-bold mt-2">Système de Gestion LOTO</h2>
+      <p class="py-6">
+        Bienvenue dans la plateforme de gestion des activités liées aux jeux de
+        loto pour la LONATO. Cette solution vous permet de gérer efficacement
+        les agents, collecteurs, machines et transactions.
+      </p>
+
+      <div
+        class="flex flex-col sm:flex-row gap-4 mt-2 justify-center lg:justify-start"
+      >
+        <div class="stat bg-base-100 shadow rounded-xl">
+          <div class="stat-figure text-primary">
+            <i class="bx bxs-user-check text-3xl"></i>
           </div>
-          {% endif %}
-          <div class="form-control">
-            <input
-              type="text"
-              name="username"
-              placeholder="Nom d'utilisateur"
-              class="input input-bordered input-primary w-full focus:outline-none focus:ring-2 focus:ring-secondary/70"
-              required
-            />
+          <div class="stat-title">Efficacité</div>
+          <div class="stat-value text-primary">100%</div>
+        </div>
+        <div class="stat bg-base-100 shadow rounded-xl">
+          <div class="stat-figure text-secondary">
+            <i class="bx bx-line-chart text-3xl"></i>
           </div>
-          <br>
-          <div class="form-control">
-            <input
-              type="password"
-              name="password"
-              placeholder="Mot de passe"
-              class="input input-bordered input-primary w-full focus:outline-none focus:ring-2 focus:ring-secondary/70"
-              required
-            />
-            <label class="label mt-1 text-right">
-              <a href="#" class="link link-hover text-sm text-secondary"
-                >Mot de passe oublié ?</a
-              >
-            </label>
+          <div class="stat-title">Performance</div>
+          <div class="stat-value text-secondary">24/7</div>
+        </div>
+      </div>
+
+      <div class="mt-8">
+        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+          <i class="bx bx-log-in mr-2"></i> Connexion
+        </a>
+      </div>
+    </div>
+
+    <div class="lg:w-1/2 flex justify-center">
+      <div class="max-w-md">
+        <img
+          src="{% static 'images/lonato.jpg' %}"
+          alt="LONATO"
+          class="w-full rounded-lg-40 shadow-lg"
+          onerror="this.src='https://via.placeholder.com/400x300?text=LONATO'; this.onerror='';"
+        />
+
+        <div class="card bg-base-100 shadow-xl mt-8">
+          <div class="card-body">
+            <h2 class="card-title">GESTLOTO</h2>
+            <p>
+              Système intégré pour la gestion efficace des activités de loterie
+              nationale.
+            </p>
+            <div class="card-actions justify-end">
+              <div class="badge badge-primary bg-yellow-500 ">Agents</div>
+              <div class="badge badge-secondary">Collecteurs</div>
+              <div class="badge badge-accent">Machines</div>
+            </div>
           </div>
-          <button
-            type="submit"
-            class="btn btn-primary w-full py-3 font-semibold text-lg hover:scale-105 transition-transform"
-          >
-            Se connecter
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   </div>
