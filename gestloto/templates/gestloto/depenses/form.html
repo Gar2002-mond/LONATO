@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="{% url 'depense_list' %}">Dépenses</a></li>
+<li>{{ title }}</li>
+{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Veuillez remplir les informations ci-dessous{% endblock %}
+
+{% block content %}
+<div class="card bg-base-100 shadow-xl max-w-3xl mx-auto">
+    <div class="card-body">
+        <form method="post" hx-boost="true" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-error shadow-lg">
+                <div class="flex items-start">
+                    <i class="bx bx-error-circle text-2xl mr-2"></i>
+                    <div>
+                        <h3 class="font-bold">Erreur dans le formulaire</h3>
+                        <ul class="mt-1 list-disc list-inside text-sm">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Type de dépense</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <select name="type_depense" class="select select-bordered {% if form.type_depense.errors %}select-error{% endif %}" required>
+                        <option value="" disabled {% if not form.type_depense.value %}selected{% endif %}>-- Sélectionner un type --</option>
+                        {% for type in form.fields.type_depense.queryset %}
+                            <option value="{{ type.id }}" {% if form.type_depense.value == type.id %}selected{% endif %}>
+                                {{ type.get_libelle_display }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Agent concerné</span>
+                        <span class="label-text-alt">Optionnel</span>
+                    </label>
+                    <select name="agent" class="select select-bordered {% if form.agent.errors %}select-error{% endif %}">
+                        <option value="">-- Aucun agent --</option>
+                        {% for agent in form.fields.agent.queryset %}
+                            <option value="{{ agent.id }}" {% if form.agent.value == agent.id %}selected{% endif %}>
+                                {{ agent.nom_agent }} {{ agent.prenom_agent }} ({{ agent.reference_agent }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date de la dépense</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="date" name="date_depense" value="{{ form.date_depense.value|date:'Y-m-d'|default:'' }}" class="input input-bordered {% if form.date_depense.errors %}input-error{% endif %}" required>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Montant</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" name="montant" value="{{ form.montant.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.montant.errors %}input-error{% endif %} w-full" required>
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
+                    </div>
+                </div>
+                
+                <div class="form-control md:col-span-2">
+                    <label class="label">
+                        <span class="label-text">Référence</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="text" name="reference" value="{{ form.reference.value|default:'' }}" class="input input-bordered {% if form.reference.errors %}input-error{% endif %}" required>
+                </div>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Autres détails</span>
+                </label>
+                <textarea name="autres_details" rows="3" class="textarea textarea-bordered {% if form.autres_details.errors %}textarea-error{% endif %}">{{ form.autres_details.value|default:'' }}</textarea>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+                <a href="{% url 'depense_list' %}" class="btn btn-outline">
+                    <i class="bx bx-arrow-back mr-2"></i> Annuler
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-save mr-2"></i> Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

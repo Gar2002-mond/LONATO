@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="{% url 'collecteur_list' %}">Collecteurs</a></li>
+<li>{{ title }}</li>
+{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Veuillez remplir les informations ci-dessous{% endblock %}
+
+{% block content %}
+<div class="card bg-base-100 shadow-xl max-w-3xl mx-auto">
+    <div class="card-body">
+        <form method="post" hx-boost="true" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-error shadow-lg">
+                <div class="flex items-start">
+                    <i class="bx bx-error-circle text-2xl mr-2"></i>
+                    <div>
+                        <h3 class="font-bold">Erreur dans le formulaire</h3>
+                        <ul class="mt-1 list-disc list-inside text-sm">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Nom</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="text" name="nom_collecteur" value="{{ form.nom_collecteur.value|default:'' }}" class="input input-bordered {% if form.nom_collecteur.errors %}input-error{% endif %}" required autofocus>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Prénom</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="text" name="prenom_collecteur" value="{{ form.prenom_collecteur.value|default:'' }}" class="input input-bordered {% if form.prenom_collecteur.errors %}input-error{% endif %}" required>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Référence</span>
+                        <span class="label-text-alt text-error">Unique</span>
+                    </label>
+                    <input type="text" name="reference_collecteur" value="{{ form.reference_collecteur.value|default:'' }}" class="input input-bordered {% if form.reference_collecteur.errors %}input-error{% endif %}" required>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Téléphone</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="tel" name="num_tel_collecteur" value="{{ form.num_tel_collecteur.value|default:'' }}" class="input input-bordered {% if form.num_tel_collecteur.errors %}input-error{% endif %}" required>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Email</span>
+                    </label>
+                    <input type="email" name="email_collecteur" value="{{ form.email_collecteur.value|default:'' }}" class="input input-bordered {% if form.email_collecteur.errors %}input-error{% endif %}">
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date début d'activités</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="date" name="date_debut_activites" value="{{ form.date_debut_activites.value|date:'Y-m-d'|default:'' }}" class="input input-bordered {% if form.date_debut_activites.errors %}input-error{% endif %}" required>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Pourcentage de commission (%)</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="number" name="pourcentage_commission" value="{{ form.pourcentage_commission.value|default:'' }}" min="0" max="100" step="0.01" class="input input-bordered {% if form.pourcentage_commission.errors %}input-error{% endif %}" required>
+                </div>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Autres détails</span>
+                </label>
+                <textarea name="autres_details" rows="3" class="textarea textarea-bordered {% if form.autres_details.errors %}textarea-error{% endif %}">{{ form.autres_details.value|default:'' }}</textarea>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+                <a href="{% url 'collecteur_list' %}" class="btn btn-outline">
+                    <i class="bx bx-arrow-back mr-2"></i> Annuler
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-save mr-2"></i> Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

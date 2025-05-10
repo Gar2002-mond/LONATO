@@ -1,0 +1,45 @@
+<div class="modal modal-open">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg flex items-center">
+            <i class="bx bx-trash text-error text-xl mr-2"></i>
+            Confirmation de suppression
+        </h3>
+        
+        <p class="py-4">
+            Êtes-vous sûr de vouloir supprimer la dépense du <strong>{{ depense.date_depense|date:"d/m/Y" }}</strong> de type <strong>{{ depense.type_depense.get_libelle_display }}</strong> ?
+        </p>
+        
+        <div class="alert alert-warning mt-2 mb-4">
+            <div class="flex items-center">
+                <i class="bx bx-info-circle text-xl mr-2"></i>
+                <div>
+                    <h3 class="font-bold">Détails de la dépense</h3>
+                    <ul class="mt-1 list-disc list-inside text-sm">
+                        <li>Montant: {{ depense.montant|floatformat:0 }} FCFA</li>
+                        <li>Référence: {{ depense.reference }}</li>
+                        {% if depense.agent %}
+                        <li>Agent concerné: {{ depense.agent.nom_agent }} {{ depense.agent.prenom_agent }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-base-200 p-4 rounded-lg mt-2 mb-4">
+            <p class="text-sm text-warning flex items-center">
+                <i class="bx bx-error-circle mr-1"></i> 
+                Cette action est irréversible. La dépense sera définitivement supprimée du système.
+            </p>
+        </div>
+        
+        <div class="modal-action">
+            <button class="btn modal-close">Annuler</button>
+            <form method="post" action="{% url 'depense_delete' depense.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-error">
+                    <i class="bx bx-trash mr-2"></i> Supprimer définitivement
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

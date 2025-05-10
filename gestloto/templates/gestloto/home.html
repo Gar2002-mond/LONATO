@@ -1,0 +1,70 @@
+{% extends 'base.html' %} {% block auth_content %}
+<div
+  class="hero min-h-screen bg-[url('/static/images/pagne.jpg')] bg-cover bg-center relative"
+>
+  <div
+    class="absolute inset-0 bg-gradient-to-br from-primary/40 to-secondary/40 backdrop-blur-lg"
+  ></div>
+  <div class="relative z-10 flex justify-center items-center h-full px-4">
+    <div
+      class="card w-full max-w-sm shadow-2xl bg-white/30 backdrop-blur-md border border-white/20 rounded-2xl"
+    >
+      <div class="card-body p-8">
+        <h2 class="text-3xl font-extrabold text-center text-primary mb-6">
+          Connexion
+        </h2>
+        <form method="post" action="{% url 'login' %}" class="space-y-5">
+          {% csrf_token %} {% if form.errors %}
+          <div class="alert alert-error shadow-lg flex items-center space-x-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="stroke-current flex-shrink-0 h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>Erreur ! Vérifiez vos identifiants.</span>
+          </div>
+          {% endif %}
+          <div class="form-control">
+            <input
+              type="text"
+              name="username"
+              placeholder="Nom d'utilisateur"
+              class="input input-bordered input-primary w-full focus:outline-none focus:ring-2 focus:ring-secondary/70"
+              required
+            />
+          </div>
+          <br>
+          <div class="form-control">
+            <input
+              type="password"
+              name="password"
+              placeholder="Mot de passe"
+              class="input input-bordered input-primary w-full focus:outline-none focus:ring-2 focus:ring-secondary/70"
+              required
+            />
+            <label class="label mt-1 text-right">
+              <a href="#" class="link link-hover text-sm text-secondary"
+                >Mot de passe oublié ?</a
+              >
+            </label>
+          </div>
+          <button
+            type="submit"
+            class="btn btn-primary w-full py-3 font-semibold text-lg hover:scale-105 transition-transform"
+          >
+            Se connecter
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

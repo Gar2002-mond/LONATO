@@ -1,0 +1,43 @@
+<div class="modal modal-open">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg flex items-center">
+            <i class="bx bx-trash text-error text-xl mr-2"></i>
+            Confirmation de suppression
+        </h3>
+        
+        <p class="py-4">
+            Êtes-vous sûr de vouloir supprimer le chiffre d'affaires du <strong>{{ chiffre_affaire.date_chiffre_affaire|date:"d/m/Y" }}</strong> pour la machine <strong>{{ chiffre_affaire.machine.numero_terminal }}</strong> ?
+        </p>
+        
+        <div class="alert alert-warning mt-2 mb-4">
+            <div class="flex items-center">
+                <i class="bx bx-info-circle text-xl mr-2"></i>
+                <div>
+                    <h3 class="font-bold">Détails du chiffre d'affaires</h3>
+                    <ul class="mt-1 list-disc list-inside text-sm">
+                        <li>Solde: {{ chiffre_affaire.solde_total|floatformat:0 }} FCFA</li>
+                        <li>Commission: {{ chiffre_affaire.montant_commission|floatformat:0 }} FCFA</li>
+                        <li>Agent enregistreur: {{ chiffre_affaire.agent_enregistreur.nom_agent }} {{ chiffre_affaire.agent_enregistreur.prenom_agent }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-base-200 p-4 rounded-lg mt-2 mb-4">
+            <p class="text-sm text-warning flex items-center">
+                <i class="bx bx-error-circle mr-1"></i> 
+                Cette action est irréversible. Toutes les données associées à ce chiffre d'affaires seront définitivement supprimées.
+            </p>
+        </div>
+        
+        <div class="modal-action">
+            <button class="btn modal-close">Annuler</button>
+            <form method="post" action="{% url 'chiffre_affaire_delete' chiffre_affaire.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-error">
+                    <i class="bx bx-trash mr-2"></i> Supprimer définitivement
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,49 @@
+# Environnements virtuels
+venv/
+env/
+*.env
+.env
+
+# Fichiers Python compilés et caches
+__pycache__/
+*.py[cod]
+*.so
+
+# Fichiers de base de données locaux (si vous utilisez SQLite pour le développement)
+# db.sqlite3
+# *.sqlite3
+
+# Fichiers média et statiques collectés (si vous ne voulez pas les versionner)
+# media/
+# staticfiles/
+# static_root/
+
+# Fichiers de configuration d'IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Fichiers spécifiques à l'OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Fichiers de couverture de tests
+.coverage
+coverage.xml
+htmlcov/
+
+# Fichiers de build Python
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Fichiers secrets (assurez-vous que les clés secrètes ne sont jamais commitées)
+# Par exemple, si vous avez un fichier local_settings.py ou secrets.json
+local_settings.py
+secrets.json

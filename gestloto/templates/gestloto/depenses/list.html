@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}Dépenses - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="#">Dépenses</a></li>
+{% endblock %}
+
+{% block page_title %}Dépenses{% endblock %}
+{% block page_subtitle %}Gestion des dépenses de la société{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'depense_create' %}" class="btn btn-primary">
+    <i class="bx bx-plus mr-2"></i> Ajouter une dépense
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Filtres -->
+<div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+        <h3 class="text-lg font-medium mb-4">Filtres</h3>
+        <form hx-get="{% url 'depense_list' %}" hx-target="#depense-list" hx-swap="innerHTML" hx-indicator="#loading" class="flex flex-wrap gap-4">
+            <div class="form-control w-full md:w-64">
+                <label class="label">
+                    <span class="label-text">Type de dépense</span>
+                </label>
+                <select name="type" class="select select-bordered" hx-get="{% url 'depense_list' %}" hx-target="#depense-list" hx-trigger="change">
+                    <option value="">Tous les types</option>
+                    {% for type in types_depenses %}
+                        <option value="{{ type.id }}" {% if request.GET.type == type.id|stringformat:"i" %}selected{% endif %}>
+                            {{ type.get_libelle_display }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-control w-full md:w-64">
+                <label class="label">
+                    <span class="label-text">Date début</span>
+                </label>
+                <input type="date" name="date_debut" value="{{ request.GET.date_debut|default:'' }}" class="input input-bordered" 
+                       hx-get="{% url 'depense_list' %}" 
+                       hx-target="#depense-list" 
+                       hx-include="closest form" 
+                       hx-trigger="change">
+            </div>
+            
+            <div class="form-control w-full md:w-64">
+                <label class="label">
+                    <span class="label-text">Date fin</span>
+                </label>
+                <input type="date" name="date_fin" value="{{ request.GET.date_fin|default:'' }}" class="input input-bordered" 
+                       hx-get="{% url 'depense_list' %}" 
+                       hx-target="#depense-list" 
+                       hx-include="closest form" 
+                       hx-trigger="change">
+            </div>
+            
+            <div class="form-control mt-8">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-filter mr-2"></i> Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading indicator -->
+<div id="loading" class="htmx-indicator flex justify-center my-4">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+</div>
+
+<!-- Liste des dépenses -->
+<div id="depense-list">
+    <div class="card bg-base-100 shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th class="bg-base-200">Date</th>
+                        <th class="bg-base-200">Type de dépense</th>
+                        <th class="bg-base-200">Référence</th>
+                        <th class="bg-base-200">Agent concerné</th>
+                        <th class="bg-base-200 text-right">Montant</th>
+                        <th class="bg-base-200">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for depense in depenses %}
+                    <tr>
+                        <td>{{ depense.date_depense|date:"d/m/Y" }}</td>
+                        <td>
+                            <div class="badge {% if depense.type_depense.libelle == 'salaire' %}badge-primary{% elif depense.type_depense.libelle == 'loyer' %}badge-secondary{% elif depense.type_depense.libelle == 'impot' %}badge-accent{% elif depense.type_depense.libelle == 'fourniture' %}badge-info{% else %}badge-neutral{% endif %}">
+                                {{ depense.type_depense.get_libelle_display }}
+                            </div>
+                        </td>
+                        <td>{{ depense.reference }}</td>
+                        <td>
+                            {% if depense.agent %}
+                                <div class="flex items-center space-x-3">
+                                    <div class="avatar">
+                                        <div class="mask mask-squircle w-8 h-8">
+                                            <img src="https://ui-avatars.com/api/?name={{ depense.agent.nom_agent }}&background=1c64f2&color=fff" alt="{{ depense.agent.nom_agent }}" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold">{{ depense.agent.reference_agent }}</div>
+                                        <div class="text-sm opacity-70">{{ depense.agent.nom_agent }} {{ depense.agent.prenom_agent }}</div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <span class="opacity-70">Non associé</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-right font-bold">{{ depense.montant|floatformat:0 }} FCFA</td>
+                        <td>
+                            <div class="flex gap-1">
+                                <a href="{% url 'depense_update' depense.id %}" class="btn btn-ghost btn-xs tooltip" data-tip="Modifier">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                                <button class="btn btn-ghost btn-xs text-error tooltip" data-tip="Supprimer"
+                                        hx-get="{% url 'depense_delete' depense.id %}"
+                                        hx-target="#modal"
+                                        hx-swap="innerHTML">
+                                    <i class="bx bx-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-8">
+                            <div class="flex flex-col items-center justify-center text-gray-500">
+                                <i class="bx bx-search text-4xl"></i>
+                                <p class="mt-2">Aucune dépense trouvée</p>
+                                <a href="{% url 'depense_create' %}" class="btn btn-sm btn-primary mt-4">
+                                    <i class="bx bx-plus mr-2"></i> Ajouter une dépense
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="text-right font-bold">Total:</td>
+                        <td class="text-right font-bold">{{ total_depenses|floatformat:0 }} FCFA</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if depenses.has_other_pages %}
+        <div class="flex justify-center py-4">
+            <div class="join">
+                {% if depenses.has_previous %}
+                <button class="join-item btn btn-sm"
+                        hx-get="{% url 'depense_list' %}?page={{ depenses.previous_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.date_debut %}&date_debut={{ request.GET.date_debut }}{% endif %}{% if request.GET.date_fin %}&date_fin={{ request.GET.date_fin }}{% endif %}"
+                        hx-target="#depense-list">
+                    <i class="bx bx-chevron-left"></i>
+                </button>
+                {% else %}
+                <button class="join-item btn btn-sm" disabled>
+                    <i class="bx bx-chevron-left"></i>
+                </button>
+                {% endif %}
+                
+                {% for i in depenses.paginator.page_range %}
+                    {% if depenses.number == i %}
+                    <button class="join-item btn btn-sm btn-active">{{ i }}</button>
+                    {% else %}
+                    <button class="join-item btn btn-sm"
+                            hx-get="{% url 'depense_list' %}?page={{ i }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.date_debut %}&date_debut={{ request.GET.date_debut }}{% endif %}{% if request.GET.date_fin %}&date_fin={{ request.GET.date_fin }}{% endif %}"
+                            hx-target="#depense-list">
+                        {{ i }}
+                    </button>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if depenses.has_next %}
+                <button class="join-item btn btn-sm"
+                        hx-get="{% url 'depense_list' %}?page={{ depenses.next_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.date_debut %}&date_debut={{ request.GET.date_debut }}{% endif %}{% if request.GET.date_fin %}&date_fin={{ request.GET.date_fin }}{% endif %}"
+                        hx-target="#depense-list">
+                    <i class="bx bx-chevron-right"></i>
+                </button>
+                {% else %}
+                <button class="join-item btn btn-sm" disabled>
+                    <i class="bx bx-chevron-right"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Graphique de répartition -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title">Dépenses par type</h3>
+                <div class="flex flex-wrap gap-4 mt-4">
+                    {% for type in repartition_par_type %}
+                    <div class="badge badge-lg gap-2 {% if type.libelle == 'salaire' %}badge-primary{% elif type.libelle == 'loyer' %}badge-secondary{% elif type.libelle == 'impot' %}badge-accent{% elif type.libelle == 'fourniture' %}badge-info{% else %}badge-neutral{% endif %}">
+                        {{ type.get_libelle_display }}: {{ type.total|floatformat:0 }} FCFA
+                    </div>
+                    {% endfor %}
+                </div>
+                <!-- Placeholder pour un graphique visuel -->
+                <div class="h-48 bg-base-200 rounded-lg mt-4 flex items-center justify-center">
+                    <p class="text-gray-500">Graphique de répartition des dépenses</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title">Statistiques</h3>
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Total dépenses</div>
+                        <div class="stat-value">{{ total_depenses|floatformat:0 }}</div>
+                        <div class="stat-desc">FCFA</div>
+                    </div>
+                    
+                    <div class="stat">
+                        <div class="stat-title">Nombre de transactions</div>
+                        <div class="stat-value">{{ depenses.paginator.count }}</div>
+                    </div>
+                    
+                    <div class="stat">
+                        <div class="stat-title">Moyenne par transaction</div>
+                        <div class="stat-value">{{ moyenne_depense|default:0|floatformat:0 }}</div>
+                        <div class="stat-desc">FCFA</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour HTMX -->
+<div id="modal"></div>
+{% endblock %}

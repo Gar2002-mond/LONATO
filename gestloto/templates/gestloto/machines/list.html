@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}Machines - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="#">Machines</a></li>
+{% endblock %}
+
+{% block page_title %}Machines{% endblock %}
+{% block page_subtitle %}Gestion des machines et terminaux{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'machine_create' %}" class="btn btn-primary">
+    <i class="bx bx-plus mr-2"></i> Ajouter une machine
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Filtres -->
+<div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+        <h3 class="text-lg font-medium mb-4">Filtres</h3>
+        <form hx-get="{% url 'machine_list' %}" hx-target="#machine-list" hx-swap="innerHTML" hx-indicator="#loading" class="flex flex-wrap gap-4">
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Recherche</span>
+                </label>
+                <input type="text" name="q" placeholder="Terminal, point de vente..." class="input input-bordered" 
+                       value="{{ request.GET.q|default:'' }}"
+                       hx-trigger="keyup changed delay:500ms" 
+                       hx-get="{% url 'machine_list' %}" 
+                       hx-target="#machine-list" 
+                       hx-include="closest form" />
+            </div>
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Agent</span>
+                </label>
+                <select name="agent" class="select select-bordered" hx-get="{% url 'machine_list' %}" hx-target="#machine-list" hx-indicator="#loading">
+                    <option value="">Tous les agents</option>
+                    {% for agent in agents %}
+                        <option value="{{ agent.id }}" {% if request.GET.agent == agent.id|stringformat:"i" %}selected{% endif %}>
+                            {{ agent.nom_agent }} {{ agent.prenom_agent }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-control mt-8">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-filter mr-2"></i> Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading indicator -->
+<div id="loading" class="htmx-indicator flex justify-center my-4">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+</div>
+
+<!-- Liste des machines -->
+<div id="machine-list">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for machine in machines %}
+        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div class="card-body">
+                <h2 class="card-title flex items-center">
+                    <i class='bx bx-laptop text-primary text-2xl mr-2'></i>
+                    {{ machine.numero_terminal }}
+                    {% if machine.agent %}
+                    <div class="badge badge-secondary ml-auto">Assigné</div>
+                    {% else %}
+                    <div class="badge badge-warning ml-auto">Non assigné</div>
+                    {% endif %}
+                </h2>
+                
+                <div class="mt-2">
+                    <div class="text-lg font-medium">{{ machine.nom_point_vente }}</div>
+                </div>
+                
+                <div class="divider my-1"></div>
+                
+                <div class="flex items-center mb-2">
+                    <i class="bx bx-user text-gray-500 mr-2"></i>
+                    {% if machine.agent %}
+                    <span>{{ machine.agent.nom_agent }} {{ machine.agent.prenom_agent }}</span>
+                    {% else %}
+                    <span class="text-gray-500">Aucun agent assigné</span>
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center mb-2">
+                    <i class="bx bx-line-chart text-gray-500 mr-2"></i>
+                    <span>{{ machine.chiffres_affaire.count }} enregistrement(s)</span>
+                </div>
+                
+                {% if machine.details %}
+                <div class="text-sm text-gray-500 mt-2 line-clamp-2">
+                    {{ machine.details }}
+                </div>
+                {% endif %}
+                
+                <div class="card-actions justify-end mt-4">
+                    <div class="join">
+                        <a href="{% url 'machine_detail' machine.id %}" class="btn btn-sm join-item">
+                            <i class="bx bx-show"></i>
+                        </a>
+                        <a href="{% url 'machine_update' machine.id %}" class="btn btn-sm btn-primary join-item">
+                            <i class="bx bx-edit"></i>
+                        </a>
+                        <button class="btn btn-sm btn-error join-item"
+                                hx-get="{% url 'machine_delete' machine.id %}"
+                                hx-target="#modal"
+                                hx-swap="innerHTML">
+                            <i class="bx bx-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full">
+            <div class="flex flex-col items-center justify-center text-gray-500 py-16">
+                <i class="bx bx-laptop text-6xl"></i>
+                <p class="mt-4 text-xl">Aucune machine trouvée</p>
+                <a href="{% url 'machine_create' %}" class="btn btn-primary mt-6">
+                    <i class="bx bx-plus mr-2"></i> Ajouter une machine
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if machines.has_other_pages %}
+    <div class="flex justify-center mt-8">
+        <div class="join">
+            {% if machines.has_previous %}
+            <button class="join-item btn btn-sm"
+                    hx-get="{% url 'machine_list' %}?page={{ machines.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}"
+                    hx-target="#machine-list">
+                <i class="bx bx-chevron-left"></i>
+            </button>
+            {% else %}
+            <button class="join-item btn btn-sm" disabled>
+                <i class="bx bx-chevron-left"></i>
+            </button>
+            {% endif %}
+            
+            {% for i in machines.paginator.page_range %}
+                {% if machines.number == i %}
+                <button class="join-item btn btn-sm btn-active">{{ i }}</button>
+                {% else %}
+                <button class="join-item btn btn-sm"
+                        hx-get="{% url 'machine_list' %}?page={{ i }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}"
+                        hx-target="#machine-list">
+                    {{ i }}
+                </button>
+                {% endif %}
+            {% endfor %}
+            
+            {% if machines.has_next %}
+            <button class="join-item btn btn-sm"
+                    hx-get="{% url 'machine_list' %}?page={{ machines.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}"
+                    hx-target="#machine-list">
+                <i class="bx bx-chevron-right"></i>
+            </button>
+            {% else %}
+            <button class="join-item btn btn-sm" disabled>
+                <i class="bx bx-chevron-right"></i>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Statistiques -->
+<div class="mt-8">
+    <h3 class="text-lg font-medium mb-4">Statistiques</h3>
+    <div class="stats shadow bg-base-100 w-full">
+        <div class="stat">
+            <div class="stat-figure text-primary">
+                <i class="bx bx-laptop text-3xl"></i>
+            </div>
+            <div class="stat-title">Total machines</div>
+            <div class="stat-value text-primary">{{ machines.paginator.count }}</div>
+        </div>
+        
+        <div class="stat">
+            <div class="stat-figure text-secondary">
+                <i class="bx bxs-user-check text-3xl"></i>
+            </div>
+            <div class="stat-title">Machines assignées</div>
+            <div class="stat-value text-secondary">{{ machines_assignees|default:0 }}</div>
+        </div>
+        
+        <div class="stat">
+            <div class="stat-figure text-accent">
+                <i class="bx bx-line-chart text-3xl"></i>
+            </div>
+            <div class="stat-title">CA moyen par machine</div>
+            <div class="stat-value text-accent">{{ ca_moyen|default:0|floatformat:0 }}</div>
+            <div class="stat-desc">FCFA</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour HTMX -->
+<div id="modal"></div>
+{% endblock %}

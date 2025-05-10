@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="{% url 'machine_list' %}">Machines</a></li>
+<li>{{ title }}</li>
+{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Veuillez remplir les informations ci-dessous{% endblock %}
+
+{% block content %}
+<div class="card bg-base-100 shadow-xl max-w-3xl mx-auto">
+    <div class="card-body">
+        <form method="post" hx-boost="true" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-error shadow-lg">
+                <div class="flex items-start">
+                    <i class="bx bx-error-circle text-2xl mr-2"></i>
+                    <div>
+                        <h3 class="font-bold">Erreur dans le formulaire</h3>
+                        <ul class="mt-1 list-disc list-inside text-sm">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Numéro de terminal</span>
+                        <span class="label-text-alt text-error">Requis, Unique</span>
+                    </label>
+                    <input type="text" name="numero_terminal" value="{{ form.numero_terminal.value|default:'' }}" class="input input-bordered {% if form.numero_terminal.errors %}input-error{% endif %}" required autofocus>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Nom du point de vente</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="text" name="nom_point_vente" value="{{ form.nom_point_vente.value|default:'' }}" class="input input-bordered {% if form.nom_point_vente.errors %}input-error{% endif %}" required>
+                </div>
+                
+                <div class="form-control md:col-span-2">
+                    <label class="label">
+                        <span class="label-text">Agent responsable</span>
+                        <span class="label-text-alt">Optionnel</span>
+                    </label>
+                    <select name="agent" class="select select-bordered {% if form.agent.errors %}select-error{% endif %}">
+                        <option value="">-- Sélectionner un agent --</option>
+                        {% for agent in form.fields.agent.queryset %}
+                            <option value="{{ agent.id }}" {% if form.agent.value == agent.id %}selected{% endif %}>
+                                {{ agent.nom_agent }} {{ agent.prenom_agent }} ({{ agent.reference_agent }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Détails</span>
+                    <span class="label-text-alt">Optionnel</span>
+                </label>
+                <textarea name="details" rows="3" class="textarea textarea-bordered {% if form.details.errors %}textarea-error{% endif %}">{{ form.details.value|default:'' }}</textarea>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+                <a href="{% url 'machine_list' %}" class="btn btn-outline">
+                    <i class="bx bx-arrow-back mr-2"></i> Annuler
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-save mr-2"></i> Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

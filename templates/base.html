@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LONATO - Gestion LOTO{% endblock %}</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-base-100">
+    {% if user.is_authenticated %}
+    <div class="drawer lg:drawer-open">
+        <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+        <div class="drawer-content flex flex-col">
+            <!-- Navbar -->
+            <div class="navbar bg-base-100 shadow-md z-20 lg:hidden">
+                <div class="flex-none">
+                    <label for="drawer-toggle" class="btn btn-square btn-ghost drawer-button">
+                        <i class='bx bx-menu text-2xl'></i>
+                    </label>
+                </div>
+                <div class="flex-1">
+                    <a href="{% url 'dashboard' %}" class="btn btn-ghost text-xl">
+                        <span class="text-primary font-bold">LONATO</span>
+                    </a>
+                </div>
+                <div class="flex-none">
+                    <div class="dropdown dropdown-end">
+                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                            <div class="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                                <img alt="{{ user.username }}" src="https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=1c64f2&color=fff" />
+                            </div>
+                        </div>
+                        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                            <li>
+                                <span class="font-bold">{{ user.username }}</span>
+                                <span class="text-xs">{{ user.email }}</span>
+                            </li>
+                            <li><a href="{% url 'admin:index' %}"><i class="bx bx-cog"></i> Administration</a></li>
+                            <div class="divider my-1"></div>
+                            <li><a href="{% url 'logout' %}"><i class="bx bx-log-out"></i> Déconnexion</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Page content -->
+            <main class="p-4 md:p-6 lg:p-8 min-h-screen">
+                {% block breadcrumbs %}
+                <div class="text-sm breadcrumbs mb-4">
+                    <ul>
+                        <li><a href="{% url 'dashboard' %}"><i class="bx bxs-home"></i> Tableau de bord</a></li>
+                        {% block breadcrumb_items %}{% endblock %}
+                    </ul>
+                </div>
+                {% endblock %}
+                
+                <div id="notifications" hx-swap-oob="true">
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} shadow-lg slide-in">
+                            {% if message.tags == 'success' %}
+                            <i class="bx bx-check-circle text-xl"></i>
+                            {% elif message.tags == 'error' %}
+                            <i class="bx bx-error-circle text-xl"></i>
+                            {% elif message.tags == 'warning' %}
+                            <i class="bx bx-error text-xl"></i>
+                            {% else %}
+                            <i class="bx bx-info-circle text-xl"></i>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                            <button class="btn btn-ghost btn-sm btn-circle ml-auto" onclick="this.parentElement.remove()">✕</button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold">{% block page_title %}{% endblock %}</h1>
+                            {% block page_subtitle %}<p class="text-gray-500 mt-1">{% endblock %}</p>
+                        </div>
+                        <div class="mt-4 md:mt-0">
+                            {% block page_actions %}{% endblock %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="animate-fade-in">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+            
+            <!-- Footer -->
+            <footer class="footer footer-center p-4 bg-base-300 text-base-content">
+                <div>
+                    <p>Copyright © {% now "Y" %} LONATO - Tous droits réservés | <span class="current-date"></span></p>
+                </div>
+            </footer>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="drawer-side z-30">
+            <label for="drawer-toggle" aria-label="close sidebar" class="drawer-overlay"></label>
+            <div class="menu p-4 w-72 min-h-full bg-base-200 text-base-content">
+                <div class="flex items-center mb-8 p-2">
+                    <div class="avatar mr-4">
+                        <div class="w-12 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                            <img src="https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=1c64f2&color=fff" alt="{{ user.username }}">
+                        </div>
+                    </div>
+                    <div>
+                        <p class="font-bold">{{ user.get_full_name|default:user.username }}</p>
+                        <p class="text-xs opacity-70">{{ user.profile.get_role_display }}</p>
+                        <p class="text-xs opacity-70">
+                            <i class="bx bx-time-five"></i> {% now "H:i" %}
+                        </p>
+                    </div>
+                </div>
+                
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %} flex items-center p-3 rounded-lg">
+                            <i class='bx bxs-dashboard mr-2'></i>
+                            <span>Tableau de bord</span>
+                            <span class="ml-auto text-xs bg-primary text-white px-1.5 py-0.5 rounded-md">Principal</span>
+                        </a>
+                    </li>
+                    
+                    <li class="menu-title pt-4">
+                        <span class="font-semibold uppercase tracking-wider text-xs text-primary">Gestion</span>
+                    </li>
+                    
+                    <li>
+                        <a href="{% url 'agent_list' %}" class="{% if 'agent' in request.resolver_match.url_name %}active{% endif %} flex items-center p-3 rounded-lg">
+                            <i class='bx bxs-user mr-2'></i>
+                            <span>Agents</span>
+                            <span class="ml-auto text-xs bg-base-300 px-1.5 py-0.5 rounded-md">{{ stats.total_agents|default:'0' }}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'collecteur_list' %}" class="{% if 'collecteur' in request.resolver_match.url_name %}active{% endif %} flex items-center p-3 rounded-lg">
+                            <i class='bx bxs-user-badge mr-2'></i>
+                            <span>Collecteurs</span>
+                            <span class="ml-auto text-xs bg-base-300 px-1.5 py-0.5 rounded-md">{{ stats.total_collecteurs|default:'0' }}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'machine_list' %}" class="{% if 'machine' in request.resolver_match.url_name %}active{% endif %} flex items-center p-3 rounded-lg">
+                            <i class='bx bx-laptop mr-2'></i>
+                            <span>Machines</span>
+                            <span class="ml-auto text-xs bg-base-300 px-1.5 py-0.5 rounded-md">{{ stats.total_machines|default:'0' }}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'chiffre_affaire_list' %}" class="{% if 'chiffre_affaire' in request.resolver_match.url_name %}active{% endif %} flex items-center p-3 rounded-lg">
+                            <i class='bx bx-line-chart mr-2'></i>
+                            <span>Chiffres d'affaires</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'depense_list' %}" class="{% if 'depense' in request.resolver_match.url_name %}active{% endif %} flex items-center p-3 rounded-lg">
+                            <i class='bx bx-money mr-2'></i>
+                            <span>Dépenses</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'activite_collecteur_list' %}" class="{% if 'activite_collecteur' in request.resolver_match.url_name %}active{% endif %} flex items-center p-3 rounded-lg">
+                            <i class='bx bx-transfer mr-2'></i>
+                            <span>Activités collecteurs</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'penalite_commission_list' %}" class="{% if 'penalite_commission' in request.resolver_match.url_name %}active{% endif %} flex items-center p-3 rounded-lg">
+                            <i class='bx bx-coin mr-2'></i>
+                            <span>Pénalités & commissions</span>
+                        </a>
+                    </li>
+                    
+                    <li class="menu-title pt-4">
+                        <span class="font-semibold uppercase tracking-wider text-xs text-primary">Rapports</span>
+                    </li>
+                    <li>
+                        <a href="{% url 'rapport_chiffre_affaire' %}" class="{% if request.resolver_match.url_name == 'rapport_chiffre_affaire' %}active{% endif %} flex items-center p-3 rounded-lg">
+                            <i class='bx bxs-report mr-2'></i>
+                            <span>Chiffres d'affaires</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'rapport_depense' %}" class="{% if request.resolver_match.url_name == 'rapport_depense' %}active{% endif %} flex items-center p-3 rounded-lg">
+                            <i class='bx bxs-report mr-2'></i>
+                            <span>Dépenses</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'rapport_collecteur' %}" class="{% if request.resolver_match.url_name == 'rapport_collecteur' %}active{% endif %} flex items-center p-3 rounded-lg">
+                            <i class='bx bxs-report mr-2'></i>
+                            <span>Collecteurs</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'rapport_agent' %}" class="{% if request.resolver_match.url_name == 'rapport_agent' %}active{% endif %} flex items-center p-3 rounded-lg">
+                            <i class='bx bxs-report mr-2'></i>
+                            <span>Agents</span>
+                        </a>
+                    </li>
+                    
+                    <div class="divider"></div>
+                    
+                    <li>
+                        <a href="{% url 'admin:index' %}" class="flex items-center p-3 rounded-lg">
+                            <i class='bx bx-cog mr-2'></i>
+                            <span>Administration</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'logout' %}" class="flex items-center p-3 rounded-lg text-error">
+                            <i class='bx bx-log-out mr-2'></i>
+                            <span>Déconnexion</span>
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="mt-auto pt-8">
+                    <div class="stats bg-base-300 stats-vertical shadow">
+                        <div class="stat">
+                            <div class="stat-title">Date actuelle</div>
+                            <div class="stat-value text-sm">9 mai 2025</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-title">Version</div>
+                            <div class="stat-value text-sm">v1.0.0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Contenu pour les utilisateurs non connectés -->
+    <main class="min-h-screen">
+        {% block auth_content %}{% endblock %}
+    </main>
+    {% endif %}
+    
+    <script src="{% static 'js/scripts.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

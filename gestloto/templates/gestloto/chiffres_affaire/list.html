@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% block title %}Chiffres d'Affaires - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="#">Chiffres d'affaires</a></li>
+{% endblock %}
+
+{% block page_title %}Chiffres d'Affaires{% endblock %}
+{% block page_subtitle %}Gestion des ventes et soldes par machine{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'chiffre_affaire_create' %}" class="btn btn-primary">
+    <i class="bx bx-plus mr-2"></i> Ajouter un chiffre d'affaires
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Filtres -->
+<div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+        <h3 class="text-lg font-medium mb-4">Filtres</h3>
+        <form hx-get="{% url 'chiffre_affaire_list' %}" hx-target="#chiffre-affaire-list" hx-swap="innerHTML" hx-indicator="#loading" class="flex flex-wrap gap-4">
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Date</span>
+                </label>
+                <input type="date" name="date" value="{{ request.GET.date|default:'' }}" class="input input-bordered" 
+                       hx-get="{% url 'chiffre_affaire_list' %}" 
+                       hx-target="#chiffre-affaire-list" 
+                       hx-include="closest form" />
+            </div>
+            
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Machine</span>
+                </label>
+                <select name="machine" class="select select-bordered" hx-get="{% url 'chiffre_affaire_list' %}" hx-target="#chiffre-affaire-list" hx-indicator="#loading">
+                    <option value="">Toutes les machines</option>
+                    {% for machine in machines %}
+                        <option value="{{ machine.id }}" {% if request.GET.machine == machine.id|stringformat:"i" %}selected{% endif %}>
+                            {{ machine.numero_terminal }} - {{ machine.nom_point_vente }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Agent enregistreur</span>
+                </label>
+                <select name="agent" class="select select-bordered" hx-get="{% url 'chiffre_affaire_list' %}" hx-target="#chiffre-affaire-list" hx-indicator="#loading">
+                    <option value="">Tous les agents</option>
+                    {% for agent in agents %}
+                        <option value="{{ agent.id }}" {% if request.GET.agent == agent.id|stringformat:"i" %}selected{% endif %}>
+                            {{ agent.nom_agent }} {{ agent.prenom_agent }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-control mt-8">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-filter mr-2"></i> Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading indicator -->
+<div id="loading" class="htmx-indicator flex justify-center my-4">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+</div>
+
+<!-- Liste des chiffres d'affaires -->
+<div id="chiffre-affaire-list">
+    <div class="card bg-base-100 shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th class="bg-base-200">Date</th>
+                        <th class="bg-base-200">Machine</th>
+                        <th class="bg-base-200">Point de vente</th>
+                        <th class="bg-base-200 text-right">Ventes</th>
+                        <th class="bg-base-200 text-right">Annulations</th>
+                        <th class="bg-base-200 text-right">Solde</th>
+                        <th class="bg-base-200 text-right">Commission</th>
+                        <th class="bg-base-200">Agent</th>
+                        <th class="bg-base-200">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ca in chiffres_affaire %}
+                    <tr>
+                        <td>
+                            <div class="font-bold">{{ ca.date_chiffre_affaire|date:"d/m/Y" }}</div>
+                            <div class="text-xs opacity-60">Jour {{ ca.jour_tirage }}</div>
+                        </td>
+                        <td>
+                            <div class="font-medium">{{ ca.machine.numero_terminal }}</div>
+                        </td>
+                        <td>{{ ca.machine.nom_point_vente }}</td>
+                        <td class="text-right">{{ ca.ventes_totales|floatformat:0 }} FCFA</td>
+                        <td class="text-right">{{ ca.annulations_totales|floatformat:0 }} FCFA</td>
+                        <td class="text-right font-bold">{{ ca.solde_total|floatformat:0 }} FCFA</td>
+                        <td class="text-right text-success">{{ ca.montant_commission|floatformat:0 }} FCFA</td>
+                        <td>
+                            <div class="flex items-center space-x-3">
+                                <div class="avatar">
+                                    <div class="mask mask-squircle w-8 h-8">
+                                        <img src="https://ui-avatars.com/api/?name={{ ca.agent_enregistreur.nom_agent }}&background=1c64f2&color=fff" alt="{{ ca.agent_enregistreur.nom_agent }}" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-xs opacity-70">{{ ca.agent_enregistreur.reference_agent }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex gap-1">
+                                <a href="{% url 'chiffre_affaire_detail' ca.id %}" class="btn btn-ghost btn-xs tooltip" data-tip="Détails">
+                                    <i class="bx bx-show"></i>
+                                </a>
+                                <a href="{% url 'chiffre_affaire_update' ca.id %}" class="btn btn-ghost btn-xs tooltip" data-tip="Modifier">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                                <button class="btn btn-ghost btn-xs text-error tooltip" data-tip="Supprimer"
+                                        hx-get="{% url 'chiffre_affaire_delete' ca.id %}"
+                                        hx-target="#modal"
+                                        hx-swap="innerHTML">
+                                    <i class="bx bx-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-8">
+                            <div class="flex flex-col items-center justify-center text-gray-500">
+                                <i class="bx bx-search text-4xl"></i>
+                                <p class="mt-2">Aucun chiffre d'affaires trouvé</p>
+                                <a href="{% url 'chiffre_affaire_create' %}" class="btn btn-sm btn-primary mt-4">
+                                    <i class="bx bx-plus mr-2"></i> Ajouter un chiffre d'affaires
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if chiffres_affaire.has_other_pages %}
+        <div class="flex justify-center py-4">
+            <div class="join">
+                {% if chiffres_affaire.has_previous %}
+                <button class="join-item btn btn-sm"
+                        hx-get="{% url 'chiffre_affaire_list' %}?page={{ chiffres_affaire.previous_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.machine %}&machine={{ request.GET.machine }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}"
+                        hx-target="#chiffre-affaire-list">
+                    <i class="bx bx-chevron-left"></i>
+                </button>
+                {% else %}
+                <button class="join-item btn btn-sm" disabled>
+                    <i class="bx bx-chevron-left"></i>
+                </button>
+                {% endif %}
+                
+                {% for i in chiffres_affaire.paginator.page_range %}
+                    {% if chiffres_affaire.number == i %}
+                    <button class="join-item btn btn-sm btn-active">{{ i }}</button>
+                    {% else %}
+                    <button class="join-item btn btn-sm"
+                            hx-get="{% url 'chiffre_affaire_list' %}?page={{ i }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.machine %}&machine={{ request.GET.machine }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}"
+                            hx-target="#chiffre-affaire-list">
+                        {{ i }}
+                    </button>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if chiffres_affaire.has_next %}
+                <button class="join-item btn btn-sm"
+                        hx-get="{% url 'chiffre_affaire_list' %}?page={{ chiffres_affaire.next_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.machine %}&machine={{ request.GET.machine }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}"
+                        hx-target="#chiffre-affaire-list">
+                    <i class="bx bx-chevron-right"></i>
+                </button>
+                {% else %}
+                <button class="join-item btn btn-sm" disabled>
+                    <i class="bx bx-chevron-right"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Résumé -->
+    {% if chiffres_affaire %}
+    <div class="card bg-base-100 shadow-xl mt-6">
+        <div class="card-body">
+            <h3 class="card-title">Résumé</h3>
+            <div class="stats shadow bg-base-200">
+                <div class="stat">
+                    <div class="stat-title">Total ventes</div>
+                    <div class="stat-value text-primary">{{ totaux.total_ventes|default:0|floatformat:0 }}</div>
+                    <div class="stat-desc">FCFA</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-title">Total solde</div>
+                    <div class="stat-value">{{ totaux.total_solde|default:0|floatformat:0 }}</div>
+                    <div class="stat-desc">FCFA</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-title">Total commission</div>
+                    <div class="stat-value text-success">{{ totaux.total_commission|default:0|floatformat:0 }}</div>
+                    <div class="stat-desc">FCFA</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal pour HTMX -->
+<div id="modal"></div>
+{% endblock %}

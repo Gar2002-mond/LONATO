@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Chiffre d'affaires du {{ chiffre_affaire.date_chiffre_affaire|date:"d/m/Y" }} - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="{% url 'chiffre_affaire_list' %}">Chiffres d'affaires</a></li>
+<li>{{ chiffre_affaire.date_chiffre_affaire|date:"d/m/Y" }} - {{ chiffre_affaire.machine.numero_terminal }}</li>
+{% endblock %}
+
+{% block page_title %}Chiffre d'Affaires du {{ chiffre_affaire.date_chiffre_affaire|date:"d/m/Y" }}{% endblock %}
+{% block page_subtitle %}Machine: {{ chiffre_affaire.machine.numero_terminal }} | Jour: J{{ chiffre_affaire.jour_tirage }}{% endblock %}
+
+{% block page_actions %}
+<div class="flex gap-2">
+    <a href="{% url 'chiffre_affaire_update' chiffre_affaire.id %}" class="btn btn-primary">
+        <i class="bx bx-edit mr-2"></i> Modifier
+    </a>
+    <button class="btn btn-error"
+            hx-get="{% url 'chiffre_affaire_delete' chiffre_affaire.id %}"
+            hx-target="#modal"
+            hx-swap="innerHTML">
+        <i class="bx bx-trash mr-2"></i> Supprimer
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Résumé du chiffre d'affaires -->
+    <div class="lg:col-span-2 card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-xl">
+                <i class="bx bx-line-chart text-primary text-2xl mr-2"></i>
+                Résumé des transactions
+            </h2>
+            
+            <div class="stats stats-vertical shadow bg-base-200 rounded-xl my-4">
+                <div class="stat">
+                    <div class="stat-title">Ventes totales</div>
+                    <div class="stat-value text-primary">{{ chiffre_affaire.ventes_totales|floatformat:0 }}</div>
+                    <div class="stat-desc">FCFA</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-title">Annulations totales</div>
+                    <div class="stat-value text-error">{{ chiffre_affaire.annulations_totales|floatformat:0 }}</div>
+                    <div class="stat-desc">FCFA</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-title">Paiements totaux</div>
+                    <div class="stat-value text-warning">{{ chiffre_affaire.paiements_totaux|floatformat:0 }}</div>
+                    <div class="stat-desc">FCFA</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-title">Solde total</div>
+                    <div class="stat-value text-success">{{ chiffre_affaire.solde_total|floatformat:0 }}</div>
+                    <div class="stat-desc">FCFA</div>
+                </div>
+            </div>
+            
+            <div class="divider">Commission</div>
+            
+            <div class="flex flex-col md:flex-row gap-6 justify-center items-center">
+                <div class="stats shadow bg-base-200">
+                    <div class="stat">
+                        <div class="stat-figure text-secondary">
+                            <i class="bx bx-percentage text-3xl"></i>
+                        </div>
+                        <div class="stat-title">Taux de commission</div>
+                        <div class="stat-value">{{ chiffre_affaire.pourcentage_commission_potentielle }}%</div>
+                    </div>
+                </div>
+                
+                <div class="stats shadow bg-base-200">
+                    <div class="stat">
+                        <div class="stat-figure text-secondary">
+                            <i class="bx bx-money text-3xl"></i>
+                        </div>
+                        <div class="stat-title">Montant commission</div>
+                        <div class="stat-value">{{ chiffre_affaire.montant_commission|floatformat:0 }}</div>
+                        <div class="stat-desc">FCFA</div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if chiffre_affaire.observations %}
+            <div class="divider">Observations</div>
+            <div class="bg-base-200 p-4 rounded-lg">
+                {{ chiffre_affaire.observations }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Informations complémentaires -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-xl">
+                <i class="bx bx-info-circle text-secondary text-2xl mr-2"></i>
+                Informations
+            </h2>
+            
+            <div class="space-y-4 mt-4">
+                <div class="flex items-center">
+                    <i class="bx bx-calendar text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Date</div>
+                        <div>{{ chiffre_affaire.date_chiffre_affaire|date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <i class="bx bx-target-lock text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Jour de tirage</div>
+                        <div>J{{ chiffre_affaire.jour_tirage }}</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <i class="bx bx-laptop text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Machine / Terminal</div>
+                        <div class="flex items-center">
+                            <a href="{% url 'machine_detail' chiffre_affaire.machine.id %}" class="link link-primary">
+                                {{ chiffre_affaire.machine.numero_terminal }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <i class="bx bx-map-pin text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Point de vente</div>
+                        <div>{{ chiffre_affaire.machine.nom_point_vente }}</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <i class="bx bx-user text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Agent enregistreur</div>
+                        <div class="flex items-center">
+                            <a href="{% url 'agent_detail' chiffre_affaire.agent_enregistreur.id %}" class="link link-primary">
+                                {{ chiffre_affaire.agent_enregistreur.nom_agent }} {{ chiffre_affaire.agent_enregistreur.prenom_agent }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if chiffre_affaire.autres_details %}
+            <div class="divider">Autres détails</div>
+            <div class="bg-base-200 p-3 rounded-lg text-sm">
+                {{ chiffre_affaire.autres_details }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour HTMX -->
+<div id="modal"></div>
+{% endblock %}

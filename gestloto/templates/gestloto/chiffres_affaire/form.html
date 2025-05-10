@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="{% url 'chiffre_affaire_list' %}">Chiffres d'affaires</a></li>
+<li>{{ title }}</li>
+{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Veuillez remplir les informations ci-dessous{% endblock %}
+
+{% block content %}
+<div class="card bg-base-100 shadow-xl max-w-4xl mx-auto">
+    <div class="card-body">
+        <form method="post" hx-boost="true" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-error shadow-lg">
+                <div class="flex items-start">
+                    <i class="bx bx-error-circle text-2xl mr-2"></i>
+                    <div>
+                        <h3 class="font-bold">Erreur dans le formulaire</h3>
+                        <ul class="mt-1 list-disc list-inside text-sm">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Machine / Terminal</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <select name="machine" class="select select-bordered {% if form.machine.errors %}select-error{% endif %}" required
+                            hx-get="{% url 'machine_info' %}" hx-target="#machine-info" hx-trigger="change">
+                        <option value="" disabled {% if not form.machine.value %}selected{% endif %}>-- Sélectionner une machine --</option>
+                        {% for machine in form.fields.machine.queryset %}
+                            <option value="{{ machine.id }}" {% if form.machine.value == machine.id %}selected{% endif %}>
+                                {{ machine.numero_terminal }} - {{ machine.nom_point_vente }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div id="machine-info" class="form-control">
+                    {% if form.machine.value %}
+                    <label class="label">
+                        <span class="label-text">Informations</span>
+                    </label>
+                    <div class="bg-base-200 p-3 rounded-lg">
+                        <p><strong>Point de vente:</strong> {{ form.machine.value.nom_point_vente }}</p>
+                        <p><strong>Agent:</strong> {{ form.machine.value.agent|default:"Non assigné" }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date du chiffre d'affaires</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="date" name="date_chiffre_affaire" value="{{ form.date_chiffre_affaire.value|date:'Y-m-d'|default:'' }}" class="input input-bordered {% if form.date_chiffre_affaire.errors %}input-error{% endif %}" required>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Jour de tirage (J1 à J365)</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="number" name="jour_tirage" value="{{ form.jour_tirage.value|default:'' }}" min="1" max="365" class="input input-bordered {% if form.jour_tirage.errors %}input-error{% endif %}" required>
+                </div>
+            </div>
+            
+            <div class="divider">Données financières</div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Ventes totales</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" name="ventes_totales" value="{{ form.ventes_totales.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.ventes_totales.errors %}input-error{% endif %} w-full" required
+                               hx-trigger="keyup, change"
+                               hx-post="{% url 'calculate_solde' %}"
+                               hx-target="#solde-total"
+                               hx-include="[name='ventes_totales'], [name='annulations_totales'], [name='paiements_totaux']">
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Annulations totales</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" name="annulations_totales" value="{{ form.annulations_totales.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.annulations_totales.errors %}input-error{% endif %} w-full" required
+                               hx-trigger="keyup, change"
+                               hx-post="{% url 'calculate_solde' %}"
+                               hx-target="#solde-total"
+                               hx-include="[name='ventes_totales'], [name='annulations_totales'], [name='paiements_totaux']">
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Paiements totaux</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" name="paiements_totaux" value="{{ form.paiements_totaux.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.paiements_totaux.errors %}input-error{% endif %} w-full" required
+                               hx-trigger="keyup, change"
+                               hx-post="{% url 'calculate_solde' %}"
+                               hx-target="#solde-total"
+                               hx-include="[name='ventes_totales'], [name='annulations_totales'], [name='paiements_totaux']">
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Solde total</span>
+                        <span class="label-text-alt text-success">Calculé automatiquement</span>
+                    </label>
+                    <div id="solde-total" class="relative">
+                        <input type="number" name="solde_total" value="{{ form.solde_total.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.solde_total.errors %}input-error{% endif %} w-full" readonly>
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="divider">Commission</div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Pourcentage de commission potentielle (%)</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="number" name="pourcentage_commission_potentielle" value="{{ form.pourcentage_commission_potentielle.value|default:'' }}" min="0" max="100" step="0.01" class="input input-bordered {% if form.pourcentage_commission_potentielle.errors %}input-error{% endif %}" required>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Agent enregistreur</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <select name="agent_enregistreur" class="select select-bordered {% if form.agent_enregistreur.errors %}select-error{% endif %}" required>
+                        <option value="" disabled {% if not form.agent_enregistreur.value %}selected{% endif %}>-- Sélectionner un agent --</option>
+                        {% for agent in form.fields.agent_enregistreur.queryset %}
+                            <option value="{{ agent.id }}" {% if form.agent_enregistreur.value == agent.id %}selected{% endif %}>
+                                {{ agent.nom_agent }} {{ agent.prenom_agent }} ({{ agent.reference_agent }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Observations</span>
+                </label>
+                <textarea name="observations" rows="2" class="textarea textarea-bordered {% if form.observations.errors %}textarea-error{% endif %}">{{ form.observations.value|default:'' }}</textarea>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Autres détails</span>
+                </label>
+                <textarea name="autres_details" rows="2" class="textarea textarea-bordered {% if form.autres_details.errors %}textarea-error{% endif %}">{{ form.autres_details.value|default:'' }}</textarea>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="flex justify-end gap-2">
+                <a href="{% url 'chiffre_affaire_list' %}" class="btn btn-outline">
+                    <i class="bx bx-arrow-back mr-2"></i> Annuler
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-save mr-2"></i> Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

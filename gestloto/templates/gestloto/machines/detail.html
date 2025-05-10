@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}Machine {{ machine.numero_terminal }} - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="{% url 'machine_list' %}">Machines</a></li>
+<li>{{ machine.numero_terminal }}</li>
+{% endblock %}
+
+{% block page_title %}{{ machine.numero_terminal }}{% endblock %}
+{% block page_subtitle %}Point de vente: {{ machine.nom_point_vente }}{% endblock %}
+
+{% block page_actions %}
+<div class="flex gap-2">
+    <a href="{% url 'machine_update' machine.id %}" class="btn btn-primary">
+        <i class="bx bx-edit mr-2"></i> Modifier
+    </a>
+    <button class="btn btn-error"
+            hx-get="{% url 'machine_delete' machine.id %}"
+            hx-target="#modal"
+            hx-swap="innerHTML">
+        <i class="bx bx-trash mr-2"></i> Supprimer
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Informations de la machine -->
+    <div class="card bg-base-100 shadow-xl col-span-1">
+        <div class="card-body">
+            <h2 class="card-title text-xl">
+                <i class="bx bx-info-circle text-primary text-2xl mr-2"></i>
+                Informations
+            </h2>
+            
+            <div class="flex flex-col items-center mt-4 mb-6">
+                <div class="avatar">
+                    <div class="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-white">
+                        <i class="bx bx-laptop text-4xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mt-4">{{ machine.numero_terminal }}</h3>
+                <div class="badge badge-primary mt-2">Terminal</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <i class="bx bx-map-pin text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Point de vente</div>
+                        <div>{{ machine.nom_point_vente }}</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <i class="bx bx-user text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Agent responsable</div>
+                        {% if machine.agent %}
+                        <div class="flex items-center">
+                            <a href="{% url 'agent_detail' machine.agent.id %}" class="link link-primary">
+                                {{ machine.agent.nom_agent }} {{ machine.agent.prenom_agent }}
+                            </a>
+                            <span class="ml-2 badge badge-secondary">{{ machine.agent.reference_agent }}</span>
+                        </div>
+                        {% else %}
+                        <div class="text-warning">Non assigné</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            {% if machine.details %}
+            <div class="divider"></div>
+            <div>
+                <div class="text-sm text-gray-500 mb-2">Détails supplémentaires</div>
+                <div class="bg-base-200 p-3 rounded-lg text-sm">
+                    {{ machine.details }}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if not machine.agent %}
+            <div class="divider"></div>
+            <div class="card-actions">
+                <a href="{% url 'machine_update' machine.id %}" class="btn btn-block btn-secondary">
+                    <i class="bx bx-user-plus mr-2"></i> Assigner un agent
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Statistiques et graphiques -->
+    <div class="card bg-base-100 shadow-xl col-span-2">
+        <div class="card-body">
+            <h2 class="card-title text-xl">
+                <i class="bx bx-stats text-secondary text-2xl mr-2"></i>
+                Performance
+            </h2>
+            
+            <!-- Statistiques -->
+            <div class="stats stats-vertical lg:stats-horizontal shadow bg-base-200 rounded-xl my-4">
+                <div class="stat">
+                    <div class="stat-title">Total ventes</div>
+                    <div class="stat-value">{{ stats.total_ventes|default:"0"|floatformat:0 }}</div>
+                    <div class="stat-desc">FCFA</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-title">Total solde</div>
+                    <div class="stat-value">{{ stats.total_solde|default:"0"|floatformat:0 }}</div>
+                    <div class="stat-desc">FCFA</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-title">Commission générée</div>
+                    <div class="stat-value text-accent">{{ stats.total_commission|default:"0"|floatformat:0 }}</div>
+                    <div class="stat-desc">FCFA</div>
+                </div>
+            </div>
+            
+            <!-- Graphique (placeholder) -->
+            <div class="bg-base-200 rounded-lg p-4 h-64 flex items-center justify-center mb-4">
+                <div class="text-center">
+                    <i class="bx bx-line-chart text-5xl text-gray-400"></i>
+                    <p class="mt-2 text-gray-500">Graphique de performance (à implémenter)</p>
+                </div>
+            </div>
+            
+            <div class="card-actions justify-end">
+                <a href="{% url 'chiffre_affaire_create' %}?machine={{ machine.id }}" class="btn btn-primary">
+                    <i class="bx bx-plus mr-2"></i> Ajouter un chiffre d'affaires
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-6">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-xl">
+                <i class="bx bx-line-chart text-info text-2xl mr-2"></i>
+                Historique des chiffres d'affaires
+                <div class="badge badge-info ml-2">{{ chiffres_affaires|length }}</div>
+            </h2>
+            
+            {% if chiffres_affaires %}
+            <div class="overflow-x-auto mt-4">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th class="bg-base-200">Date</th>
+                            <th class="bg-base-200">Jour</th>
+                            <th class="bg-base-200 text-right">Ventes</th>
+                            <th class="bg-base-200 text-right">Annulations</th>
+                            <th class="bg-base-200 text-right">Paiements</th>
+                            <th class="bg-base-200 text-right">Solde</th>
+                            <th class="bg-base-200 text-right">Commission</th>
+                            <th class="bg-base-200">Agent</th>
+                            <th class="bg-base-200">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ca in chiffres_affaires %}
+                        <tr>
+                            <td>{{ ca.date_chiffre_affaire|date:"d/m/Y" }}</td>
+                            <td><div class="badge">J{{ ca.jour_tirage }}</div></td>
+                            <td class="text-right">{{ ca.ventes_totales|floatformat:0 }}</td>
+                            <td class="text-right">{{ ca.annulations_totales|floatformat:0 }}</td>
+                            <td class="text-right">{{ ca.paiements_totaux|floatformat:0 }}</td>
+                            <td class="text-right font-bold">{{ ca.solde_total|floatformat:0 }}</td>
+                            <td class="text-right text-success">{{ ca.montant_commission|floatformat:0 }}</td>
+                            <td>
+                                <div class="flex items-center space-x-3">
+                                    <div class="avatar">
+                                        <div class="mask mask-squircle w-8 h-8">
+                                            <img src="https://ui-avatars.com/api/?name={{ ca.agent_enregistreur.nom_agent }}&background=1c64f2&color=fff" alt="{{ ca.agent_enregistreur.nom_agent }}" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm opacity-70">{{ ca.agent_enregistreur.reference_agent }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <a href="{% url 'chiffre_affaire_detail' ca.id %}" class="btn btn-ghost btn-xs tooltip" data-tip="Détails">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    <a href="{% url 'chiffre_affaire_update' ca.id %}" class="btn btn-ghost btn-xs tooltip" data-tip="Modifier">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <button class="btn btn-ghost btn-xs text-error tooltip" data-tip="Supprimer"
+                                            hx-get="{% url 'chiffre_affaire_delete' ca.id %}"
+                                            hx-target="#modal"
+                                            hx-swap="innerHTML">
+                                        <i class="bx bx-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info mt-4">
+                <i class="bx bx-info-circle"></i>
+                <span>Aucun chiffre d'affaires enregistré pour cette machine.</span>
+            </div>
+            <div class="flex justify-center mt-4">
+                <a href="{% url 'chiffre_affaire_create' %}?machine={{ machine.id }}" class="btn btn-primary">
+                    <i class="bx bx-plus mr-2"></i> Ajouter un chiffre d'affaires
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour HTMX -->
+<div id="modal"></div>
+{% endblock %}

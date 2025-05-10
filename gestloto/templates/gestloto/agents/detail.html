@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ agent.nom_agent }} {{ agent.prenom_agent }} - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="{% url 'agent_list' %}">Agents</a></li>
+<li>{{ agent.reference_agent }}</li>
+{% endblock %}
+
+{% block page_title %}{{ agent.nom_agent }} {{ agent.prenom_agent }}{% endblock %}
+{% block page_subtitle %}Référence: {{ agent.reference_agent }}{% endblock %}
+
+{% block page_actions %}
+<div class="flex gap-2">
+    <a href="{% url 'agent_update' agent.id %}" class="btn btn-primary">
+        <i class="bx bx-edit mr-2"></i> Modifier
+    </a>
+    <button class="btn btn-error"
+            hx-get="{% url 'agent_delete' agent.id %}"
+            hx-target="#modal"
+            hx-swap="innerHTML">
+        <i class="bx bx-trash mr-2"></i> Supprimer
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Informations de l'agent -->
+    <div class="card bg-base-100 shadow-xl col-span-1">
+        <div class="card-body">
+            <h2 class="card-title text-xl">
+                <i class="bx bx-user-circle text-primary text-2xl mr-2"></i>
+                Informations
+            </h2>
+            
+            <div class="flex flex-col items-center mt-4 mb-6">
+                <div class="avatar">
+                    <div class="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                        <img src="https://ui-avatars.com/api/?name={{ agent.nom_agent }}+{{ agent.prenom_agent }}&background=1c64f2&color=fff&bold=true&size=128" />
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mt-4">{{ agent.nom_agent }} {{ agent.prenom_agent }}</h3>
+                <div class="badge badge-primary mt-2">{{ agent.reference_agent }}</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <i class="bx bx-phone text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Téléphone</div>
+                        <div>{{ agent.num_tel_agent }}</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <i class="bx bx-envelope text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Email</div>
+                        <div>{{ agent.email_agent|default:"Non défini" }}</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <i class="bx bx-calendar text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Date début d'activités</div>
+                        <div>{{ agent.date_debut_activites|date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <i class="bx bx-money text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Commission</div>
+                        <div class="flex items-center">
+                            <span class="text-lg font-bold text-accent mr-2">{{ agent.pourcentage_commission }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if agent.autres_details %}
+            <div class="divider"></div>
+            <div>
+                <div class="text-sm text-gray-500 mb-2">Autres détails</div>
+                <div class="bg-base-200 p-3 rounded-lg text-sm">
+                    {{ agent.autres_details }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Machines gérées -->
+    <div class="card bg-base-100 shadow-xl col-span-2">
+        <div class="card-body">
+            <h2 class="card-title text-xl">
+                <i class="bx bx-laptop text-secondary text-2xl mr-2"></i>
+                Machines gérées
+                <div class="badge badge-secondary ml-2">{{ machines|length }}</div>
+            </h2>
+            
+            {% if machines %}
+            <div class="overflow-x-auto mt-4">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th class="bg-base-200">Terminal</th>
+                            <th class="bg-base-200">Point de vente</th>
+                            <th class="bg-base-200">Détails</th>
+                            <th class="bg-base-200">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for machine in machines %}
+                        <tr>
+                            <td class="font-bold">{{ machine.numero_terminal }}</td>
+                            <td>{{ machine.nom_point_vente }}</td>
+                            <td>{{ machine.details|truncatechars:50 }}</td>
+                            <td>
+                                <a href="{% url 'machine_detail' machine.id %}" class="btn btn-sm btn-outline">
+                                    <i class="bx bx-show mr-1"></i> Voir
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info mt-4">
+                <i class="bx bx-info-circle"></i>
+                <span>Aucune machine assignée à cet agent.</span>
+            </div>
+            <div class="card-actions justify-center mt-4">
+                <a href="{% url 'machine_create' %}" class="btn btn-primary">
+                    <i class="bx bx-plus mr-2"></i> Assigner une machine
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <!-- Chiffres d'affaires récents -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-xl">
+                <i class="bx bx-line-chart text-info text-2xl mr-2"></i>
+                Derniers chiffres d'affaires
+                <div class="badge badge-info ml-2">{{ chiffres_affaires|length }}</div>
+            </h2>
+            
+            {% if chiffres_affaires %}
+            <div class="overflow-x-auto mt-4">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th class="bg-base-200">Date</th>
+                            <th class="bg-base-200">Machine</th>
+                            <th class="bg-base-200 text-right">Solde</th>
+                            <th class="bg-base-200 text-right">Commission</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ca in chiffres_affaires %}
+                        <tr>
+                            <td>{{ ca.date_chiffre_affaire|date:"d/m/Y" }}</td>
+                            <td>{{ ca.machine.numero_terminal }}</td>
+                            <td class="text-right">{{ ca.solde_total|floatformat:0 }} FCFA</td>
+                            <td class="text-right text-success">{{ ca.montant_commission|floatformat:0 }} FCFA</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info mt-4">
+                <i class="bx bx-info-circle"></i>
+                <span>Aucun chiffre d'affaires enregistré pour cet agent.</span>
+            </div>
+            {% endif %}
+            
+            <div class="card-actions justify-end mt-4">
+                <a href="{% url 'chiffre_affaire_create' %}" class="btn btn-info">
+                    <i class="bx bx-plus mr-2"></i> Ajouter
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pénalités et comm

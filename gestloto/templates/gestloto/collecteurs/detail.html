@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ collecteur.nom_collecteur }} {{ collecteur.prenom_collecteur }} - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="{% url 'collecteur_list' %}">Collecteurs</a></li>
+<li>{{ collecteur.reference_collecteur }}</li>
+{% endblock %}
+
+{% block page_title %}{{ collecteur.nom_collecteur }} {{ collecteur.prenom_collecteur }}{% endblock %}
+{% block page_subtitle %}Référence: {{ collecteur.reference_collecteur }}{% endblock %}
+
+{% block page_actions %}
+<div class="flex gap-2">
+    <a href="{% url 'collecteur_update' collecteur.id %}" class="btn btn-primary">
+        <i class="bx bx-edit mr-2"></i> Modifier
+    </a>
+    <button class="btn btn-error"
+            hx-get="{% url 'collecteur_delete' collecteur.id %}"
+            hx-target="#modal"
+            hx-swap="innerHTML">
+        <i class="bx bx-trash mr-2"></i> Supprimer
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Informations du collecteur -->
+    <div class="card bg-base-100 shadow-xl col-span-1">
+        <div class="card-body">
+            <h2 class="card-title text-xl">
+                <i class="bx bx-user-circle text-accent text-2xl mr-2"></i>
+                Informations
+            </h2>
+            
+            <div class="flex flex-col items-center mt-4 mb-6">
+                <div class="avatar">
+                    <div class="w-24 rounded-full ring ring-accent ring-offset-base-100 ring-offset-2">
+                        <img src="https://ui-avatars.com/api/?name={{ collecteur.nom_collecteur }}+{{ collecteur.prenom_collecteur }}&background=f59e0b&color=fff&bold=true&size=128" />
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mt-4">{{ collecteur.nom_collecteur }} {{ collecteur.prenom_collecteur }}</h3>
+                <div class="badge badge-accent mt-2">{{ collecteur.reference_collecteur }}</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <i class="bx bx-phone text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Téléphone</div>
+                        <div>{{ collecteur.num_tel_collecteur }}</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <i class="bx bx-envelope text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Email</div>
+                        <div>{{ collecteur.email_collecteur|default:"Non défini" }}</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <i class="bx bx-calendar text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Date début d'activités</div>
+                        <div>{{ collecteur.date_debut_activites|date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <i class="bx bx-money text-gray-500 mr-3"></i>
+                    <div>
+                        <div class="text-sm text-gray-500">Commission</div>
+                        <div class="flex items-center">
+                            <span class="text-lg font-bold text-accent mr-2">{{ collecteur.pourcentage_commission }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if collecteur.autres_details %}
+            <div class="divider"></div>
+            <div>
+                <div class="text-sm text-gray-500 mb-2">Autres détails</div>
+                <div class="bg-base-200 p-3 rounded-lg text-sm">
+                    {{ collecteur.autres_details }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Statistiques et résumé -->
+    <div class="card bg-base-100 shadow-xl col-span-2">
+        <div class="card-body">
+            <h2 class="card-title text-xl">
+                <i class="bx bx-stats text-secondary text-2xl mr-2"></i>
+                Résumé des activités
+            </h2>
+            
+            <!-- Statistiques générales -->
+            <div class="stats shadow bg-base-200 rounded-xl my-4">
+                <div class="stat">
+                    <div class="stat-title">Total collecté</div>
+                    <div class="stat-value">{{ stats.total_montant|default:"0"|floatformat:0 }} FCFA</div>
+                    <div class="stat-desc">Sur toutes les activités</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-title">Commission totale</div>
+                    <div class="stat-value text-secondary">{{ stats.total_commission|default:"0"|floatformat:0 }} FCFA</div>
+                    <div class="stat-desc">À {{ collecteur.pourcentage_commission }}%</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-title">Activités</div>
+                    <div class="stat-value">{{ activites|length }}</div>
+                    <div class="stat-desc">Nombre total d'activités</div>
+                </div>
+            </div>
+            
+            <!-- Graphique d'activité (placeholder) -->
+            <div class="bg-base-200 rounded-lg p-4 h-64 flex items-center justify-center mb-4">
+                <div class="text-center">
+                    <i class="bx bx-line-chart text-5xl text-gray-400"></i>
+                    <p class="mt-2 text-gray-500">Graphique d'activités (à implémenter)</p>
+                </div>
+            </div>
+            
+            <div class="card-actions justify-end">
+                <a href="{% url 'rapport_collecteur' %}?collecteur_id={{ collecteur.id }}" class="btn btn-secondary">
+                    <i class="bx bx-file mr-2"></i> Rapport complet
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-6">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="flex justify-between items-center">
+                <h2 class="card-title text-xl">
+                    <i class="bx bx-transfer text-primary text-2xl mr-2"></i>
+                    Activités du collecteur
+                    <div class="badge badge-primary ml-2">{{ activites|length }}</div>
+                </h2>
+                
+                <a href="{% url 'activite_collecteur_create' %}" class="btn btn-primary btn-sm">
+                    <i class="bx bx-plus mr-2"></i> Ajouter une activité
+                </a>
+            </div>
+            
+            {% if activites %}
+            <div class="overflow-x-auto mt-4">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th class="bg-base-200">Date</th>
+                            <th class="bg-base-200">Référence reçu</th>
+                            <th class="bg-base-200 text-right">Montant</th>
+                            <th class="bg-base-200 text-right">Commission</th>
+                            <th class="bg-base-200">Observations</th>
+                            <th class="bg-base-200">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activite in activites %}
+                        <tr>
+                            <td>{{ activite.date_activite|date:"d/m/Y" }}</td>
+                            <td><div class="badge badge-ghost">{{ activite.reference_recu }}</div></td>
+                            <td class="text-right font-bold">{{ activite.montant_activite|floatformat:0 }} FCFA</td>
+                            <td class="text-right text-success">
+                                {{ activite.montant_activite|floatformat:0|multiply:activite.pourcentage_commission|divide:100 }} FCFA
+                                <div class="text-xs opacity-70">({{ activite.pourcentage_commission }}%)</div>
+                            </td>
+                            <td>{{ activite.observations|truncatechars:30 }}</td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <a href="{% url 'activite_collecteur_update' activite.id %}" class="btn btn-ghost btn-xs">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <button class="btn btn-ghost btn-xs text-error"
+                                            hx-get="{% url 'activite_collecteur_delete' activite.id %}"
+                                            hx-target="#modal"
+                                            hx-swap="innerHTML">
+                                        <i class="bx bx-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info mt-4">
+                <i class="bx bx-info-circle"></i>
+                <span>Aucune activité enregistrée pour ce collecteur.</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour HTMX -->
+<div id="modal"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Template tag personnalisé pour les calculs -->
+{% templatetag comment %}
+Vous devez créer un template tag personnalisé pour les opérations multiply et divide
+Exemple dans un fichier templatetags/math_filters.py:
+
+from django import template
+register = template.Library()
+
+@register.filter
+def multiply(value, arg):
+    return float(value) * float(arg)
+
+@register.filter
+def divide(value, arg):
+    return float(value) / float(arg)
+{% endtemplatetag %}
+{% endblock %}

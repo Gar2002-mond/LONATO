@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="{% url 'activite_collecteur_list' %}">Activités Collecteurs</a></li>
+<li>{{ title }}</li>
+{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Veuillez remplir les informations ci-dessous{% endblock %}
+
+{% block content %}
+<div class="card bg-base-100 shadow-xl max-w-3xl mx-auto">
+    <div class="card-body">
+        <form method="post" hx-boost="true" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-error shadow-lg">
+                <div class="flex items-start">
+                    <i class="bx bx-error-circle text-2xl mr-2"></i>
+                    <div>
+                        <h3 class="font-bold">Erreur dans le formulaire</h3>
+                        <ul class="mt-1 list-disc list-inside text-sm">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Collecteur</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <select name="collecteur" class="select select-bordered {% if form.collecteur.errors %}select-error{% endif %}" required
+                            hx-get="{% url 'get_collecteur_commission' %}"
+                            hx-target="[name='pourcentage_commission']"
+                            hx-trigger="change">
+                        <option value="" disabled {% if not form.collecteur.value %}selected{% endif %}>-- Sélectionner un collecteur --</option>
+                        {% for collecteur in form.fields.collecteur.queryset %}
+                            <option value="{{ collecteur.id }}" {% if form.collecteur.value == collecteur.id %}selected{% endif %}>
+                                {{ collecteur.nom_collecteur }} {{ collecteur.prenom_collecteur }} ({{ collecteur.reference_collecteur }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date de l'activité</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="date" name="date_activite" value="{{ form.date_activite.value|date:'Y-m-d'|default:'' }}" class="input input-bordered {% if form.date_activite.errors %}input-error{% endif %}" required>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Référence reçu</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="text" name="reference_recu" value="{{ form.reference_recu.value|default:'' }}" class="input input-bordered {% if form.reference_recu.errors %}input-error{% endif %}" required>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Montant de l'activité</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" name="montant_activite" value="{{ form.montant_activite.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.montant_activite.errors %}input-error{% endif %} w-full" required
+                               hx-get="{% url 'calculate_commission' %}"
+                               hx-trigger="keyup, change"
+                               hx-target="#commission-preview"
+                               hx-include="[name='montant_activite'], [name='pourcentage_commission']">
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Pourcentage de commission (%)</span>
+                        <span class="label-text-alt text-error">Requis</span>
+                    </label>
+                    <input type="number" name="pourcentage_commission" value="{{ form.pourcentage_commission.value|default:'' }}" min="0" max="100" step="0.01" class="input input-bordered {% if form.pourcentage_commission.errors %}input-error{% endif %}" required
+                           hx-get="{% url 'calculate_commission' %}"
+                           hx-trigger="keyup, change"
+                           hx-target="#commission-preview"
+                           hx-include="[name='montant_activite'], [name='pourcentage_commission']">
+                </div>
+                
+                <div class="form-control md:col-span-2">
+                    <label class="label">
+                        <span class="label-text">Aperçu de la commission</span>
+                    </label>
+                    <div id="commission-preview" class="bg-base-200 p-3 rounded-lg text-center font-bold text-success">
+                        {% if form.montant_activite.value and form.pourcentage_commission.value %}
+                            {% load math_filters %}
+                            {{ form.montant_activite.value|multiply:form.pourcentage_commission.value|divide:100|floatformat:0 }} FCFA
+                        {% else %}
+                            Saisissez le montant et le pourcentage
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Observations</span>
+                </label>
+                <textarea name="observations" rows="3" class="textarea textarea-bordered {% if form.observations.errors %}textarea-error{% endif %}">{{ form.observations.value|default:'' }}</textarea>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Autres détails</span>
+                </label>
+                <textarea name="autres_details" rows="2" class="textarea textarea-bordered {% if form.autres_details.errors %}textarea-error{% endif %}">{{ form.autres_details.value|default:'' }}</textarea>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+                <a href="{% url 'activite_collecteur_list' %}" class="btn btn-outline">
+                    <i class="bx bx-arrow-back mr-2"></i> Annuler
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-save mr-2"></i> Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+
+{% block title %}Pénalités et Commissions - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="#">Pénalités et Commissions</a></li>
+{% endblock %}
+
+{% block page_title %}Pénalités et Commissions{% endblock %}
+{% block page_subtitle %}Gestion des pénalités et commissions des agents{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'penalite_commission_create' %}" class="btn btn-primary">
+    <i class="bx bx-plus mr-2"></i> Ajouter
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Filtres -->
+<div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+        <h3 class="text-lg font-medium mb-4">Filtres</h3>
+        <form hx-get="{% url 'penalite_commission_list' %}" hx-target="#penalite-commission-list" hx-swap="innerHTML" hx-indicator="#loading" class="flex flex-wrap gap-4">
+            <div class="form-control w-full md:w-64">
+                <label class="label">
+                    <span class="label-text">Agent</span>
+                </label>
+                <select name="agent" class="select select-bordered" hx-get="{% url 'penalite_commission_list' %}" hx-target="#penalite-commission-list" hx-trigger="change">
+                    <option value="">Tous les agents</option>
+                    {% for agent in agents %}
+                        <option value="{{ agent.id }}" {% if request.GET.agent == agent.id|stringformat:"i" %}selected{% endif %}>
+                            {{ agent.nom_agent }} {{ agent.prenom_agent }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-control w-full md:w-64">
+                <label class="label">
+                    <span class="label-text">Machine</span>
+                </label>
+                <select name="machine" class="select select-bordered" hx-get="{% url 'penalite_commission_list' %}" hx-target="#penalite-commission-list" hx-trigger="change">
+                    <option value="">Toutes les machines</option>
+                    {% for machine in machines %}
+                        <option value="{{ machine.id }}" {% if request.GET.machine == machine.id|stringformat:"i" %}selected{% endif %}>
+                            {{ machine.numero_terminal }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-control w-full md:w-64">
+                <label class="label">
+                    <span class="label-text">Type</span>
+                </label>
+                <select name="type" class="select select-bordered" hx-get="{% url 'penalite_commission_list' %}" hx-target="#penalite-commission-list" hx-trigger="change">
+                    <option value="">Les deux</option>
+                    <option value="penalite" {% if request.GET.type == 'penalite' %}selected{% endif %}>Pénalités uniquement</option>
+                    <option value="commission" {% if request.GET.type == 'commission' %}selected{% endif %}>Commissions uniquement</option>
+                </select>
+            </div>
+            
+            <div class="form-control mt-8">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-filter mr-2"></i> Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading indicator -->
+<div id="loading" class="htmx-indicator flex justify-center my-4">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+</div>
+
+<!-- Liste des pénalités et commissions -->
+<div id="penalite-commission-list">
+    <div class="card bg-base-100 shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th class="bg-base-200">Agent</th>
+                        <th class="bg-base-200">Machine</th>
+                        <th class="bg-base-200">Date pénalité</th>
+                        <th class="bg-base-200 text-right">Montant pénalité</th>
+                        <th class="bg-base-200">Date commission</th>
+                        <th class="bg-base-200 text-right">Montant commission</th>
+                        <th class="bg-base-200">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pc in penalites_commissions %}
+                    <tr>
+                        <td>
+                            <div class="flex items-center space-x-3">
+                                <div class="avatar">
+                                    <div class="mask mask-squircle w-8 h-8">
+                                        <img src="https://ui-avatars.com/api/?name={{ pc.agent.nom_agent }}&background=1c64f2&color=fff" alt="{{ pc.agent.nom_agent }}" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="font-bold">{{ pc.agent.reference_agent }}</div>
+                                    <div class="text-sm opacity-70">{{ pc.agent.nom_agent }} {{ pc.agent.prenom_agent }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="font-medium">{{ pc.machine.numero_terminal }}</div>
+                            <div class="text-xs opacity-70">{{ pc.machine.nom_point_vente }}</div>
+                        </td>
+                        <td>
+                            {% if pc.date_penalite %}
+                                {{ pc.date_penalite|date:"d/m/Y" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="text-right text-error font-bold">
+                            {% if pc.montant_penalite %}
+                                {{ pc.montant_penalite|floatformat:0 }} FCFA
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if pc.date_commission %}
+                                {{ pc.date_commission|date:"d/m/Y" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="text-right text-success font-bold">
+                            {% if pc.montant_commission %}
+                                {{ pc.montant_commission|floatformat:0 }} FCFA
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="flex gap-1">
+                                <a href="{% url 'penalite_commission_update' pc.id %}" class="btn btn-ghost btn-xs tooltip" data-tip="Modifier">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                                <button class="btn btn-ghost btn-xs text-error tooltip" data-tip="Supprimer"
+                                        hx-get="{% url 'penalite_commission_delete' pc.id %}"
+                                        hx-target="#modal"
+                                        hx-swap="innerHTML">
+                                    <i class="bx bx-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-8">
+                            <div class="flex flex-col items-center justify-center text-gray-500">
+                                <i class="bx bx-search text-4xl"></i>
+                                <p class="mt-2">Aucune pénalité ou commission trouvée</p>
+                                <a href="{% url 'penalite_commission_create' %}" class="btn btn-sm btn-primary mt-4">
+                                    <i class="bx bx-plus mr-2"></i> Ajouter
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-right font-bold">Total:</td>
+                        <td class="text-right font-bold text-error">{{ total_penalites|floatformat:0 }} FCFA</td>
+                        <td class="text-right"></td>
+                        <td class="text-right font-bold text-success">{{ total_commissions|floatformat:0 }} FCFA</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if penalites_commissions.has_other_pages %}
+        <div class="flex justify-center py-4">
+            <div class="join">
+                {% if penalites_commissions.has_previous %}
+                <button class="join-item btn btn-sm"
+                        hx-get="{% url 'penalite_commission_list' %}?page={{ penalites_commissions.previous_page_number }}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}{% if request.GET.machine %}&machine={{ request.GET.machine }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}"
+                        hx-target="#penalite-commission-list">
+                    <i class="bx bx-chevron-left"></i>
+                </button>
+                {% else %}
+                <button class="join-item btn btn-sm" disabled>
+                    <i class="bx bx-chevron-left"></i>
+                </button>
+                {% endif %}
+                
+                {% for i in penalites_commissions.paginator.page_range %}
+                    {% if penalites_commissions.number == i %}
+                    <button class="join-item btn btn-sm btn-active">{{ i }}</button>
+                    {% else %}
+                    <button class="join-item btn btn-sm"
+                            hx-get="{% url 'penalite_commission_list' %}?page={{ i }}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}{% if request.GET.machine %}&machine={{ request.GET.machine }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}"
+                            hx-target="#penalite-commission-list">
+                        {{ i }}
+                    </button>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if penalites_commissions.has_next %}
+                <button class="join-item btn btn-sm"
+                        hx-get="{% url 'penalite_commission_list' %}?page={{ penalites_commissions.next_page_number }}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}{% if request.GET.machine %}&machine={{ request.GET.machine }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}"
+                        hx-target="#penalite-commission-list">
+                    <i class="bx bx-chevron-right"></i>
+                </button>
+                {% else %}
+                <button class="join-item btn btn-sm" disabled>
+                    <i class="bx bx-chevron-right"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Résumé par agent -->
+    <div class="mt-8">
+        <h3 class="text-lg font-medium mb-4">Résumé par agent</h3>
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th class="bg-base-200">Agent</th>
+                                <th class="bg-base-200 text-right">Total pénalités</th>
+                                <th class="bg-base-200 text-right">Total commissions</th>
+                                <th class="bg-base-200 text-right">Balance</th>
+                                <th class="bg-base-200">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for agent_stat in stats_agents %}
+                            <tr>
+                                <td>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="avatar">
+                                            <div class="mask mask-squircle w-10 h-10">
+                                                <img src="https://ui-avatars.com/api/?name={{ agent_stat.nom_agent }}&background=1c64f2&color=fff" alt="{{ agent_stat.nom_agent }}" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold">{{ agent_stat.nom_agent }} {{ agent_stat.prenom_agent }}</div>
+                                            <div class="text-xs opacity-70">{{ agent_stat.reference_agent }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-right text-error font-bold">{{ agent_stat.total_penalites|floatformat:0 }} FCFA</td>
+                                <td class="text-right text-success font-bold">{{ agent_stat.total_commissions|floatformat:0 }} FCFA</td>
+                                <td class="text-right font-bold {% if agent_stat.balance >= 0 %}text-success{% else %}text-error{% endif %}">
+                                    {{ agent_stat.balance|floatformat:0 }} FCFA
+                                </td>
+                                <td>
+                                    <a href="{% url 'agent_detail' agent_stat.id %}" class="btn btn-sm btn-outline">
+                                        <i class="bx bx-show mr-1"></i> Détails
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">Aucune donnée disponible</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour HTMX -->
+<div id="modal"></div>
+{% endblock %}

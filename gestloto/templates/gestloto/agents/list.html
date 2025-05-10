@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Agents - LONATO GESTLOTO{% endblock %}
+
+{% block breadcrumb_items %}
+<li><a href="#">Agents</a></li>
+{% endblock %}
+
+{% block page_title %}Agents{% endblock %}
+{% block page_subtitle %}Gestion des agents commerciaux{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'agent_create' %}" class="btn btn-primary">
+    <i class="bx bx-plus mr-2"></i> Ajouter un agent
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Filtres -->
+<div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+        <h3 class="text-lg font-medium mb-4">Filtres</h3>
+        <form hx-get="{% url 'agent_list' %}" hx-target="#agent-list" hx-swap="innerHTML" hx-indicator="#loading" class="flex flex-wrap gap-4">
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Recherche</span>
+                </label>
+                <input type="text" name="q" placeholder="Nom, référence..." class="input input-bordered" 
+                       hx-trigger="keyup changed delay:500ms" 
+                       hx-get="{% url 'agent_list' %}" 
+                       hx-target="#agent-list" 
+                       hx-include="closest form" />
+            </div>
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Trier par</span>
+                </label>
+                <select name="sort" class="select select-bordered" hx-get="{% url 'agent_list' %}" hx-target="#agent-list" hx-indicator="#loading">
+                    <option value="nom">Nom</option>
+                    <option value="reference">Référence</option>
+                    <option value="date">Date d'activité</option>
+                    <option value="commission">Commission</option>
+                </select>
+            </div>
+            <div class="form-control mt-8">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-filter mr-2"></i> Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading indicator -->
+<div id="loading" class="htmx-indicator flex justify-center my-4">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+</div>
+
+<!-- Liste des agents -->
+<div id="agent-list">
+    <div class="card bg-base-100 shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th class="bg-base-200">Référence</th>
+                        <th class="bg-base-200">Nom & Prénom</th>
+                        <th class="bg-base-200">Contact</th>
+                        <th class="bg-base-200">Date d'activité</th>
+                        <th class="bg-base-200">Commission</th>
+                        <th class="bg-base-200">Machines</th>
+                        <th class="bg-base-200">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for agent in agents %}
+                    <tr>
+                        <td>
+                            <div class="font-bold">{{ agent.reference_agent }}</div>
+                        </td>
+                        <td>
+                            <div class="font-bold">{{ agent.nom_agent }}</div>
+                            <div class="text-sm opacity-70">{{ agent.prenom_agent }}</div>
+                        </td>
+                        <td>
+                            <div class="flex flex-col">
+                                <span>{{ agent.num_tel_agent }}</span>
+                                <span class="text-xs opacity-70">{{ agent.email_agent|default:"" }}</span>
+                            </div>
+                        </td>
+                        <td>{{ agent.date_debut_activites|date:"d/m/Y" }}</td>
+                        <td>
+                            <div class="badge badge-accent">{{ agent.pourcentage_commission }}%</div>
+                        </td>
+                        <td>
+                            <div class="badge badge-outline">{{ agent.machines.count }} machine(s)</div>
+                        </td>
+                        <td>
+                            <div class="flex gap-2">
+                                <a href="{% url 'agent_detail' agent.id %}" class="btn btn-sm btn-circle btn-ghost tooltip" data-tip="Détails">
+                                    <i class="bx bx-show"></i>
+                                </a>
+                                <a href="{% url 'agent_update' agent.id %}" class="btn btn-sm btn-circle btn-ghost tooltip" data-tip="Modifier">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                                <button class="btn btn-sm btn-circle btn-ghost text-error tooltip" data-tip="Supprimer"
+                                        hx-get="{% url 'agent_delete' agent.id %}"
+                                        hx-target="#modal"
+                                        hx-swap="innerHTML">
+                                    <i class="bx bx-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-8">
+                            <div class="flex flex-col items-center justify-center text-gray-500">
+                                <i class="bx bx-user-x text-4xl"></i>
+                                <p class="mt-2">Aucun agent trouvé</p>
+                                <a href="{% url 'agent_create' %}" class="btn btn-sm btn-primary mt-4">
+                                    <i class="bx bx-plus mr-2"></i> Ajouter un agent
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if agents.has_other_pages %}
+        <div class="flex justify-center py-4">
+            <div class="join">
+                {% if agents.has_previous %}
+                <button class="join-item btn btn-sm"
+                        hx-get="{% url 'agent_list' %}?page={{ agents.previous_page_number }}"
+                        hx-target="#agent-list">
+                    <i class="bx bx-chevron-left"></i>
+                </button>
+                {% else %}
+                <button class="join-item btn btn-sm" disabled>
+                    <i class="bx bx-chevron-left"></i>
+                </button>
+                {% endif %}
+                
+                {% for i in agents.paginator.page_range %}
+                    {% if agents.number == i %}
+                    <button class="join-item btn btn-sm btn-active">{{ i }}</button>
+                    {% else %}
+                    <button class="join-item btn btn-sm"
+                            hx-get="{% url 'agent_list' %}?page={{ i }}"
+                            hx-target="#agent-list">
+                        {{ i }}
+                    </button>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if agents.has_next %}
+                <button class="join-item btn btn-sm"
+                        hx-get="{% url 'agent_list' %}?page={{ agents.next_page_number }}"
+                        hx-target="#agent-list">
+                    <i class="bx bx-chevron-right"></i>
+                </button>
+                {% else %}
+                <button class="join-item btn btn-sm" disabled>
+                    <i class="bx bx-chevron-right"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="mt-8">
+    <h3 class="text-lg font-medium mb-4">Statistiques</h3>
+    <div class="stats shadow bg-base-100 w-full">
+        <div class="stat">
+            <div class="stat-figure text-primary">
+                <i class="bx bxs-user text-3xl"></i>
+            </div>
+            <div class="stat-title">Total agents</div>
+            <div class="stat-value text-primary">{{ agents.paginator.count }}</div>
+        </div>
+        
+        <div class="stat">
+            <div class="stat-figure text-secondary">
+                <i class="bx bxs-calendar text-3xl"></i>
+            </div>
+            <div class="stat-title">Nouveau ce mois</div>
+            <div class="stat-value text-secondary">{{ nouveaux_agents|default:0 }}</div>
+        </div>
+        
+        <div class="stat">
+            <div class="stat-figure text-accent">
+                <i class="bx bx-money text-3xl"></i>
+            </div>
+            <div class="stat-title">Commission moyenne</div>
+            <div class="stat-value text-accent">{{ commission_moyenne|default:0 }}%</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour HTMX -->
+<div id="modal"></div>
+{% endblock %}

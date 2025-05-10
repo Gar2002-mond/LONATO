@@ -1,0 +1,46 @@
+<div class="modal modal-open">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg flex items-center">
+            <i class="bx bx-trash text-error text-xl mr-2"></i>
+            Confirmation de suppression
+        </h3>
+        
+        <p class="py-4">
+            Êtes-vous sûr de vouloir supprimer l'activité du collecteur <strong>{{ activite.collecteur.nom_collecteur }} {{ activite.collecteur.prenom_collecteur }}</strong> du <strong>{{ activite.date_activite|date:"d/m/Y" }}</strong> ?
+        </p>
+        
+        <div class="alert alert-warning mt-2 mb-4">
+            <div class="flex items-center">
+                <i class="bx bx-info-circle text-xl mr-2"></i>
+                <div>
+                    <h3 class="font-bold">Détails de l'activité</h3>
+                    <ul class="mt-1 list-disc list-inside text-sm">
+                        <li>Référence reçu: {{ activite.reference_recu }}</li>
+                        <li>Montant: {{ activite.montant_activite|floatformat:0 }} FCFA</li>
+                        <li>Commission ({{ activite.pourcentage_commission }}%): 
+                            {% load math_filters %}
+                            {{ activite.montant_activite|multiply:activite.pourcentage_commission|divide:100|floatformat:0 }} FCFA
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-base-200 p-4 rounded-lg mt-2 mb-4">
+            <p class="text-sm text-warning flex items-center">
+                <i class="bx bx-error-circle mr-1"></i> 
+                Cette action est irréversible. L'activité sera définitivement supprimée du système.
+            </p>
+        </div>
+        
+        <div class="modal-action">
+            <button class="btn modal-close">Annuler</button>
+            <form method="post" action="{% url 'activite_collecteur_delete' activite.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-error">
+                    <i class="bx bx-trash mr-2"></i> Supprimer définitivement
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

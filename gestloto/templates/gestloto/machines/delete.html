@@ -1,0 +1,29 @@
+<div class="modal modal-open">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg flex items-center">
+            <i class="bx bx-trash text-error text-xl mr-2"></i>
+            Confirmation de suppression
+        </h3>
+        
+        <p class="py-4">
+            Êtes-vous sûr de vouloir supprimer la machine <strong>{{ machine.numero_terminal }}</strong> ({{ machine.nom_point_vente }}) ?
+        </p>
+        
+        <div class="bg-base-200 p-4 rounded-lg mt-2 mb-4">
+            <p class="text-sm text-warning">
+                <i class="bx bx-error-circle mr-1"></i> 
+                Cette action est irréversible et supprimera également tous les chiffres d'affaires associés à cette machine.
+            </p>
+        </div>
+        
+        <div class="modal-action">
+            <button class="btn modal-close">Annuler</button>
+            <form method="post" action="{% url 'machine_delete' machine.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-error">
+                    <i class="bx bx-trash mr-2"></i> Supprimer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
