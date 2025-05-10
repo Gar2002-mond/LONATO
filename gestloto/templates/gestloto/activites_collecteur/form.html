@@ -92,11 +92,15 @@
                         <span class="label-text">Pourcentage de commission (%)</span>
                         <span class="label-text-alt text-error">Requis</span>
                     </label>
-                    <input type="number" name="pourcentage_commission" value="{{ form.pourcentage_commission.value|default:'' }}" min="0" max="100" step="0.01" class="input input-bordered {% if form.pourcentage_commission.errors %}input-error{% endif %}" required
+                    <!-- <input type="number" name="pourcentage_commission" value="{{ form.pourcentage_commission.value|default:'' }}" min="0" max="100" step="0.01" class="input input-bordered {% if form.pourcentage_commission.errors %}input-error{% endif %}" required
                            hx-get="{% url 'calculate_commission' %}"
                            hx-trigger="keyup, change"
                            hx-target="#commission-preview"
-                           hx-include="[name='montant_activite'], [name='pourcentage_commission']">
+                           hx-include="[name='montant_activite'], [name='pourcentage_commission']"> -->
+                            <input type="number" name="pourcentage_commission" 
+           value="{{ form.pourcentage_commission.value|default:'' }}" 
+           class="input input-bordered {% if form.pourcentage_commission.errors %}input-error{% endif %}" 
+           readonly>
                 </div>
                 
                 <div class="form-control md:col-span-2">

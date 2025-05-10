@@ -1,9 +1,12 @@
+from django.http import HttpResponseBadRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from ..models import ChiffreAffaire, Machine
 from ..forms import ChiffreAffaireForm
 from django.utils import timezone
+from django.shortcuts import render
+from decimal import Decimal, InvalidOperation
 
 @login_required
 def chiffre_affaire_list(request):
@@ -85,3 +88,52 @@ def chiffre_affaire_delete(request, pk):
         return redirect('chiffre_affaire_list')
     
     return render(request, 'gestloto/chiffres_affaire/delete.html', {'chiffre_affaire': chiffre_affaire})
+
+
+# gestloto/views/chiffres_affaire.py
+# from django.http import HttpResponse
+
+
+# ... autres importations et vues ...
+
+def calculate_solde_view(request):
+    if request.method == 'POST':
+        try:
+            ventes_totales_str = request.POST.get('ventes_totales', '0')
+            annulations_totales_str = request.POST.get('annulations_totales', '0')
+            paiements_totaux_str = request.POST.get('paiements_totaux', '0')
+
+            # Gérer les chaînes vides ou non valides en les traitant comme zéro
+            ventes_totales = Decimal(ventes_totales_str) if ventes_totales_str else Decimal('0')
+            annulations_totales = Decimal(annulations_totales_str) if annulations_totales_str else Decimal('0')
+            paiements_totaux = Decimal(paiements_totaux_str) if paiements_totaux_str else Decimal('0')
+
+            solde_total = ventes_totales - annulations_totales - paiements_totaux
+            
+            # Vous pouvez retourner directement la valeur si HTMX s'attend à un simple nombre
+            # ou rendre un petit template si vous voulez mettre à jour un input ou une structure plus complexe.
+            # Pour l'instant, nous allons rendre un template qui met à jour l'input.
+            
+            # Créez un template partiel pour le champ solde_total si ce n'est pas déjà fait,
+            # ou retournez simplement la valeur si vous mettez à jour directement la valeur d'un input.
+            # Exemple : gestloto/templates/gestloto/chiffres_affaire/partials/solde_total_input.html
+            # <input type="number" name="solde_total" value="{{ solde_total|default:'' }}" min="0" step="0.01" class="input input-bordered w-full" readonly>
+            
+            context = {'solde_total': solde_total}
+            return render(request, 'gestloto/chiffres_affaire/partials/solde_total_input.html', context)
+
+        except InvalidOperation:
+            # Gérer le cas où la conversion en Decimal échoue (par exemple, entrée non numérique)
+            # Vous pouvez retourner une erreur ou une valeur par défaut
+            context = {'solde_total': Decimal('0.00')} # Ou une chaîne d'erreur
+            return render(request, 'gestloto/chiffres_affaire/partials/solde_total_input.html', context)
+        except Exception as e:
+            # Pour le débogage, vous pourriez vouloir voir l'erreur
+            # return HttpResponse(f"Erreur: {str(e)}", status=400) 
+            # En production, retournez une réponse appropriée
+            context = {'solde_total': Decimal('0.00')} # Ou une chaîne d'erreur
+            return render(request, 'gestloto/chiffres_affaire/partials/solde_total_input.html', context)
+
+
+    # Si ce n'est pas une requête POST, ou si quelque chose d'autre se passe mal
+    return HttpResponseBadRequest("Méthode de requête non valide ou erreur.")

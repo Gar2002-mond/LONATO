@@ -44,25 +44,22 @@
                         <span class="label-text-alt text-error">Requis</span>
                     </label>
                     <select name="machine" class="select select-bordered {% if form.machine.errors %}select-error{% endif %}" required
-                            hx-get="{% url 'machine_info' %}" hx-target="#machine-info" hx-trigger="change">
+                            hx-get="{% url 'machine_info' %}" hx-target="#machine-info-dynamic-content" hx-trigger="change">
                         <option value="" disabled {% if not form.machine.value %}selected{% endif %}>-- Sélectionner une machine --</option>
-                        {% for machine in form.fields.machine.queryset %}
-                            <option value="{{ machine.id }}" {% if form.machine.value == machine.id %}selected{% endif %}>
-                                {{ machine.numero_terminal }} - {{ machine.nom_point_vente }}
+                        {% for machine_obj in form.fields.machine.queryset %} {# Renamed to machine_obj #}
+                            <option value="{{ machine_obj.id }}" {% if form.machine.value == machine_obj.id %}selected{% endif %}>
+                                {{ machine_obj.numero_terminal }} - {{ machine_obj.nom_point_vente }}
                             </option>
                         {% endfor %}
                     </select>
                 </div>
                 
-                <div id="machine-info" class="form-control">
-                    {% if form.machine.value %}
-                    <label class="label">
-                        <span class="label-text">Informations</span>
-                    </label>
-                    <div class="bg-base-200 p-3 rounded-lg">
-                        <p><strong>Point de vente:</strong> {{ form.machine.value.nom_point_vente }}</p>
-                        <p><strong>Agent:</strong> {{ form.machine.value.agent|default:"Non assigné" }}</p>
-                    </div>
+                <!-- Ce div sera la cible pour HTMX pour afficher les détails de la machine -->
+                <div id="machine-info-dynamic-content" class="form-control md:col-span-1"> 
+                    {% if form.instance and form.instance.machine %}
+                        {% include 'gestloto/chiffres_affaire/partials/machine_info_content.html' with machine=form.instance.machine %}
+                    {% else %}
+                        {% include 'gestloto/chiffres_affaire/partials/machine_info_empty.html' %}
                     {% endif %}
                 </div>
                 
@@ -95,7 +92,7 @@
                         <input type="number" name="ventes_totales" value="{{ form.ventes_totales.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.ventes_totales.errors %}input-error{% endif %} w-full" required
                                hx-trigger="keyup, change"
                                hx-post="{% url 'calculate_solde' %}"
-                               hx-target="#solde-total"
+                               hx-target="#solde-total-dynamic-content" {# Changed hx-target #}
                                hx-include="[name='ventes_totales'], [name='annulations_totales'], [name='paiements_totaux']">
                         <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
                     </div>
@@ -110,7 +107,7 @@
                         <input type="number" name="annulations_totales" value="{{ form.annulations_totales.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.annulations_totales.errors %}input-error{% endif %} w-full" required
                                hx-trigger="keyup, change"
                                hx-post="{% url 'calculate_solde' %}"
-                               hx-target="#solde-total"
+                               hx-target="#solde-total-dynamic-content" {# Changed hx-target #}
                                hx-include="[name='ventes_totales'], [name='annulations_totales'], [name='paiements_totaux']">
                         <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
                     </div>
@@ -125,7 +122,7 @@
                         <input type="number" name="paiements_totaux" value="{{ form.paiements_totaux.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.paiements_totaux.errors %}input-error{% endif %} w-full" required
                                hx-trigger="keyup, change"
                                hx-post="{% url 'calculate_solde' %}"
-                               hx-target="#solde-total"
+                               hx-target="#solde-total-dynamic-content" {# Changed hx-target #}
                                hx-include="[name='ventes_totales'], [name='annulations_totales'], [name='paiements_totaux']">
                         <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
                     </div>
@@ -136,9 +133,8 @@
                         <span class="label-text">Solde total</span>
                         <span class="label-text-alt text-success">Calculé automatiquement</span>
                     </label>
-                    <div id="solde-total" class="relative">
-                        <input type="number" name="solde_total" value="{{ form.solde_total.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.solde_total.errors %}input-error{% endif %} w-full" readonly>
-                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
+                    <div id="solde-total-dynamic-content" class="relative"> {# Changed ID #}
+                        {% include 'gestloto/chiffres_affaire/partials/solde_total_input.html' with solde_total=form.solde_total.value %}
                     </div>
                 </div>
             </div>

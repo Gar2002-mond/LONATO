@@ -1,0 +1,12 @@
+<!-- Contenu vide ou message d'erreur si la machine n'est pas trouvée ou si aucun ID n'est sélectionné -->
+{% if error %}
+<label class="label">
+    <span class="label-text">Informations sur la Machine</span>
+</label>
+<div class="bg-error/20 text-error-content p-3 rounded-lg text-sm">
+    <p>{{ error }}</p>
+</div>
+{% else %}
+<!-- Peut être vide, ou un placeholder -->
+<!-- <p class="text-sm text-gray-500">Sélectionnez une machine pour voir les détails.</p> -->
+{% endif %}

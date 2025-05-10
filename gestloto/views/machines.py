@@ -67,3 +67,21 @@ def machine_delete(request, pk):
         return redirect('machine_list')
     
     return render(request, 'gestloto/machines/delete.html', {'machine': machine})
+
+def get_machine_info_view(request):
+    machine_id = request.GET.get('machine') # 'machine' est le nom de votre select
+    if not machine_id:
+        # Retourne un fragment vide ou un message si aucun ID n'est fourni
+        return render(request, 'gestloto/chiffres_affaire/partials/machine_info_empty.html')
+
+    try:
+        machine = Machine.objects.select_related('agent').get(id=machine_id)
+    except Machine.DoesNotExist:
+        # Retourne un fragment vide ou un message d'erreur
+        return render(request, 'gestloto/chiffres_affaire/partials/machine_info_empty.html', {'error': 'Machine non trouvée'})
+    except ValueError:
+         return render(request, 'gestloto/chiffres_affaire/partials/machine_info_empty.html', {'error': 'ID Machine invalide'})
+
+
+    # Vous pouvez passer la machine à un template partiel pour rendre le HTML
+    return render(request, 'gestloto/chiffres_affaire/partials/machine_info_content.html', {'machine': machine})

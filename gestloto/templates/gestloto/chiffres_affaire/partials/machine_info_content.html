@@ -1,0 +1,17 @@
+<!-- Ce contenu remplacera le contenu de #machine-info -->
+<label class="label">
+    <span class="label-text">Informations sur la Machine</span>
+</label>
+<div class="bg-base-200 p-3 rounded-lg text-sm">
+    <p><strong>Numéro Terminal:</strong> {{ machine.numero_terminal }}</p>
+    <p><strong>Point de vente:</strong> {{ machine.nom_point_vente }}</p>
+    <p><strong>Agent:</strong> 
+        {% if machine.agent %}
+            {{ machine.agent.nom_agent }} {{ machine.agent.prenom_agent }} ({{ machine.agent.reference_agent }})
+        {% else %}
+            Non assigné
+        {% endif %}
+    </p>
+    <p><strong>Modèle:</strong> {{ machine.modele|default:"N/A" }}</p>
+    <p><strong>Statut:</strong> {{ machine.get_statut_display|default:"N/A" }}</p>
+</div>
