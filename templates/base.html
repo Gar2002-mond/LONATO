@@ -21,7 +21,8 @@
     ></script>
     {% block extra_css %}{% endblock %}
   </head>
-  <body class="bg-base-100">
+  <!-- <body  hx-boost="true"   class="bg-base-100"> -->
+  <body hx-boost="true" class="bg-base-100">
     {% if user.is_authenticated %}
     <div class="drawer lg:drawer-open">
       <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
@@ -66,8 +67,9 @@
                   <span class="text-xs">{{ user.email }}</span>
                 </li>
                 <li>
-                  <a href="{% url 'admin:index' %}"
+                  <a href="{% url 'admin:index' %}" hx-boost="false"
                     ><i class="bx bx-cog"></i> Administration</a
+                  >
                   >
                 </li>
                 <div class="divider my-1"></div>
@@ -344,7 +346,7 @@
 
             <li>
               <a
-                href="{% url 'admin:index' %}"
+                href="{% url 'admin:index' %}"  hx-boost="false"
                 class="flex items-center p-3 rounded-lg"
               >
                 <i class="bx bx-cog mr-2"></i>

@@ -9,7 +9,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: [
-          "Inter",
+          "Roboto",
           "popins",
           "system-ui",
           "-apple-system",

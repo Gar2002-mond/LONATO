@@ -1,2 +1,9 @@
 @import "tailwindcss";
-@plugin "daisyui" ;
+@plugin "daisyui";
+
+/* @layer base {
+  :root {
+    font-family: "Roboto", no-sans-serif;
+
+  }
+} */
