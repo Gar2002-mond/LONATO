@@ -1,287 +1,472 @@
 {% extends 'base.html' %}
-
+{% load static %}
+{# Assurez-vous que static est chargé si vous utilisez des images statiques pour les graphiques par exemple #}
 {% block title %}Tableau de bord - LONATO GESTLOTO{% endblock %}
-
 {% block page_title %}Tableau de bord{% endblock %}
-{% block page_subtitle %}Bienvenue dans le système de gestion LOTO, {{ user.username }}{% endblock %}
-
+{% block page_subtitle %}Bienvenue, {{ user.first_name|default:user.username }} ! Aperçu de votre activité.{% endblock %}
 {% block content %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <!-- Statistiques générales -->
-    <div class="stats bg-primary text-primary-content shadow-lg rounded-2xl">
-        <div class="stat p-4">
-            <div class="stat-figure text-white">
-                <i class='bx bxs-devices text-4xl'></i>
-            </div>
-            <div class="stat-title font-medium text-primary-content/80">Machines</div>
-            <div class="stat-value">{{ stats.total_machines|default:'0' }}</div>
-            <div class="stat-actions">
-                <a href="{% url 'machine_list' %}" class="btn btn-sm btn-outline btn-ghost">
-                    <i class="bx bx-list-ul mr-1"></i> Voir
-                </a>
-            </div>
-        </div>
+{# Section des Cartes de Statistiques Principales - Style inspiré de l'Image 2 (plus épuré) #}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <!-- Carte Machines -->
+  <div
+    class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+  >
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-lg font-semibold text-slate-700">Machines</h3>
+      <div class="p-2 bg-sky-100 rounded-lg">
+        <i class="bx bxs-devices text-2xl text-sky-600"></i>
+      </div>
     </div>
-    
-    <div class="stats bg-secondary text-secondary-content shadow-lg rounded-2xl">
-        <div class="stat p-4">
-            <div class="stat-figure text-white">
-                <i class='bx bxs-user-detail text-4xl'></i>
-            </div>
-            <div class="stat-title font-medium text-secondary-content/80">Agents</div>
-            <div class="stat-value">{{ stats.total_agents|default:'0' }}</div>
-            <div class="stat-actions">
-                <a href="{% url 'agent_list' %}" class="btn btn-sm btn-outline btn-ghost">
-                    <i class="bx bx-list-ul mr-1"></i> Voir
-                </a>
-            </div>
-        </div>
+    <p class="text-3xl font-bold text-slate-800 mb-1">
+      {{ stats.total_machines|default:'0' }}
+    </p>
+    <a
+      href="{% url 'machine_list' %}"
+      class="text-sm text-sky-600 hover:text-sky-700 font-medium flex items-center"
+    >
+      Voir la liste <i class="bx bx-right-arrow-alt ml-1"></i>
+    </a>
+  </div>
+
+  <!-- Carte Agents -->
+  <div
+    class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+  >
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-lg font-semibold text-slate-700">Agents</h3>
+      <div class="p-2 bg-teal-100 rounded-lg">
+        <i class="bx bxs-user-detail text-2xl text-teal-600"></i>
+      </div>
     </div>
-    
-    <div class="stats bg-accent text-accent-content shadow-lg rounded-2xl">
-        <div class="stat p-4">
-            <div class="stat-figure text-white">
-                <i class='bx bxs-id-card text-4xl'></i>
-            </div>
-            <div class="stat-title font-medium text-accent-content/80">Collecteurs</div>
-            <div class="stat-value">{{ stats.total_collecteurs|default:'0' }}</div>
-            <div class="stat-actions">
-                <a href="{% url 'collecteur_list' %}" class="btn btn-sm btn-outline btn-ghost">
-                    <i class="bx bx-list-ul mr-1"></i> Voir
-                </a>
-            </div>
-        </div>
+    <p class="text-3xl font-bold text-slate-800 mb-1">
+      {{ stats.total_agents|default:'0' }}
+    </p>
+    <a
+      href="{% url 'agent_list' %}"
+      class="text-sm text-teal-600 hover:text-teal-700 font-medium flex items-center"
+    >
+      Voir la liste <i class="bx bx-right-arrow-alt ml-1"></i>
+    </a>
+  </div>
+
+  <!-- Carte Collecteurs -->
+  <div
+    class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+  >
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-lg font-semibold text-slate-700">Collecteurs</h3>
+      <div class="p-2 bg-amber-100 rounded-lg">
+        <i class="bx bxs-id-card text-2xl text-amber-600"></i>
+      </div>
     </div>
-    
-    <div class="stats shadow-lg bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-2xl">
-        <div class="stat p-4">
-            <div class="stat-figure text-white">
-                <i class='bx bx-money-withdraw text-4xl'></i>
-            </div>
-            <div class="stat-title font-medium text-white/80">CA du mois</div>
-            <div class="stat-value">{{ ca_month.total_solde|default:0|floatformat:0 }}</div>
-            <div class="stat-desc text-white/90">FCFA</div>
-        </div>
+    <p class="text-3xl font-bold text-slate-800 mb-1">
+      {{ stats.total_collecteurs|default:'0' }}
+    </p>
+    <a
+      href="{% url 'collecteur_list' %}"
+      class="text-sm text-amber-600 hover:text-amber-700 font-medium flex items-center"
+    >
+      Voir la liste <i class="bx bx-right-arrow-alt ml-1"></i>
+    </a>
+  </div>
+
+  <!-- Carte CA du Mois -->
+  <div
+    class="bg-gradient-to-br from-sky-500 to-indigo-600 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+  >
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-lg font-semibold">CA du Mois</h3>
+      <div class="p-2 bg-white/20 rounded-lg">
+        <i class="bx bx-money-withdraw text-2xl"></i>
+      </div>
     </div>
+    <p class="text-3xl font-bold mb-1">
+      {{ ca_month.total_solde|default:0|floatformat:0 }}
+    </p>
+    <p class="text-sm opacity-80">FCFA</p>
+  </div>
 </div>
 
+{# Section CA du Jour et Dépenses du Mois - Style Cartes #}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Chiffres d'affaires du jour -->
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title text-xl flex items-center">
-                <i class='bx bx-line-chart text-primary text-2xl mr-2'></i>
-                Chiffres d'affaires du jour
-                <div class="badge badge-primary ml-2">09 mai 2025</div>
-            </h2>
-            {% if ca_today.total_ventes %}
-            <div class="stats stats-vertical shadow bg-base-200 rounded-2xl">
-                <div class="stat">
-                    <div class="stat-title">Ventes totales</div>
-                    <div class="stat-value text-primary">{{ ca_today.total_ventes|floatformat:0 }}</div>
-                    <div class="stat-desc">FCFA</div>
-                </div>
-                
-                <div class="stat">
-                    <div class="stat-title">Solde total</div>
-                    <div class="stat-value text-secondary">{{ ca_today.total_solde|floatformat:0 }}</div>
-                    <div class="stat-desc">FCFA</div>
-                </div>
-                
-                <div class="stat">
-                    <div class="stat-title">Commission estimée</div>
-                    <div class="stat-value text-accent">{{ ca_today.total_commission|floatformat:0 }}</div>
-                    <div class="stat-desc">FCFA</div>
-                </div>
-            </div>
-            {% else %}
-            <div class="alert alert-info shadow-lg flex items-center">
-                <i class='bx bx-info-circle text-2xl'></i>
-                <div>
-                    <h3 class="font-bold">Information</h3>
-                    <div class="text-sm">Aucun chiffre d'affaires enregistré pour aujourd'hui.</div>
-                </div>
-            </div>
-            {% endif %}
-            <div class="card-actions justify-end mt-4">
-                <a href="{% url 'chiffre_affaire_create' %}" class="btn btn-primary">
-                    <i class='bx bx-plus mr-2'></i> Ajouter
-                </a>
-            </div>
+  <!-- Chiffres d'affaires du jour -->
+  <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-slate-800 flex items-center">
+          <i class="bx bx-line-chart text-sky-600 text-2xl mr-2"></i>
+          CA du Jour
+        </h2>
+        <span
+          class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-full"
+          >{% now "d M Y" %}</span
+        >
+      </div>
+
+      {% if ca_today.total_ventes %}
+      <div class="space-y-4">
+        <div
+          class="flex justify-between items-center p-3 bg-slate-50 rounded-lg"
+        >
+          <div>
+            <p class="text-sm text-slate-500">Ventes totales</p>
+            <p class="text-xl font-semibold text-sky-600">
+              {{ ca_today.total_ventes|floatformat:0 }}
+              <span class="text-xs">FCFA</span>
+            </p>
+          </div>
+          <i class="bx bx-trending-up text-2xl text-green-500"></i>
         </div>
-    </div>
-    
-    <!-- Dépenses du mois -->
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title text-xl flex items-center">
-                <i class='bx bx-money text-accent text-2xl mr-2'></i>
-                Dépenses du mois
-                <div class="badge badge-accent ml-2">Mai 2025</div>
-            </h2>
-            <div class="stats shadow bg-base-200 rounded-2xl">
-                <div class="stat">
-                    <div class="stat-figure text-accent">
-                        <i class='bx bx-wallet text-3xl'></i>
-                    </div>
-                    <div class="stat-title">Total des dépenses</div>
-                    <div class="stat-value">{{ depenses_month.total_depenses|default:0|floatformat:0 }}</div>
-                    <div class="stat-desc">FCFA</div>
-                </div>
-            </div>
-            <div class="card-actions justify-end mt-4">
-                <a href="{% url 'depense_create' %}" class="btn btn-accent">
-                    <i class='bx bx-plus mr-2'></i> Ajouter
-                </a>
-                <a href="{% url 'rapport_depense' %}" class="btn btn-outline">
-                    <i class='bx bx-file mr-2'></i> Rapport
-                </a>
-            </div>
+        <div
+          class="flex justify-between items-center p-3 bg-slate-50 rounded-lg"
+        >
+          <div>
+            <p class="text-sm text-slate-500">Solde total</p>
+            <p class="text-xl font-semibold text-sky-600">
+              {{ ca_today.total_solde|floatformat:0 }}
+              <span class="text-xs">FCFA</span>
+            </p>
+          </div>
+          <i class="bx bx-wallet text-2xl text-sky-500"></i>
         </div>
+        <div
+          class="flex justify-between items-center p-3 bg-slate-50 rounded-lg"
+        >
+          <div>
+            <p class="text-sm text-slate-500">Commission estimée</p>
+            <p class="text-xl font-semibold text-teal-600">
+              {{ ca_today.total_commission|floatformat:0 }}
+              <span class="text-xs">FCFA</span>
+            </p>
+          </div>
+          <i class="bx bx-pie-chart-alt-2 text-2xl text-teal-500"></i>
+        </div>
+      </div>
+      {% else %}
+      <div
+        class="flex flex-col items-center justify-center py-8 px-4 bg-slate-50 rounded-lg text-center"
+      >
+        <i class="bx bx-info-circle text-4xl text-sky-500 mb-3"></i>
+        <h3 class="font-semibold text-slate-700 mb-1">
+          Aucun chiffre d'affaires
+        </h3>
+        <p class="text-sm text-slate-500">
+          Aucune donnée enregistrée pour aujourd'hui.
+        </p>
+      </div>
+      {% endif %}
     </div>
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 text-right">
+      <a
+        href="{% url 'chiffre_affaire_create' %}"
+        class="inline-flex items-center px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+      >
+        <i class="bx bx-plus text-lg mr-1.5"></i> Ajouter CA
+      </a>
+    </div>
+  </div>
+
+  <!-- Dépenses du mois -->
+  <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-slate-800 flex items-center">
+          <i class="bx bx-credit-card text-red-500 text-2xl mr-2"></i>
+          Dépenses du Mois
+        </h2>
+        <span
+          class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-full"
+          >{% now "F Y" %}</span
+        >
+      </div>
+      <div class="p-4 bg-slate-50 rounded-lg text-center">
+        <i class="bx bx-wallet text-3xl text-red-500 mb-2"></i>
+        <p class="text-sm text-slate-500 mb-1">Total des dépenses</p>
+        <p class="text-3xl font-bold text-red-600">
+          {{ depenses_month.total_depenses|default:0|floatformat:0 }}
+          <span class="text-base font-medium">FCFA</span>
+        </p>
+      </div>
+    </div>
+    <div
+      class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end space-x-3"
+    >
+      <a
+        href="{% url 'depense_create' %}"
+        class="inline-flex items-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+      >
+        <i class="bx bx-plus text-lg mr-1.5"></i> Ajouter Dépense
+      </a>
+      <a
+        href="{% url 'rapport_depense' %}"
+        class="inline-flex items-center px-4 py-2 bg-white hover:bg-slate-100 text-slate-600 border border-slate-300 text-sm font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+      >
+        <i class="bx bx-file text-lg mr-1.5"></i> Rapport
+      </a>
+    </div>
+  </div>
 </div>
 
-<div class="grid grid-cols-1 gap-6 mb-8">
-    <!-- Chiffres d'affaires récents -->
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title text-xl flex items-center">
-                <i class='bx bx-history text-info text-2xl mr-2'></i>
-                Derniers chiffres d'affaires
-            </h2>
-            <div class="overflow-x-auto">
-                <table class="table table-zebra w-full">
-                    <thead>
-                        <tr>
-                            <th class="bg-base-200">Date</th>
-                            <th class="bg-base-200">Terminal</th>
-                            <th class="bg-base-200">Point de vente</th>
-                            <th class="bg-base-200 text-right">Ventes</th>
-                            <th class="bg-base-200 text-right">Annulations</th>
-                            <th class="bg-base-200 text-right">Solde</th>
-                            <th class="bg-base-200 text-right">Commission</th>
-                            <th class="bg-base-200">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ca in recent_ca %}
-                        <tr>
-                            <td>
-                                <div class="font-bold">{{ ca.date_chiffre_affaire|date:"d/m/Y" }}</div>
-                                <div class="text-xs opacity-60">Jour {{ ca.jour_tirage }}</div>
-                            </td>
-                            <td>
-                                <div class="font-medium">{{ ca.machine.numero_terminal }}</div>
-                            </td>
-                            <td>{{ ca.machine.nom_point_vente }}</td>
-                            <td class="text-right">{{ ca.ventes_totales|floatformat:0 }} FCFA</td>
-                            <td class="text-right">{{ ca.annulations_totales|floatformat:0 }} FCFA</td>
-                            <td class="text-right font-bold">{{ ca.solde_total|floatformat:0 }} FCFA</td>
-                            <td class="text-right text-success">{{ ca.montant_commission|floatformat:0 }} FCFA</td>
-                            <td>
-                                <div class="flex gap-1">
-                                    <a href="{% url 'chiffre_affaire_detail' ca.id %}" class="btn btn-ghost btn-xs">
-                                        <i class="bx bx-show"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="text-center py-4">
-                                <div class="flex flex-col items-center justify-center text-gray-500 py-8">
-                                    <i class="bx bx-calendar-x text-4xl"></i>
-                                    <p class="mt-2">Aucun chiffre d'affaires enregistré</p>
-                                    <a href="{% url 'chiffre_affaire_create' %}" class="btn btn-sm btn-primary mt-4">
-                                        <i class="bx bx-plus mr-2"></i> Ajouter maintenant
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+{# Section Derniers Chiffres d'Affaires - Tableau Stylé #}
+<div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+  <div class="p-6">
+    <h2 class="text-xl font-semibold text-slate-800 flex items-center mb-4">
+      <i class="bx bx-history text-indigo-600 text-2xl mr-2"></i>
+      Derniers Chiffres d'Affaires
+    </h2>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm text-left text-slate-500">
+      <thead
+        class="text-xs text-slate-700 uppercase bg-slate-100 border-b border-slate-200"
+      >
+        <tr>
+          <th scope="col" class="px-6 py-3">Date / Jour</th>
+          <th scope="col" class="px-6 py-3">Terminal</th>
+          <th scope="col" class="px-6 py-3">Point de Vente</th>
+          <th scope="col" class="px-6 py-3 text-right">Ventes (FCFA)</th>
+          <th scope="col" class="px-6 py-3 text-right">Annulations (FCFA)</th>
+          <th scope="col" class="px-6 py-3 text-right">Solde (FCFA)</th>
+          <th scope="col" class="px-6 py-3 text-right">Commission (FCFA)</th>
+          <th scope="col" class="px-6 py-3 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ca in recent_ca %}
+        <tr
+          class="bg-white border-b border-slate-200 hover:bg-slate-50 transition-colors duration-150"
+        >
+          <td class="px-6 py-4">
+            <div class="font-medium text-slate-800">
+              {{ ca.date_chiffre_affaire|date:"d/m/Y" }}
             </div>
-            <div class="card-actions justify-end mt-4">
-                <a href="{% url 'chiffre_affaire_list' %}" class="btn btn-info">
-                    <i class='bx bx-list-ul mr-2'></i> Voir tout
-                </a>
+            <div class="text-xs text-slate-500">Jour {{ ca.jour_tirage }}</div>
+          </td>
+          <td class="px-6 py-4 font-medium text-slate-700">
+            {{ ca.machine.numero_terminal }}
+          </td>
+          <td class="px-6 py-4 text-slate-600">
+            {{ ca.machine.nom_point_vente }}
+          </td>
+          <td class="px-6 py-4 text-right text-slate-600">
+            {{ ca.ventes_totales|floatformat:0 }}
+          </td>
+          <td class="px-6 py-4 text-right text-slate-600">
+            {{ ca.annulations_totales|floatformat:0 }}
+          </td>
+          <td class="px-6 py-4 text-right font-semibold text-sky-700">
+            {{ ca.solde_total|floatformat:0 }}
+          </td>
+          <td class="px-6 py-4 text-right font-medium text-green-600">
+            {{ ca.montant_commission|floatformat:0 }}
+          </td>
+          <td class="px-6 py-4 text-center">
+            <a
+              href="{% url 'chiffre_affaire_detail' ca.id %}"
+              class="text-sky-600 hover:text-sky-800 p-1.5 hover:bg-sky-100 rounded-md transition-colors duration-150"
+              title="Voir détails"
+            >
+              <i class="bx bx-show text-lg"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="text-center py-10">
+            <div
+              class="flex flex-col items-center justify-center text-slate-500"
+            >
+              <i class="bx bx-calendar-x text-5xl mb-3 text-slate-400"></i>
+              <p class="font-medium mb-1">Aucun chiffre d'affaires récent</p>
+              <p class="text-sm mb-4">Commencez par en ajouter un nouveau.</p>
+              <a
+                href="{% url 'chiffre_affaire_create' %}"
+                class="inline-flex items-center px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+              >
+                <i class="bx bx-plus text-lg mr-1.5"></i> Ajouter maintenant
+              </a>
             </div>
-        </div>
-    </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if recent_ca %}
+  <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 text-right">
+    <a
+      href="{% url 'chiffre_affaire_list' %}"
+      class="inline-flex items-center px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+    >
+      <i class="bx bx-list-ul text-lg mr-1.5"></i> Voir Tout
+    </a>
+  </div>
+  {% endif %}
 </div>
 
+{# Section Top Machines et Top Agents - Style Cartes avec Listes #}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Top machines -->
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title text-xl flex items-center">
-                <i class='bx bx-laptop text-primary text-2xl mr-2'></i>
-                Top 5 des machines
-            </h2>
-            <div class="mt-4">
-                {% for machine in top_machines %}
-                <div class="flex items-center p-3 {% if not forloop.last %}border-b border-base-200{% endif %}">
-                    <div class="avatar mr-4">
-                        <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold">
-                            {{ forloop.counter }}
-                        </div>
-                    </div>
-                    <div class="flex-1">
-                        <div class="font-bold">{{ machine.numero_terminal }}</div>
-                        <div class="text-sm opacity-70">{{ machine.nom_point_vente }}</div>
-                    </div>
-                    <div class="badge badge-primary badge-lg">{{ machine.total_ca|floatformat:0 }} FCFA</div>
-                </div>
-                {% empty %}
-                <div class="flex flex-col items-center justify-center text-gray-500 py-8">
-                    <i class="bx bx-error-circle text-4xl"></i>
-                    <p class="mt-2">Aucune donnée disponible</p>
-                </div>
-                {% endfor %}
-            </div>
-            <div class="card-actions justify-end mt-4">
-                <a href="{% url 'machine_list' %}" class="btn btn-outline btn-primary">
-                    <i class='bx bx-list-ul mr-2'></i> Toutes les machines
-                </a>
-            </div>
-        </div>
+  <!-- Top 5 des machines -->
+  <div class="bg-white rounded-xl shadow-lg">
+    <div class="p-6 border-b border-slate-200">
+      <h2 class="text-xl font-semibold text-slate-800 flex items-center">
+        <i class="bx bx-laptop text-sky-600 text-2xl mr-2"></i>
+        Top 5 Machines (par CA)
+      </h2>
     </div>
-    
-    <!-- Top agents -->
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title text-xl flex items-center">
-                <i class='bx bxs-user text-secondary text-2xl mr-2'></i>
-                Top 5 des agents
-            </h2>
-            <div class="mt-4">
-                {% for agent in top_agents %}
-                <div class="flex items-center p-3 {% if not forloop.last %}border-b border-base-200{% endif %}">
-                    <div class="avatar mr-4">
-                        <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-white font-bold">
-                            {{ forloop.counter }}
-                        </div>
-                    </div>
-                    <div class="flex-1">
-                        <div class="font-bold">{{ agent.nom_agent }} {{ agent.prenom_agent }}</div>
-                        <div class="text-sm opacity-70">Réf: {{ agent.reference_agent }}</div>
-                    </div>
-                    <div class="badge badge-secondary badge-lg">{{ agent.nb_machines }} machines</div>
-                </div>
-                {% empty %}
-                <div class="flex flex-col items-center justify-center text-gray-500 py-8">
-                    <i class="bx bx-error-circle text-4xl"></i>
-                    <p class="mt-2">Aucune donnée disponible</p>
-                </div>
-                {% endfor %}
-            </div>
-            <div class="card-actions justify-end mt-4">
-                <a href="{% url 'agent_list' %}" class="btn btn-outline btn-secondary">
-                    <i class='bx bx-list-ul mr-2'></i> Tous les agents
-                </a>
-            </div>
+    <div class="divide-y divide-slate-100">
+      {% for machine in top_machines %}
+      <div
+        class="flex items-center p-4 hover:bg-slate-50 transition-colors duration-150"
+      >
+        <div
+          class="flex-shrink-0 w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 font-bold mr-4"
+        >
+          {{ forloop.counter }}
         </div>
+        <div class="flex-grow">
+          <p class="font-semibold text-slate-700">
+            {{ machine.numero_terminal }}
+          </p>
+          <p class="text-xs text-slate-500">{{ machine.nom_point_vente }}</p>
+        </div>
+        <div
+          class="text-sm font-medium text-sky-700 bg-sky-100 px-2.5 py-1 rounded-full"
+        >
+          {{ machine.total_ca|floatformat:0 }} <span class="text-xs">FCFA</span>
+        </div>
+      </div>
+      {% empty %}
+      <div class="p-6 text-center">
+        <i class="bx bx-error-circle text-4xl text-slate-400 mb-2"></i>
+        <p class="text-sm text-slate-500">
+          Aucune donnée de machine disponible.
+        </p>
+      </div>
+      {% endfor %}
     </div>
+    {% if top_machines %}
+    <div class="p-4 bg-slate-50 border-t border-slate-200 text-right">
+      <a
+        href="{% url 'machine_list' %}"
+        class="inline-flex items-center px-3 py-1.5 bg-white hover:bg-slate-100 text-sky-600 border border-sky-300 text-xs font-medium rounded-md shadow-sm hover:shadow transition-all duration-200"
+      >
+        Toutes les machines
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Top 5 des agents -->
+  <div class="bg-white rounded-xl shadow-lg">
+    <div class="p-6 border-b border-slate-200">
+      <h2 class="text-xl font-semibold text-slate-800 flex items-center">
+        <i class="bx bxs-user-star text-teal-600 text-2xl mr-2"></i>
+        Top 5 Agents (par # machines)
+      </h2>
+    </div>
+    <div class="divide-y divide-slate-100">
+      {% for agent in top_agents %}
+      <div
+        class="flex items-center p-4 hover:bg-slate-50 transition-colors duration-150"
+      >
+        <div
+          class="flex-shrink-0 w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold mr-4"
+        >
+          {{ forloop.counter }}
+        </div>
+        <div class="flex-grow">
+          <p class="font-semibold text-slate-700">
+            {{ agent.nom_agent }} {{ agent.prenom_agent }}
+          </p>
+          <p class="text-xs text-slate-500">Réf: {{ agent.reference_agent }}</p>
+        </div>
+        <div
+          class="text-sm font-medium text-teal-700 bg-teal-100 px-2.5 py-1 rounded-full"
+        >
+          {{ agent.nb_machines }} machine{{ agent.nb_machines|pluralize }}
+        </div>
+      </div>
+      {% empty %}
+      <div class="p-6 text-center">
+        <i class="bx bx-user-x text-4xl text-slate-400 mb-2"></i>
+        <p class="text-sm text-slate-500">Aucune donnée d'agent disponible.</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% if top_agents %}
+    <div class="p-4 bg-slate-50 border-t border-slate-200 text-right">
+      <a
+        href="{% url 'agent_list' %}"
+        class="inline-flex items-center px-3 py-1.5 bg-white hover:bg-slate-100 text-teal-600 border border-teal-300 text-xs font-medium rounded-md shadow-sm hover:shadow transition-all duration-200"
+      >
+        Tous les agents
+      </a>
+    </div>
+    {% endif %}
+  </div>
 </div>
-{% endblock %}
+
+{# Placeholder pour les graphiques circulaires si besoin - à implémenter avec
+Chart.js ou ApexCharts #} {#
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  <div class="bg-white p-6 rounded-xl shadow-lg">
+    <h3 class="text-lg font-semibold text-slate-700 mb-3">Stand Info</h3>
+    <div class="flex justify-center items-center h-48">
+      Graphique Circulaire ici (ex: Chart.js)
+      <canvas id="standInfoChart"></canvas>
+    </div>
+  </div>
+  <div class="bg-white p-6 rounded-xl shadow-lg">
+    <h3 class="text-lg font-semibold text-slate-700 mb-3">Packages</h3>
+    <div class="flex justify-center items-center h-48">
+      Graphique Circulaire ici
+      <canvas id="packagesChart"></canvas>
+    </div>
+  </div>
+  <div class="bg-white p-6 rounded-xl shadow-lg">
+    <h3 class="text-lg font-semibold text-slate-700 mb-3">Personnel</h3>
+    <div class="flex justify-center items-center h-48">
+      Graphique Circulaire ici
+      <canvas id="personnelChart"></canvas>
+    </div>
+  </div>
+</div>
+#} {% endblock %} {% block extra_js %} {# Si vous utilisez Chart.js ou une autre
+bibliothèque pour les graphiques circulaires, initialisez-les ici #} {# Exemple
+avec Chart.js (vous devrez l'inclure dans votre base.html ou ici)
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Exemple pour un graphique, à adapter avec vos données réelles
+  // const standInfoCtx = document.getElementById('standInfoChart');
+  // if (standInfoCtx) {
+  //     new Chart(standInfoCtx, {
+  //         type: 'doughnut',
+  //         data: {
+  //             labels: ['Complété', 'Restant'],
+  //             datasets: [{
+  //                 label: 'Stand Info',
+  //                 data: [2, 6], // Exemple: 2 sur 8
+  //                 backgroundColor: [
+  //                     '#0ea5e9', // sky-500
+  //                     '#e2e8f0'  // slate-200
+  //                 ],
+  //                 borderColor: '#ffffff', // white
+  //                 borderWidth: 2,
+  //                 hoverOffset: 4
+  //             }]
+  //         },
+  //         options: {
+  //             responsive: true,
+  //             maintainAspectRatio: false,
+  //             cutout: '70%', // Pour un look de jauge
+  //             plugins: {
+  //                 legend: { display: false },
+  //                 tooltip: { enabled: true }
+  //             }
+  //         }
+  //     });
+  // }
+  // Répétez pour packagesChart, personnelChart, etc.
+</script>
+#} {% endblock %}
