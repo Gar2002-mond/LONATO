@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 
 from gestloto.views import collecteurs, rapports
 from . import views
@@ -79,4 +79,5 @@ urlpatterns = [
     path('rapports/depenses/', rapport_depense, name='rapport_depense'),
     path('rapports/collecteurs/', rapport_collecteur, name='rapport_collecteur'),
     path('rapports/agents/', rapport_agent, name='rapport_agent'),
+   
 ]

@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_htmx',
     'gestloto',
+    'schema_viewer',
     
     
 ]
@@ -49,6 +51,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -114,7 +117,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fr-fr'
 
 TIME_ZONE = 'UTC'
 
@@ -175,4 +178,29 @@ DAISY_SETTINGS = {
             'icon': 'fa-solid fa-users-gear',  # Custom FontAwesome icon for the 'social_django' app
         },
     },
+     
+    
+}
+
+# Dans votre lotto/settings.py, vers la fin du fichier
+
+SCHEMA_VIEWER = {
+    # Liste des applications dont vous souhaitez visualiser les modèles.
+    'apps': [
+        'gestloto',         # Votre application principale
+        'auth',             # Pour les modèles de django.contrib.auth (User, Group)
+        # Vous pouvez ajouter d'autres applications de INSTALLED_APPS ici si nécessaire
+        # par exemple 'admin' pour voir LogEntry, ou 'contenttypes'
+    ],
+
+    # Dictionnaire pour exclure des modèles spécifiques de certaines applications.
+    'exclude': {
+        'auth': [
+            'Permission',       # C'est une bonne pratique d'exclure Permission
+        ],
+        'admin': [
+            'LogEntry',         # Si vous ajoutez 'admin' à la liste 'apps' ci-dessus
+        ],
+        # 'gestloto': ['UnModeleSpecifiqueAGestlotoAExclure'], # Si besoin
+    }
 }

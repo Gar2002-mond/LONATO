@@ -1,0 +1,36 @@
+Pour intégrer Boxicons dans votre projet Django LONATO après l'avoir installé avec npm install boxicons, voici les étapes à suivre :
+
+1. Vérifier l'installation
+D'abord, vérifiez que Boxicons a bien été installé :
+
+2. Ajouter les fichiers CSS de Boxicons à votre projet
+Vous avez deux options pour intégrer Boxicons dans votre application :
+
+Option 1 : Copier les fichiers statiques (recommandé)
+Copiez les fichiers CSS et les polices depuis le dossier node_modules vers votre dossier static :
+
+# Créer un dossier pour Boxicons dans votre répertoire static
+New-Item -Path "C:\Users\wilso\Desktop\WorkManager\DJANGO\projects\LONATO\static\boxicons" -ItemType Directory -Force
+
+# Copier les fichiers CSS et polices
+Copy-Item -Path "C:\Users\wilso\Desktop\WorkManager\DJANGO\projects\LONATO\node_modules\boxicons\css\*" -Destination "C:\Users\wilso\Desktop\WorkManager\DJANGO\projects\LONATO\static\boxicons\css" -Recurse -Force
+Copy-Item -Path "C:\Users\wilso\Desktop\WorkManager\DJANGO\projects\LONATO\node_modules\boxicons\fonts\*" -Destination "C:\Users\wilso\Desktop\WorkManager\DJANGO\projects\LONATO\static\boxicons\fonts" -Recurse -Force
+
+
+Si vous choisissez l'option 1 (fichiers locaux), modifiez votre fichier base.html pour pointer vers les fichiers locaux au lieu du CDN :
+
+<!-- Remplacer cette ligne -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+
+<!-- Par celle-ci -->
+<link rel="stylesheet" href="{% static 'boxicons/css/boxicons.min.css' %}">
+
+
+
+
+
+-------------------------Optionnel mais recommandé) Exécuter collectstatic : Bien que runserver serve les fichiers statiques en mode DEBUG, il est bon de prendre l'habitude d'exécuter collectstatic lorsque vous modifiez vos fichiers statiques, surtout en préparation pour la production.
+
+
+ pip install -r requirements.txt   
+
