@@ -1,278 +1,434 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}LONATO - Gestion LOTO{% endblock %}</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+    />
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/output.css' %}" /> <!-- Votre fichier Tailwind CSS compilé -->
-    <link rel="stylesheet" href="{% static 'boxicons/css/boxicons.css' %}">
-   
+    <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+    <link rel="stylesheet" href="{% static 'boxicons/css/boxicons.css' %}" />
+
     <script src="{% static 'js/htmx.min.js' %}"></script>
+ 
+    <script src="{% static 'js/charts.js' %}"></script>
     <style>
-        body {
-            font-family: "Inter", sans-serif;
-        }
-        /* Style pour la scrollbar (optionnel, pour affiner le look) */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9; /* slate-100 */
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #60a5fa; /* blue-400 */
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #3b82f6; /* blue-500 */
-        }
-        /* Classe pour l'état actif des liens de la sidebar */
-      
-        .sidebar-link-active i {
-            color: #0284c7; /* sky-600 */
-        }
-        /* Glassmorphism utility (appliqué avec parcimonie) */
-        .glassmorphism {
-            background: rgba(255, 255, 255, 0.3); /* Ajustez l'opacité du fond */
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            /* border: 1px solid rgba(255, 255, 255, 0.1); /* Bordure subtile optionnelle */
-        }
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      /* Style pour la scrollbar (optionnel, pour affiner le look) */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9; /* slate-100 */
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #60a5fa; /* blue-400 */
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #3b82f6; /* blue-500 */
+      }
+      /* Classe pour l'état actif des liens de la sidebar */
+
+      .sidebar-link-active i {
+        color: #0284c7; /* sky-600 */
+      }
+      /* Glassmorphism utility (appliqué avec parcimonie) */
+      .glassmorphism {
+        background: rgba(255, 255, 255, 0.3); /* Ajustez l'opacité du fond */
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        /* border: 1px solid rgba(255, 255, 255, 0.1); /* Bordure subtile optionnelle */
+      }
     </style>
     {% block extra_css %}{% endblock %}
-</head>
+  </head>
 
-<body hx-boost="true" class="bg-slate-100 text-slate-800">
+  <body hx-boost="false" class="bg-slate-100 text-slate-800">
     {% if user.is_authenticated %}
     <div class="flex h-screen">
-        <!-- Sidebar Toggle Checkbox (pour mobile) -->
-        <input type="checkbox" id="sidebar-toggle" class="hidden peer"/>
+      <!-- Sidebar Toggle Checkbox (pour mobile) -->
+      <input type="checkbox" id="sidebar-toggle" class="hidden peer" />
 
-        <!-- Sidebar -->
-        <aside id="sidebar" class="
-            fixed inset-y-0 left-0 z-30 w-64 px-4 py-6 space-y-6
-            bg-white shadow-xl transform -translate-x-full transition-transform duration-300 ease-in-out
-            lg:translate-x-0 lg:static lg:inset-0 peer-checked:translate-x-0
-            flex flex-col
-        ">
-            <!-- Logo and App Name -->
-            <div class="px-2 pt-2 pb-4 flex items-center space-x-3 border-b border-slate-200">
-                <div class="bg-sky-500 p-2.5 rounded-lg shadow-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12.0001 1.50005C12.4737 1.50005 12.9313 1.62164 13.3296 1.85199L19.3296 5.35199C19.5481 5.47967 19.7329 5.65633 19.8672 5.86724C20.0015 6.07816 20.0811 6.31697 20.0999 6.56255V13.4375C20.0811 13.6831 20.0015 13.9219 19.8672 14.1328C19.7329 14.3437 19.5481 14.5204 19.3296 14.648L13.3296 18.148C12.9313 18.3784 12.4737 18.5 12.0001 18.5C11.5264 18.5 11.0688 18.3784 10.6705 18.148L4.67054 14.648C4.45207 14.5204 4.26726 14.3437 4.13296 14.1328C3.99865 13.9219 3.91903 13.6831 3.90023 13.4375V6.56255C3.91903 6.31697 3.99865 6.07816 4.13296 5.86724C4.26726 5.65633 4.45207 5.47967 4.67054 5.35199L10.6705 1.85199C11.0688 1.62164 11.5264 1.50005 12.0001 1.50005ZM12.0001 3.50005L6.00008 7.00005V13L12.0001 16.5L18.0001 13V7.00005L12.0001 3.50005Z"/>
-                        <path d="M12 5.5L7.5 8V12L12 14.5L16.5 12V8L12 5.5ZM12 7.16667L14.0833 8.33333L12 9.5L9.91667 8.33333L12 7.16667Z"/>
-                    </svg>
-                </div>
-                <span class="text-2xl font-bold text-sky-600">LONATO</span>
-            </div>
-
-            <!-- User Profile Section -->
-            <div class="px-2 py-4 flex flex-col items-start space-y-2 bg-sky-50/70 rounded-xl shadow-sm">
-                <div class="flex items-center space-x-3 w-full">
-                    <div class="flex-shrink-0">
-                        <img class="w-12 h-12 rounded-full object-cover ring-2 ring-sky-300 ring-offset-2 ring-offset-sky-50/70"
-                             src="https://ui-avatars.com/api/?name={{ user.first_name|default:'' }}+{{ user.last_name|default:'' }}&background=0ea5e9&color=fff&size=128&font-size=0.33&bold=true"
-                             alt="{{ user.username }}" />
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <h2 class="text-md font-semibold text-slate-800 truncate">
-                            {{ user.get_full_name|default:user.username }}
-                        </h2>
-                        <p class="text-xs text-slate-500 truncate">
-                            {{ user.profile.get_role_display|default:"Utilisateur" }}
-                        </p>
-                    </div>
-                </div>
-                <span class="text-xs text-slate-400 self-end px-1"><i class="bx bx-time-five text-sm"></i> {% now "H:i" %}</span>
-            </div>
-
-            <!-- Navigation Links -->
-            <nav class="flex-grow space-y-1.5 overflow-y-auto pr-1">
-                <a href="{% url 'dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if request.resolver_match.url_name == 'dashboard' %}sidebar-link-active{% endif %}">
-                    <i class="bx bxs-dashboard text-xl mr-3 w-6 text-center"></i>
-                    <span class="font-medium text-sm">Tableau de bord</span>
-                </a>
-
-                <div class="pt-3 pb-1">
-                    <span class="px-3 font-semibold uppercase tracking-wider text-xs text-sky-700/80">Gestion</span>
-                </div>
-                {% comment %} Note: Replace with your actual URL names and check 'in' condition logic {% endcomment %}
-                <a href="{% url 'agent_list' %}" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'agent' in request.resolver_match.url_name %}sidebar-link-active{% endif %}">
-                    <i class="bx bxs-user text-xl mr-3 w-6 text-center"></i><span class="font-medium text-sm">Agents</span>
-                    {% if stats.total_agents %}<span class="ml-auto text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">{{ stats.total_agents|default:'0' }}</span>{% endif %}
-                </a>
-                <a href="{% url 'collecteur_list' %}" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'collecteur' in request.resolver_match.url_name %}sidebar-link-active{% endif %}">
-                    <i class="bx bxs-user-badge text-xl mr-3 w-6 text-center"></i><span class="font-medium text-sm">Collecteurs</span>
-                    {% if stats.total_collecteurs %}<span class="ml-auto text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">{{ stats.total_collecteurs|default:'0' }}</span>{% endif %}
-                </a>
-                <a href="{% url 'machine_list' %}" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'machine' in request.resolver_match.url_name %}sidebar-link-active{% endif %}">
-                    <i class="bx bx-laptop text-xl mr-3 w-6 text-center"></i><span class="font-medium text-sm">Machines</span>
-                     {% if stats.total_machines %}<span class="ml-auto text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">{{ stats.total_machines|default:'0' }}</span>{% endif %}
-                </a>
-                <a href="{% url 'chiffre_affaire_list' %}" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'chiffre_affaire' in request.resolver_match.url_name and 'rapport' not in request.resolver_match.url_name %}sidebar-link-active{% endif %}">
-                    <i class="bx bx-line-chart text-xl mr-3 w-6 text-center"></i><span class="font-medium text-sm">Chiffres d'affaires</span>
-                </a>
-                <a href="{% url 'depense_list' %}" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'depense' in request.resolver_match.url_name and 'rapport' not in request.resolver_match.url_name %}sidebar-link-active{% endif %}">
-                    <i class="bx bx-money text-xl mr-3 w-6 text-center"></i><span class="font-medium text-sm">Dépenses</span>
-                </a>
-                <a href="{% url 'activite_collecteur_list' %}" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'activite_collecteur' in request.resolver_match.url_name %}sidebar-link-active{% endif %}">
-                    <i class="bx bx-transfer text-xl mr-3 w-6 text-center"></i><span class="font-medium text-sm">Activités collecteurs</span>
-                </a>
-                <a href="{% url 'penalite_commission_list' %}" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'penalite_commission' in request.resolver_match.url_name %}sidebar-link-active{% endif %}">
-                    <i class="bx bx-coin text-xl mr-3 w-6 text-center"></i><span class="font-medium text-sm">Pénalités & commissions</span>
-                </a>
-
-                <div class="pt-3 pb-1">
-                  <span class="px-3 font-semibold uppercase tracking-wider text-xs text-sky-700/80">Rapports</span>
-                </div>
-                <a href="{% url 'rapport_chiffre_affaire' %}" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if request.resolver_match.url_name == 'rapport_chiffre_affaire' %}sidebar-link-active{% endif %}"><i class="bx bxs-report text-xl mr-3 w-6 text-center"></i><span class="font-medium text-sm">Chiffres d'affaires</span></a>
-                <a href="{% url 'rapport_depense' %}" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if request.resolver_match.url_name == 'rapport_depense' %}sidebar-link-active{% endif %}"><i class="bx bxs-report text-xl mr-3 w-6 text-center"></i><span class="font-medium text-sm">Dépenses</span></a>
-                <a href="{% url 'rapport_collecteur' %}" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if request.resolver_match.url_name == 'rapport_collecteur' %}sidebar-link-active{% endif %}"><i class="bx bxs-report text-xl mr-3 w-6 text-center"></i><span class="font-medium text-sm">Collecteurs</span></a>
-                <a href="{% url 'rapport_agent' %}" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if request.resolver_match.url_name == 'rapport_agent' %}sidebar-link-active{% endif %}"><i class="bx bxs-report text-xl mr-3 w-6 text-center"></i><span class="font-medium text-sm">Agents</span></a>
-
-                <div class="!my-3 pt-2 border-t border-slate-200"></div>
-                <a href="{% url 'admin:index' %}" hx-boost="false" class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150"><i class="bx bx-cog text-xl mr-3 w-6 text-center"></i><span class="font-medium text-sm">Administration</span></a>
-            </nav>
-
-            <!-- Sidebar Footer (Logout, etc.) -->
-            <div class="mt-auto pt-4 space-y-3 border-t border-slate-200">
-                <div class="p-2 bg-slate-100 rounded-lg text-xs">
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-500">Date:</span>
-                        <span class="font-medium text-slate-700">{% now "d M Y" %}</span>
-                    </div>
-                    <div class="flex justify-between items-center mt-1">
-                        <span class="text-slate-500">Version:</span>
-                        <span class="font-medium text-slate-700">v1.0.0</span>
-                    </div>
-                </div>
-                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form-sidebar').submit();"
-                   class="flex items-center justify-center w-full px-4 py-2.5 rounded-lg text-red-600 hover:bg-red-100 font-medium transition-colors duration-150">
-                    <i class="bx bx-log-out text-xl mr-2"></i>
-                    <span>Déconnexion</span>
-                </a>
-                <form id="logout-form-sidebar" method="post" action="{% url 'logout' %}" style="display: none;">{% csrf_token %}</form>
-            </div>
-        </aside>
-
-        <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <!-- Navbar for mobile (Burger menu, Title, User Dropdown) -->
-            <header class="bg-white shadow-md lg:hidden sticky top-0 z-20">
-                <div class="container mx-auto px-4">
-                    <div class="flex items-center justify-between h-16">
-                        <label for="sidebar-toggle" class="text-slate-600 hover:text-sky-500 cursor-pointer">
-                            <i class="bx bx-menu text-3xl"></i>
-                        </label>
-                        <a href="{% url 'dashboard' %}" class="text-xl font-bold text-sky-600">LONATO</a>
-                        
-                        <div class="relative">
-                             <button type="button" class="block focus:outline-none" onclick="document.getElementById('mobile-user-menu').classList.toggle('hidden')">
-                                <img class="w-9 h-9 rounded-full object-cover ring-2 ring-sky-400 ring-offset-1"
-                                     src="https://ui-avatars.com/api/?name={{ user.first_name|default:'' }}+{{ user.last_name|default:'' }}&background=0ea5e9&color=fff&size=128&font-size=0.33&bold=true"
-                                     alt="{{ user.username }}" />
-                            </button>
-                            <div id="mobile-user-menu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl overflow-hidden z-10">
-                                <div class="px-4 py-3 border-b border-slate-200">
-                                    <span class="block text-sm font-semibold text-slate-700">{{ user.get_full_name|default:user.username }}</span>
-                                    <span class="block text-xs text-slate-500 truncate">{{ user.email }}</span>
-                                </div>
-                                <a href="{% url 'admin:index' %}" hx-boost="false" class="block px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600"><i class="bx bx-cog mr-2"></i>Administration</a>
-                                <div class="border-t border-slate-200"></div>
-                                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form-nav').submit();" class="block w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
-                                    <i class="bx bx-log-out mr-2"></i>Déconnexion
-                                </a>
-                                <form id="logout-form-nav" method="post" action="{% url 'logout' %}" style="display: none;">{% csrf_token %}</form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Page Content -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-100 p-4 sm:p-6 md:p-8">
-                {% block breadcrumbs %}
-                <div class="text-sm mb-6 text-slate-500">
-                    <a href="{% url 'dashboard' %}" class="hover:text-sky-600"><i class="bx bxs-home mr-1"></i>Tableau de bord</a>
-                    {% block breadcrumb_items %}{% endblock %}
-                </div>
-                {% endblock %}
-
-                <div id="notifications" hx-swap-oob="true">
-                    {% if messages %}
-                    <div class="mb-6 space-y-3">
-                        {% for message in messages %}
-                        <div role="alert" class="
-                            {% if message.tags == 'error' %} bg-red-50 border-l-4 border-red-500 text-red-700
-                            {% elif message.tags == 'warning' %} bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700
-                            {% elif message.tags == 'success' %} bg-green-50 border-l-4 border-green-500 text-green-700
-                            {% else %} bg-sky-50 border-l-4 border-sky-500 text-sky-700
-                            {% endif %} p-4 rounded-md shadow-md flex items-start slide-in"
-                        >
-                            <div class="flex-shrink-0 mr-3">
-                                {% if message.tags == 'success' %}<i class="bx bx-check-circle text-2xl"></i>
-                                {% elif message.tags == 'error' %}<i class="bx bx-error-circle text-2xl"></i>
-                                {% elif message.tags == 'warning' %}<i class="bx bx-error text-2xl"></i>
-                                {% else %}<i class="bx bx-info-circle text-2xl"></i>
-                                {% endif %}
-                            </div>
-                            <span class="flex-grow text-sm">{{ message }}</span>
-                            <button type="button" class="ml-auto -mx-1.5 -my-1.5 p-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2
-                                {% if message.tags == 'error' %} hover:bg-red-100 focus:ring-red-400 focus:ring-offset-red-50
-                                {% elif message.tags == 'warning' %} hover:bg-yellow-100 focus:ring-yellow-400 focus:ring-offset-yellow-50
-                                {% elif message.tags == 'success' %} hover:bg-green-100 focus:ring-green-400 focus:ring-offset-green-50
-                                {% else %} hover:bg-sky-100 focus:ring-sky-400 focus:ring-offset-sky-50
-                                {% endif %}"
-                                onclick="this.closest('[role=\'alert\']').remove()">
-                                <span class="sr-only">Fermer</span>
-                                <i class="bx bx-x text-xl"></i>
-                            </button>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="mb-8">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                        <div>
-                            <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">
-                                {% block page_title %}Titre de la Page{% endblock %}
-                            </h1>
-                            {% block page_subtitle %}
-                            <p class="text-slate-500 mt-1 text-sm">{% endblock %}</p>
-                        </div>
-                        <div class="mt-3 md:mt-0">
-                            {% block page_actions %}{% endblock %} {# Ex: Buttons for "Create New" #}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="animate-fade-in">
-                    {% block content %}{% endblock %}
-                </div>
-            </main>
-
-            <!-- Footer -->
-            <footer class="p-4 bg-white border-t border-slate-200 text-center mt-auto">
-                <p class="text-xs text-slate-500">
-                    Copyright © {% now "Y" %} LONATO - Tous droits réservés.
-                </p>
-            </footer>
+      <!-- Sidebar -->
+      <aside
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-30 w-64 px-4 py-6 space-y-6 bg-white shadow-xl transform -translate-x-full transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 peer-checked:translate-x-0 flex flex-col"
+      >
+        <!-- Logo and App Name -->
+        <div
+          class="px-2 pt-2 pb-4 flex items-center space-x-3 border-b border-slate-200"
+        >
+          <div class="bg-sky-500 p-2.5 rounded-lg shadow-md">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-7 w-7 text-white"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M12.0001 1.50005C12.4737 1.50005 12.9313 1.62164 13.3296 1.85199L19.3296 5.35199C19.5481 5.47967 19.7329 5.65633 19.8672 5.86724C20.0015 6.07816 20.0811 6.31697 20.0999 6.56255V13.4375C20.0811 13.6831 20.0015 13.9219 19.8672 14.1328C19.7329 14.3437 19.5481 14.5204 19.3296 14.648L13.3296 18.148C12.9313 18.3784 12.4737 18.5 12.0001 18.5C11.5264 18.5 11.0688 18.3784 10.6705 18.148L4.67054 14.648C4.45207 14.5204 4.26726 14.3437 4.13296 14.1328C3.99865 13.9219 3.91903 13.6831 3.90023 13.4375V6.56255C3.91903 6.31697 3.99865 6.07816 4.13296 5.86724C4.26726 5.65633 4.45207 5.47967 4.67054 5.35199L10.6705 1.85199C11.0688 1.62164 11.5264 1.50005 12.0001 1.50005ZM12.0001 3.50005L6.00008 7.00005V13L12.0001 16.5L18.0001 13V7.00005L12.0001 3.50005Z"
+              />
+              <path
+                d="M12 5.5L7.5 8V12L12 14.5L16.5 12V8L12 5.5ZM12 7.16667L14.0833 8.33333L12 9.5L9.91667 8.33333L12 7.16667Z"
+              />
+            </svg>
+          </div>
+          <span class="text-2xl font-bold text-sky-600">LONATO</span>
         </div>
+
+        <!-- User Profile Section -->
+        <div
+          class="px-2 py-4 flex flex-col items-start space-y-2 bg-sky-50/70 rounded-xl shadow-sm"
+        >
+          <div class="flex items-center space-x-3 w-full">
+            <div class="flex-shrink-0">
+              <img
+                class="w-12 h-12 rounded-full object-cover ring-2 ring-sky-300 ring-offset-2 ring-offset-sky-50/70"
+                src="https://ui-avatars.com/api/?name={{ user.first_name|default:'' }}+{{ user.last_name|default:'' }}&background=0ea5e9&color=fff&size=128&font-size=0.33&bold=true"
+                alt="{{ user.username }}"
+              />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h2 class="text-md font-semibold text-slate-800 truncate">
+                {{ user.get_full_name|default:user.username }}
+              </h2>
+              <p class="text-xs text-slate-500 truncate">
+                {{ user.profile.get_role_display|default:"Utilisateur" }}
+              </p>
+            </div>
+          </div>
+          <span class="text-xs text-slate-400 self-end px-1"
+            ><i class="bx bx-time-five text-sm"></i> {% now "H:i" %}</span
+          >
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="flex-grow space-y-1.5 overflow-y-auto pr-1">
+          <a
+            href="{% url 'dashboard' %}"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if request.resolver_match.url_name == 'dashboard' %}sidebar-link-active{% endif %}"
+          >
+            <i class="bx bxs-dashboard text-xl mr-3 w-6 text-center"></i>
+            <span class="font-medium text-sm">Tableau de bord</span>
+          </a>
+
+          <div class="pt-3 pb-1">
+            <span
+              class="px-3 font-semibold uppercase tracking-wider text-xs text-sky-700/80"
+              >Gestion</span
+            >
+          </div>
+
+          <a
+            href="{% url 'agent_list' %}"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'agent' in request.resolver_match.url_name %}sidebar-link-active{% endif %}"
+          >
+            <i class="bx bxs-user text-xl mr-3 w-6 text-center"></i>
+            <span class="font-medium text-sm">Agents</span>
+            {% if stats.total_agents %}
+            <span
+              class="ml-auto text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full"
+              >{{ stats.total_agents|default:'0' }}</span
+            >
+            {% endif %}
+          </a>
+
+          <a
+            href="{% url 'collecteur_list' %}"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'collecteur' in request.resolver_match.url_name %}sidebar-link-active{% endif %}"
+          >
+            <i class="bx bxs-user-badge text-xl mr-3 w-6 text-center"></i>
+            <span class="font-medium text-sm">Collecteurs</span>
+            {% if stats.total_collecteurs %}
+            <span
+              class="ml-auto text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full"
+              >{{ stats.total_collecteurs|default:'0' }}</span
+            >
+            {% endif %}
+          </a>
+
+          <a
+            href="{% url 'machine_list' %}"
+            hx-boost="false"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'machine' in request.resolver_match.url_name %}sidebar-link-active{% endif %}"
+          >
+            <i class="bx bx-laptop text-xl mr-3 w-6 text-center"></i>
+            <span class="font-medium text-sm">Machines</span>
+            {% if stats.total_machines %}
+            <span
+              class="ml-auto text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full"
+              >{{ stats.total_machines|default:'0' }}</span
+            >
+            {% endif %}
+          </a>
+
+          <a
+            href="{% url 'chiffre_affaire_list' %}"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'chiffre_affaire' in request.resolver_match.url_name and 'rapport' not in request.resolver_match.url_name %}sidebar-link-active{% endif %}"
+          >
+            <i class="bx bx-line-chart text-xl mr-3 w-6 text-center"></i>
+            <span class="font-medium text-sm">Chiffres d'affaires</span>
+          </a>
+
+          <a
+            href="{% url 'depense_list' %}"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'depense' in request.resolver_match.url_name and 'rapport' not in request.resolver_match.url_name %}sidebar-link-active{% endif %}"
+          >
+            <i class="bx bx-money text-xl mr-3 w-6 text-center"></i>
+            <span class="font-medium text-sm">Dépenses</span>
+          </a>
+
+          <a
+            href="{% url 'activite_collecteur_list' %}"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'activite_collecteur' in request.resolver_match.url_name %}sidebar-link-active{% endif %}"
+          >
+            <i class="bx bx-transfer text-xl mr-3 w-6 text-center"></i>
+            <span class="font-medium text-sm">Activités collecteurs</span>
+          </a>
+
+          <a
+            href="{% url 'penalite_commission_list' %}"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if 'penalite_commission' in request.resolver_match.url_name %}sidebar-link-active{% endif %}"
+          >
+            <i class="bx bx-coin text-xl mr-3 w-6 text-center"></i>
+            <span class="font-medium text-sm">Pénalités & commissions</span>
+          </a>
+
+          <div class="pt-3 pb-1">
+            <span
+              class="px-3 font-semibold uppercase tracking-wider text-xs text-sky-700/80"
+              >Rapports</span
+            >
+          </div>
+          <a
+            href="{% url 'rapport_chiffre_affaire' %}"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if request.resolver_match.url_name == 'rapport_chiffre_affaire' %}sidebar-link-active{% endif %}"
+            ><i class="bx bxs-report text-xl mr-3 w-6 text-center"></i
+            ><span class="font-medium text-sm">Chiffres d'affaires</span></a
+          >
+          <a
+            href="{% url 'rapport_depense' %}"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if request.resolver_match.url_name == 'rapport_depense' %}sidebar-link-active{% endif %}"
+            ><i class="bx bxs-report text-xl mr-3 w-6 text-center"></i
+            ><span class="font-medium text-sm">Dépenses</span></a
+          >
+          <a
+            href="{% url 'rapport_collecteur' %}"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if request.resolver_match.url_name == 'rapport_collecteur' %}sidebar-link-active{% endif %}"
+            ><i class="bx bxs-report text-xl mr-3 w-6 text-center"></i
+            ><span class="font-medium text-sm">Collecteurs</span></a
+          >
+          <a
+            href="{% url 'rapport_agent' %}"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150 {% if request.resolver_match.url_name == 'rapport_agent' %}sidebar-link-active{% endif %}"
+            ><i class="bx bxs-report text-xl mr-3 w-6 text-center"></i
+            ><span class="font-medium text-sm">Agents</span></a
+          >
+
+          <div class="!my-3 pt-2 border-t border-slate-200"></div>
+          <a
+            href="{% url 'admin:index' %}"
+            hx-boost="false"
+            class="flex items-center px-3 py-2.5 rounded-lg text-slate-700 hover:bg-sky-100 hover:text-sky-600 transition-colors duration-150"
+            ><i class="bx bx-cog text-xl mr-3 w-6 text-center"></i
+            ><span class="font-medium text-sm">Administration</span></a
+          >
+        </nav>
+
+        <!-- Sidebar Footer (Logout, etc.) -->
+        <div class="mt-auto pt-4 space-y-3 border-t border-slate-200">
+          <div class="p-2 bg-slate-100 rounded-lg text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500">Date:</span>
+              <span class="font-medium text-slate-700">{% now "d M Y" %}</span>
+            </div>
+            <div class="flex justify-between items-center mt-1">
+              <span class="text-slate-500">Version:</span>
+              <span class="font-medium text-slate-700">v1.0.0</span>
+            </div>
+          </div>
+          <a
+            href="#"
+            onclick="event.preventDefault(); document.getElementById('logout-form-sidebar').submit();"
+            class="flex items-center justify-center w-full px-4 py-2.5 rounded-lg text-red-600 hover:bg-red-100 font-medium transition-colors duration-150"
+          >
+            <i class="bx bx-log-out text-xl mr-2"></i>
+            <span>Déconnexion</span>
+          </a>
+          <form
+            id="logout-form-sidebar"
+            method="post"
+            action="{% url 'logout' %}"
+            style="display: none"
+          >
+            {% csrf_token %}
+          </form>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Navbar for mobile (Burger menu, Title, User Dropdown) -->
+        <header class="bg-white shadow-md lg:hidden sticky top-0 z-20">
+          <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+              <label
+                for="sidebar-toggle"
+                class="text-slate-600 hover:text-sky-500 cursor-pointer"
+              >
+                <i class="bx bx-menu text-3xl"></i>
+              </label>
+              <a
+                href="{% url 'dashboard' %}"
+                class="text-xl font-bold text-sky-600"
+                >LONATO</a
+              >
+
+              <div class="relative">
+                <button
+                  type="button"
+                  class="block focus:outline-none"
+                  onclick="document.getElementById('mobile-user-menu').classList.toggle('hidden')"
+                >
+                  <img
+                    class="w-9 h-9 rounded-full object-cover ring-2 ring-sky-400 ring-offset-1"
+                    src="https://ui-avatars.com/api/?name={{ user.first_name|default:'' }}+{{ user.last_name|default:'' }}&background=0ea5e9&color=fff&size=128&font-size=0.33&bold=true"
+                    alt="{{ user.username }}"
+                  />
+                </button>
+                <div
+                  id="mobile-user-menu"
+                  class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl overflow-hidden z-10"
+                >
+                  <div class="px-4 py-3 border-b border-slate-200">
+                    <span class="block text-sm font-semibold text-slate-700"
+                      >{{ user.get_full_name|default:user.username }}</span
+                    >
+                    <span class="block text-xs text-slate-500 truncate"
+                      >{{ user.email }}</span
+                    >
+                  </div>
+                  <a
+                    href="{% url 'admin:index' %}"
+                    hx-boost="false"
+                    class="block px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600"
+                    ><i class="bx bx-cog mr-2"></i>Administration</a
+                  >
+                  <div class="border-t border-slate-200"></div>
+                  <a
+                    href="#"
+                    onclick="event.preventDefault(); document.getElementById('logout-form-nav').submit();"
+                    class="block w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    <i class="bx bx-log-out mr-2"></i>Déconnexion
+                  </a>
+                  <form
+                    id="logout-form-nav"
+                    method="post"
+                    action="{% url 'logout' %}"
+                    style="display: none"
+                  >
+                    {% csrf_token %}
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Page Content -->
+        <main
+          class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-100 p-4 sm:p-6 md:p-8"
+        >
+          {% block breadcrumbs %}
+          <div class="text-sm mb-6 text-slate-500">
+            <a href="{% url 'dashboard' %}" class="hover:text-sky-600"
+              ><i class="bx bxs-home mr-1"></i>Tableau de bord</a
+            >
+            {% block breadcrumb_items %}{% endblock %}
+          </div>
+          {% endblock %}
+
+          <div id="notifications" hx-swap-oob="true">
+            {% if messages %}
+            <div class="mb-6 space-y-3">
+              {% for message in messages %}
+              <div
+                role="alert"
+                class="{% if message.tags == 'error' %} bg-red-50 border-l-4 border-red-500 text-red-700 {% elif message.tags == 'warning' %} bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 {% elif message.tags == 'success' %} bg-green-50 border-l-4 border-green-500 text-green-700 {% else %} bg-sky-50 border-l-4 border-sky-500 text-sky-700 {% endif %} p-4 rounded-md shadow-md flex items-start slide-in"
+              >
+                <div class="flex-shrink-0 mr-3">
+                  {% if message.tags == 'success' %}<i
+                    class="bx bx-check-circle text-2xl"
+                  ></i>
+                  {% elif message.tags == 'error' %}<i
+                    class="bx bx-error-circle text-2xl"
+                  ></i>
+                  {% elif message.tags == 'warning' %}<i
+                    class="bx bx-error text-2xl"
+                  ></i>
+                  {% else %}<i class="bx bx-info-circle text-2xl"></i>
+                  {% endif %}
+                </div>
+                <span class="flex-grow text-sm">{{ message }}</span>
+                <button
+                  type="button"
+                  class="ml-auto -mx-1.5 -my-1.5 p-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 {% if message.tags == 'error' %} hover:bg-red-100 focus:ring-red-400 focus:ring-offset-red-50 {% elif message.tags == 'warning' %} hover:bg-yellow-100 focus:ring-yellow-400 focus:ring-offset-yellow-50 {% elif message.tags == 'success' %} hover:bg-green-100 focus:ring-green-400 focus:ring-offset-green-50 {% else %} hover:bg-sky-100 focus:ring-sky-400 focus:ring-offset-sky-50 {% endif %}"
+                  onclick="this.closest('[role=\'alert\']').remove()"
+                >
+                  <span class="sr-only">Fermer</span>
+                  <i class="bx bx-x text-xl"></i>
+                </button>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-8">
+            <div
+              class="flex flex-col md:flex-row md:items-center md:justify-between gap-2"
+            >
+              <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">
+                  {% block page_title %}Titre de la Page{% endblock %}
+                </h1>
+                {% block page_subtitle %}
+                <p class="text-slate-500 mt-1 text-sm">{% endblock %}</p>
+              </div>
+              <div class="mt-3 md:mt-0">
+                {% block page_actions %}{% endblock %}
+              </div>
+            </div>
+          </div>
+
+          <div class="animate-fade-in">{% block content %}{% endblock %}</div>
+        </main>
+
+        <!-- Footer -->
+        <footer
+          class="p-4 bg-white border-t border-slate-200 text-center mt-auto"
+        >
+          <p class="text-xs text-slate-500">
+            Copyright © {% now "Y" %} LONATO - Tous droits réservés.
+          </p>
+        </footer>
+      </div>
     </div>
     {% else %}
-        <main class="min-h-screen bg-slate-100">
-            <div class="animate-fade-in">
-                {% block auth_content %}{% endblock %}
-            </div>
-        </main>
+    <main class="min-h-screen bg-slate-100">
+      <div class="animate-fade-in">{% block auth_content %}{% endblock %}</div>
+    </main>
     {% endif %}
 
     <script src="{% static 'js/scripts.js' %}"></script>
     {% block extra_js %}{% endblock %}
-</body>
+  </body>
 </html>

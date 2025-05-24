@@ -1,115 +1,385 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+  /* Animations et styles personnalisés uniquement */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .input-focus:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #4338ca, #6d28d9);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+  }
+  
+  .btn-secondary {
+    background: white;
+    border: 2px solid #d1d5db;
+    color: #374151;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .error-field {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2;
+  }
+  
+  .success-field {
+    border-color: #10b981 !important;
+    background-color: #f0fdf4;
+  }
+</style>
+{% endblock %}
+
 {% block title %}{{ title }} - LONATO GESTLOTO{% endblock %}
 
 {% block breadcrumb_items %}
-<li><a href="{% url 'agent_list' %}">Agents</a></li>
-<li>{{ title }}</li>
+<li>
+  <a href="{% url 'agent_list' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+    Agents
+  </a>
+</li>
+<li>
+  <span class="text-gray-500">{{ title }}</span>
+</li>
 {% endblock %}
 
 {% block page_title %}{{ title }}{% endblock %}
-{% block page_subtitle %}Veuillez remplir les informations ci-dessous{% endblock %}
+
+{% block page_subtitle %}Formulaire de gestion des agents commerciaux{% endblock %}
 
 {% block content %}
-<div class="card bg-base-100 shadow-xl max-w-3xl mx-auto">
-    <div class="card-body">
-        <form method="post" hx-boost="true" class="space-y-6">
-            {% csrf_token %}
-            
-            {% if form.errors %}
-            <div class="alert alert-error shadow-lg">
-                <div class="flex items-start">
-                    <i class="bx bx-error-circle text-2xl mr-2"></i>
-                    <div>
-                        <h3 class="font-bold">Erreur dans le formulaire</h3>
-                        <ul class="mt-1 list-disc list-inside text-sm">
-                            {% for field in form %}
-                                {% for error in field.errors %}
-                                    <li>{{ field.label }}: {{ error }}</li>
-                                {% endfor %}
-                            {% endfor %}
-                            {% for error in form.non_field_errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Nom</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="text" name="nom_agent" value="{{ form.nom_agent.value|default:'' }}" class="input input-bordered {% if form.nom_agent.errors %}input-error{% endif %}" required autofocus>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Prénom</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="text" name="prenom_agent" value="{{ form.prenom_agent.value|default:'' }}" class="input input-bordered {% if form.prenom_agent.errors %}input-error{% endif %}" required>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Référence</span>
-                        <span class="label-text-alt text-error">Unique</span>
-                    </label>
-                    <input type="text" name="reference_agent" value="{{ form.reference_agent.value|default:'' }}" class="input input-bordered {% if form.reference_agent.errors %}input-error{% endif %}" required>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Téléphone</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="tel" name="num_tel_agent" value="{{ form.num_tel_agent.value|default:'' }}" class="input input-bordered {% if form.num_tel_agent.errors %}input-error{% endif %}" required>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Email</span>
-                    </label>
-                    <input type="email" name="email_agent" value="{{ form.email_agent.value|default:'' }}" class="input input-bordered {% if form.email_agent.errors %}input-error{% endif %}">
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Date début d'activités</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="date" name="date_debut_activites" value="{{ form.date_debut_activites.value|date:'Y-m-d'|default:'' }}" class="input input-bordered {% if form.date_debut_activites.errors %}input-error{% endif %}" required>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Pourcentage de commission (%)</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="number" name="pourcentage_commission" value="{{ form.pourcentage_commission.value|default:'' }}" min="0" max="100" step="0.01" class="input input-bordered {% if form.pourcentage_commission.errors %}input-error{% endif %}" required>
-                </div>
-            </div>
-            
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Autres détails</span>
-                </label>
-                <textarea name="autres_details" rows="3" class="textarea textarea-bordered {% if form.autres_details.errors %}textarea-error{% endif %}">{{ form.autres_details.value|default:'' }}</textarea>
-            </div>
-            
-            <div class="flex justify-end gap-2 mt-6">
-                <a href="{% url 'agent_list' %}" class="btn btn-outline">
-                    <i class="bx bx-arrow-back mr-2"></i> Annuler
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bx bx-save mr-2"></i> Enregistrer
-                </button>
-            </div>
-        </form>
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-lg shadow-lg border border-gray-200 animate-fade-in">
+    
+    <!-- En-tête du formulaire -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-6 rounded-t-lg">
+      <div class="flex items-center">
+        <div class="h-12 w-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mr-4">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-white">{{ title }}</h1>
+          <p class="text-blue-100 text-sm">Gérez les informations de l'agent commercial</p>
+        </div>
+      </div>
     </div>
+
+    <div class="px-6 py-8">
+      <form method="post" class="space-y-8">
+        {% csrf_token %}
+
+        <!-- Messages d'erreur -->
+        {% if form.errors %}
+        <div class="bg-red-50 border-l-4 border-red-400 rounded-r-lg p-4 animate-fade-in">
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-lg font-medium text-red-800 mb-2">Erreurs dans le formulaire</h3>
+              <div class="space-y-2">
+                {% for field in form %}
+                  {% for error in field.errors %}
+                  <div class="text-red-700 bg-red-100 px-3 py-2 rounded">
+                    <strong>{{ field.label }}:</strong> {{ error }}
+                  </div>
+                  {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                <div class="text-red-700 bg-red-100 px-3 py-2 rounded">
+                  {{ error }}
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Section Informations personnelles -->
+        <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+          <div class="flex items-center mb-6 pb-4 border-b border-gray-200">
+            <div class="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-gray-800">Informations personnelles</h2>
+              <p class="text-gray-600 text-sm">Identité et coordonnées de l'agent</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Nom -->
+            <div class="space-y-2">
+              <label for="nom_agent" class="block text-sm font-medium text-gray-700">
+                Nom de famille <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="nom_agent"
+                id="nom_agent"
+                value="{{ form.nom_agent.value|default:'' }}"
+                class="w-full px-3 py-3 border border-gray-300 rounded-lg  focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 input-focus {% if form.nom_agent.errors %}error-field{% endif %}"
+                placeholder="Entrez le nom de famille"
+                required
+                autofocus
+              />
+              {% if form.nom_agent.errors %}
+              <p class="text-red-600 text-sm">{{ form.nom_agent.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+            <!-- Prénom -->
+            <div class="space-y-2">
+              <label for="prenom_agent" class="block text-sm font-medium text-gray-700">
+                Prénom(s) <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="prenom_agent"
+                id="prenom_agent"
+                value="{{ form.prenom_agent.value|default:'' }}"
+                class="w-full px-3 py-3 border border-gray-300 rounded-lg  focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 input-focus {% if form.prenom_agent.errors %}error-field{% endif %}"
+                placeholder="Entrez le ou les prénoms"
+                required
+              />
+              {% if form.prenom_agent.errors %}
+              <p class="text-red-600 text-sm">{{ form.prenom_agent.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+            <!-- Référence -->
+            <div class="space-y-2">
+              <label for="reference_agent" class="block text-sm font-medium text-gray-700">
+                Référence agent <span class="text-red-500">*</span>
+                <span class="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded ml-2">Unique</span>
+              </label>
+              <input
+                type="text"
+                name="reference_agent"
+                id="reference_agent"
+                value="{{ form.reference_agent.value|default:'' }}"
+                class="w-full px-3 py-3 border border-gray-300 rounded-lg  focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 input-focus font-mono {% if form.reference_agent.errors %}error-field{% endif %}"
+                placeholder="Ex: AGT001, AGENT-001"
+                required
+              />
+              <p class="text-xs text-gray-500">Identifiant unique de l'agent dans le système</p>
+              {% if form.reference_agent.errors %}
+              <p class="text-red-600 text-sm">{{ form.reference_agent.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+            <!-- Téléphone -->
+            <div class="space-y-2">
+              <label for="num_tel_agent" class="block text-sm font-medium text-gray-700">
+                Numéro de téléphone <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="tel"
+                name="num_tel_agent"
+                id="num_tel_agent"
+                value="{{ form.num_tel_agent.value|default:'' }}"
+                class="w-full px-3 py-3 border border-gray-300 rounded-lg  focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 input-focus {% if form.num_tel_agent.errors %}error-field{% endif %}"
+                placeholder="+225 07 12 34 56 78"
+                required
+              />
+              {% if form.num_tel_agent.errors %}
+              <p class="text-red-600 text-sm">{{ form.num_tel_agent.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+            <!-- Email -->
+            <div class="space-y-2 md:col-span-2">
+              <label for="email_agent" class="block text-sm font-medium text-gray-700">
+                Adresse email
+                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded ml-2">Optionnel</span>
+              </label>
+              <input
+                type="email"
+                name="email_agent"
+                id="email_agent"
+                value="{{ form.email_agent.value|default:'' }}"
+                class="w-full px-3 py-3 border border-gray-300 rounded-lg  focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 input-focus {% if form.email_agent.errors %}error-field{% endif %}"
+                placeholder="agent@example.com"
+              />
+              {% if form.email_agent.errors %}
+              <p class="text-red-600 text-sm">{{ form.email_agent.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Section Informations professionnelles -->
+        <div class="bg-green-50 rounded-lg p-6 border border-green-200">
+          <div class="flex items-center mb-6 pb-4 border-b border-green-200">
+            <div class="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-gray-800">Informations professionnelles</h2>
+              <p class="text-gray-600 text-sm">Détails sur l'activité et la commission</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Date début activités -->
+            <div class="space-y-2">
+              <label for="date_debut_activites" class="block text-sm font-medium text-gray-700">
+                Date de début d'activités <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                name="date_debut_activites"
+                id="date_debut_activites"
+                value="{{ form.date_debut_activites.value|date:'Y-m-d'|default:'' }}"
+                class="w-full px-3 py-3 border border-gray-300 rounded-lg  focus:ring-green-500 focus:border-green-500 transition-all duration-200 input-focus {% if form.date_debut_activites.errors %}error-field{% endif %}"
+                required
+              />
+              {% if form.date_debut_activites.errors %}
+              <p class="text-red-600 text-sm">{{ form.date_debut_activites.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+            <!-- Pourcentage commission -->
+            <div class="space-y-2">
+              <label for="pourcentage_commission" class="block text-sm font-medium text-gray-700">
+                Pourcentage de commission <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  type="number"
+                  name="pourcentage_commission"
+                  id="pourcentage_commission"
+                  value="{{ form.pourcentage_commission.value|default:'' }}"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  class="w-full px-3 py-3 pr-8 border border-gray-300 rounded-lg  focus:ring-green-500 focus:border-green-500 transition-all duration-200 input-focus {% if form.pourcentage_commission.errors %}error-field{% endif %}"
+                  placeholder="15.50"
+                  required
+                />
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <span class="text-gray-500 font-medium">%</span>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500">Pourcentage de commission sur les ventes (0-100%)</p>
+              {% if form.pourcentage_commission.errors %}
+              <p class="text-red-600 text-sm">{{ form.pourcentage_commission.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+            <!-- Autres détails -->
+            <div class="space-y-2 md:col-span-2">
+              <label for="autres_details" class="block text-sm font-medium text-gray-700">
+                Autres détails et remarques
+                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded ml-2">Optionnel</span>
+              </label>
+              <textarea
+                name="autres_details"
+                id="autres_details"
+                rows="4"
+                class="w-full px-3 py-3 border border-gray-300 rounded-lg  focus:ring-green-500 focus:border-green-500 transition-all duration-200 resize-none {% if form.autres_details.errors %}error-field{% endif %}"
+                placeholder="Informations complémentaires sur l'agent, expérience, secteur d'activité..."
+              >{{ form.autres_details.value|default:'' }}</textarea>
+              {% if form.autres_details.errors %}
+              <p class="text-red-600 text-sm">{{ form.autres_details.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+          <a href="{% url 'agent_list' %}"
+             class="inline-flex items-center px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 btn-secondary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Annuler et retourner
+          </a>
+
+          <button type="submit"
+                  class="inline-flex items-center px-8 py-3 rounded-lg text-sm font-medium transition-all duration-200 btn-primary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+            </svg>
+            {% if 'create' in request.resolver_match.url_name %}
+              Créer l'agent
+            {% else %}
+              Mettre à jour
+            {% endif %}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validation en temps réel simple
+    const inputs = document.querySelectorAll('input[required]');
+    
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                this.classList.add('error-field');
+                this.classList.remove('success-field');
+            } else {
+                this.classList.add('success-field');
+                this.classList.remove('error-field');
+            }
+        });
+    });
+
+    // Animation du bouton de soumission
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<svg class="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Enregistrement...';
+            submitBtn.disabled = true;
+        });
+    }
+});
+</script>
 {% endblock %}

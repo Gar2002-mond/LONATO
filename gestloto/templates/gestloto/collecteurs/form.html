@@ -1,115 +1,301 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+  /* Force l'application de la couleur indigo sur les boutons */
+  .btn-indigo {
+    background-color: #4f46e5 !important; /* indigo-600 */
+    color: white !important;
+    border-color: transparent !important;
+  }
+  .btn-indigo:hover {
+    background-color: #4338ca !important; /* indigo-700 */
+  }
+  .btn-indigo:focus {
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5) !important;
+  }
+</style>
+{% endblock %}
+
 {% block title %}{{ title }} - LONATO GESTLOTO{% endblock %}
 
 {% block breadcrumb_items %}
 <li><a href="{% url 'collecteur_list' %}">Collecteurs</a></li>
-<li>{{ title }}</li>
+<li><a href="#">{{ title }}</a></li>
 {% endblock %}
 
 {% block page_title %}{{ title }}{% endblock %}
-{% block page_subtitle %}Veuillez remplir les informations ci-dessous{% endblock %}
+
+{% block page_subtitle %}Formulaire de gestion des collecteurs{% endblock %}
 
 {% block content %}
-<div class="card bg-base-100 shadow-xl max-w-3xl mx-auto">
-    <div class="card-body">
-        <form method="post" hx-boost="true" class="space-y-6">
-            {% csrf_token %}
-            
-            {% if form.errors %}
-            <div class="alert alert-error shadow-lg">
-                <div class="flex items-start">
-                    <i class="bx bx-error-circle text-2xl mr-2"></i>
-                    <div>
-                        <h3 class="font-bold">Erreur dans le formulaire</h3>
-                        <ul class="mt-1 list-disc list-inside text-sm">
-                            {% for field in form %}
-                                {% for error in field.errors %}
-                                    <li>{{ field.label }}: {{ error }}</li>
-                                {% endfor %}
-                            {% endfor %}
-                            {% for error in form.non_field_errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="px-6 py-8">
+      <form method="post" class="space-y-8">
+        {% csrf_token %}
+
+        <!-- Informations personnelles -->
+        <div class="border-b border-slate-200 pb-8">
+          <h3 class="text-lg font-semibold text-slate-800 mb-6 flex items-center">
+            <i class="bx bxs-user text-indigo-600 mr-3 text-xl"></i>
+            Informations personnelles
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Référence collecteur -->
+            <div class="space-y-2">
+              <label for="{{ form.reference_collecteur.id_for_label }}" class="block text-sm font-semibold text-slate-700">
+                Référence collecteur <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="{{ form.reference_collecteur.name }}"
+                id="{{ form.reference_collecteur.id_for_label }}"
+                value="{{ form.reference_collecteur.value|default:'' }}"
+                class="w-full px-4 py-3 border {% if form.reference_collecteur.errors %}border-red-300 bg-red-50{% else %}border-slate-300 hover:border-indigo-300{% endif %} rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm"
+                placeholder="Ex: COL001"
+                {% if form.reference_collecteur.field.required %}required{% endif %}
+              />
+              {% if form.reference_collecteur.errors %}
+              <div class="text-red-600 text-sm mt-1">
+                {% for error in form.reference_collecteur.errors %}
+                <p class="flex items-center">
+                  <i class="bx bx-error-circle mr-1"></i>
+                  {{ error }}
+                </p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Nom -->
+            <div class="space-y-2">
+              <label for="{{ form.nom_collecteur.id_for_label }}" class="block text-sm font-semibold text-slate-700">
+                Nom <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="{{ form.nom_collecteur.name }}"
+                id="{{ form.nom_collecteur.id_for_label }}"
+                value="{{ form.nom_collecteur.value|default:'' }}"
+                class="w-full px-4 py-3 border {% if form.nom_collecteur.errors %}border-red-300 bg-red-50{% else %}border-slate-300 hover:border-indigo-300{% endif %} rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm"
+                placeholder="Nom de famille"
+                {% if form.nom_collecteur.field.required %}required{% endif %}
+              />
+              {% if form.nom_collecteur.errors %}
+              <div class="text-red-600 text-sm mt-1">
+                {% for error in form.nom_collecteur.errors %}
+                <p class="flex items-center">
+                  <i class="bx bx-error-circle mr-1"></i>
+                  {{ error }}
+                </p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Prénom -->
+            <div class="space-y-2">
+              <label for="{{ form.prenom_collecteur.id_for_label }}" class="block text-sm font-semibold text-slate-700">
+                Prénom <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="{{ form.prenom_collecteur.name }}"
+                id="{{ form.prenom_collecteur.id_for_label }}"
+                value="{{ form.prenom_collecteur.value|default:'' }}"
+                class="w-full px-4 py-3 border {% if form.prenom_collecteur.errors %}border-red-300 bg-red-50{% else %}border-slate-300 hover:border-indigo-300{% endif %} rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm"
+                placeholder="Prénom"
+                {% if form.prenom_collecteur.field.required %}required{% endif %}
+              />
+              {% if form.prenom_collecteur.errors %}
+              <div class="text-red-600 text-sm mt-1">
+                {% for error in form.prenom_collecteur.errors %}
+                <p class="flex items-center">
+                  <i class="bx bx-error-circle mr-1"></i>
+                  {{ error }}
+                </p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Coordonnées -->
+        <div class="border-b border-slate-200 pb-8">
+          <h3 class="text-lg font-semibold text-slate-800 mb-6 flex items-center">
+            <i class="bx bxs-contact text-indigo-600 mr-3 text-xl"></i>
+            Coordonnées
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Téléphone -->
+            <div class="space-y-2">
+              <label for="{{ form.num_tel_collecteur.id_for_label }}" class="block text-sm font-semibold text-slate-700">
+                Numéro de téléphone <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="tel"
+                name="{{ form.num_tel_collecteur.name }}"
+                id="{{ form.num_tel_collecteur.id_for_label }}"
+                value="{{ form.num_tel_collecteur.value|default:'' }}"
+                class="w-full px-4 py-3 border {% if form.num_tel_collecteur.errors %}border-red-300 bg-red-50{% else %}border-slate-300 hover:border-indigo-300{% endif %} rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm"
+                placeholder="Ex: +225 07 12 34 56 78"
+                {% if form.num_tel_collecteur.field.required %}required{% endif %}
+              />
+              {% if form.num_tel_collecteur.errors %}
+              <div class="text-red-600 text-sm mt-1">
+                {% for error in form.num_tel_collecteur.errors %}
+                <p class="flex items-center">
+                  <i class="bx bx-error-circle mr-1"></i>
+                  {{ error }}
+                </p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Email -->
+            <div class="space-y-2">
+              <label for="{{ form.email_collecteur.id_for_label }}" class="block text-sm font-semibold text-slate-700">
+                Adresse email
+              </label>
+              <input
+                type="email"
+                name="{{ form.email_collecteur.name }}"
+                id="{{ form.email_collecteur.id_for_label }}"
+                value="{{ form.email_collecteur.value|default:'' }}"
+                class="w-full px-4 py-3 border {% if form.email_collecteur.errors %}border-red-300 bg-red-50{% else %}border-slate-300 hover:border-indigo-300{% endif %} rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm"
+                placeholder="collecteur@example.com"
+              />
+              {% if form.email_collecteur.errors %}
+              <div class="text-red-600 text-sm mt-1">
+                {% for error in form.email_collecteur.errors %}
+                <p class="flex items-center">
+                  <i class="bx bx-error-circle mr-1"></i>
+                  {{ error }}
+                </p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Informations professionnelles -->
+        <div class="pb-8">
+          <h3 class="text-lg font-semibold text-slate-800 mb-6 flex items-center">
+            <i class="bx bxs-briefcase text-indigo-600 mr-3 text-xl"></i>
+            Informations professionnelles
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Date début activités -->
+            <div class="space-y-2">
+              <label for="{{ form.date_debut_activites.id_for_label }}" class="block text-sm font-semibold text-slate-700">
+                Date de début d'activités <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                name="{{ form.date_debut_activites.name }}"
+                id="{{ form.date_debut_activites.id_for_label }}"
+                value="{{ form.date_debut_activites.value|default:'' }}"
+                class="w-full px-4 py-3 border {% if form.date_debut_activites.errors %}border-red-300 bg-red-50{% else %}border-slate-300 hover:border-indigo-300{% endif %} rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm"
+                {% if form.date_debut_activites.field.required %}required{% endif %}
+              />
+              {% if form.date_debut_activites.errors %}
+              <div class="text-red-600 text-sm mt-1">
+                {% for error in form.date_debut_activites.errors %}
+                <p class="flex items-center">
+                  <i class="bx bx-error-circle mr-1"></i>
+                  {{ error }}
+                </p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Pourcentage commission -->
+            <div class="space-y-2">
+              <label for="{{ form.pourcentage_commission.id_for_label }}" class="block text-sm font-semibold text-slate-700">
+                Pourcentage de commission (%) <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                name="{{ form.pourcentage_commission.name }}"
+                id="{{ form.pourcentage_commission.id_for_label }}"
+                value="{{ form.pourcentage_commission.value|default:'' }}"
+                class="w-full px-4 py-3 border {% if form.pourcentage_commission.errors %}border-red-300 bg-red-50{% else %}border-slate-300 hover:border-indigo-300{% endif %} rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm"
+                placeholder="Ex: 15.50"
+                {% if form.pourcentage_commission.field.required %}required{% endif %}
+              />
+              {% if form.pourcentage_commission.errors %}
+              <div class="text-red-600 text-sm mt-1">
+                {% for error in form.pourcentage_commission.errors %}
+                <p class="flex items-center">
+                  <i class="bx bx-error-circle mr-1"></i>
+                  {{ error }}
+                </p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Autres détails -->
+          <div class="mt-6 space-y-2">
+            <label for="{{ form.autres_details.id_for_label }}" class="block text-sm font-semibold text-slate-700">
+              Autres détails
+            </label>
+            <textarea
+              name="{{ form.autres_details.name }}"
+              id="{{ form.autres_details.id_for_label }}"
+              rows="4"
+              class="w-full px-4 py-3 border {% if form.autres_details.errors %}border-red-300 bg-red-50{% else %}border-slate-300 hover:border-indigo-300{% endif %} rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm resize-none"
+              placeholder="Informations supplémentaires sur le collecteur..."
+            >{{ form.autres_details.value|default:'' }}</textarea>
+            {% if form.autres_details.errors %}
+            <div class="text-red-600 text-sm mt-1">
+              {% for error in form.autres_details.errors %}
+              <p class="flex items-center">
+                <i class="bx bx-error-circle mr-1"></i>
+                {{ error }}
+              </p>
+              {% endfor %}
             </div>
             {% endif %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Nom</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="text" name="nom_collecteur" value="{{ form.nom_collecteur.value|default:'' }}" class="input input-bordered {% if form.nom_collecteur.errors %}input-error{% endif %}" required autofocus>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Prénom</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="text" name="prenom_collecteur" value="{{ form.prenom_collecteur.value|default:'' }}" class="input input-bordered {% if form.prenom_collecteur.errors %}input-error{% endif %}" required>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Référence</span>
-                        <span class="label-text-alt text-error">Unique</span>
-                    </label>
-                    <input type="text" name="reference_collecteur" value="{{ form.reference_collecteur.value|default:'' }}" class="input input-bordered {% if form.reference_collecteur.errors %}input-error{% endif %}" required>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Téléphone</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="tel" name="num_tel_collecteur" value="{{ form.num_tel_collecteur.value|default:'' }}" class="input input-bordered {% if form.num_tel_collecteur.errors %}input-error{% endif %}" required>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Email</span>
-                    </label>
-                    <input type="email" name="email_collecteur" value="{{ form.email_collecteur.value|default:'' }}" class="input input-bordered {% if form.email_collecteur.errors %}input-error{% endif %}">
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Date début d'activités</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="date" name="date_debut_activites" value="{{ form.date_debut_activites.value|date:'Y-m-d'|default:'' }}" class="input input-bordered {% if form.date_debut_activites.errors %}input-error{% endif %}" required>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Pourcentage de commission (%)</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="number" name="pourcentage_commission" value="{{ form.pourcentage_commission.value|default:'' }}" min="0" max="100" step="0.01" class="input input-bordered {% if form.pourcentage_commission.errors %}input-error{% endif %}" required>
-                </div>
-            </div>
-            
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Autres détails</span>
-                </label>
-                <textarea name="autres_details" rows="3" class="textarea textarea-bordered {% if form.autres_details.errors %}textarea-error{% endif %}">{{ form.autres_details.value|default:'' }}</textarea>
-            </div>
-            
-            <div class="flex justify-end gap-2 mt-6">
-                <a href="{% url 'collecteur_list' %}" class="btn btn-outline">
-                    <i class="bx bx-arrow-back mr-2"></i> Annuler
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bx bx-save mr-2"></i> Enregistrer
-                </button>
-            </div>
-        </form>
+          </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="flex items-center justify-between pt-6 border-t border-slate-200">
+          <a
+            href="{% url 'collecteur_list' %}"
+            class="inline-flex items-center px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150"
+          >
+            <i class="bx bx-arrow-back mr-2"></i>
+            Retour à la liste
+          </a>
+
+          <button
+            type="submit"
+            class="btn-indigo inline-flex items-center px-6 py-2 bg-indigo-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150 shadow-md"
+          >
+            <i class="bx bx-save mr-2"></i>
+            {% if 'create' in request.resolver_match.url_name %}
+              Créer le collecteur
+            {% else %}
+              Mettre à jour
+            {% endif %}
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 {% endblock %}

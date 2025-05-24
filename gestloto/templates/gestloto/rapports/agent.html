@@ -1,503 +1,793 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+  /* Animations et styles personnalisés */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+  .animate-slide-in { animation: slideIn 0.8s ease-out; }
+  .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  }
+  
+  .btn-outline {
+    background: white;
+    border: 2px solid #e5e7eb;
+    color: #4b5563;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-outline:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .stat-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .stat-card-success {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-color: #a7f3d0;
+  }
+  
+  .stat-card-error {
+    background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+    border-color: #fca5a5;
+  }
+  
+  .stat-card-warning {
+    background: linear-gradient(135deg, #fffbeb 0%, #fed7aa 100%);
+    border-color: #fdba74;
+  }
+  
+  .table-hover tr:hover {
+    background-color: #f8fafc;
+    transform: scale(1.005);
+    transition: all 0.2s ease;
+  }
+  
+  .loading-spinner {
+    border: 4px solid #f3f4f6;
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .badge-neutral {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .badge-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .badge-error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .chart-placeholder {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 2px dashed #cbd5e1;
+  }
+  
+  @media print {
+    .print\\:hidden { display: none !important; }
+    .print\\:block { display: block !important; }
+    .print\\:break-inside-avoid { break-inside: avoid; }
+  }
+</style>
+{% endblock %}
+
 {% block title %}Rapport Agents - LONATO GESTLOTO{% endblock %}
 
 {% block breadcrumb_items %}
-<li><a href="#">Rapports</a></li>
-<li>Agents</li>
+<li>
+  <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">Rapports</a>
+</li>
+<li>
+  <span class="text-gray-500">Agents</span>
+</li>
 {% endblock %}
 
-{% block page_title %}Rapport des Agents{% endblock %}
-{% block page_subtitle %}Analyse détaillée des performances des agents{% endblock %}
+{% block page_title %}
+<div class="flex items-center space-x-3">
+  <div class="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+    </svg>
+  </div>
+  <span class="gradient-text">Rapport des Agents</span>
+</div>
+{% endblock %}
+
+{% block page_subtitle %}
+<div class="flex items-center space-x-2">
+  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+  </svg>
+  <span class="text-gray-600">Analyse détaillée des performances des agents</span>
+</div>
+{% endblock %}
 
 {% block page_actions %}
-<div class="flex gap-2">
-    <button class="btn btn-outline" onclick="window.print()">
-        <i class="bx bx-printer mr-2"></i> Imprimer
+<div class="flex gap-3">
+    <button class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 btn-outline"
+            onclick="window.print()">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+        </svg>
+        Imprimer
     </button>
-    <button class="btn btn-primary" hx-get="{% url 'export_agents_report' %}?{{ request.GET.urlencode }}" hx-swap="none">
-        <i class="bx bx-download mr-2"></i> Exporter Excel
+    <button class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 btn-primary"
+            hx-get="{% url 'export_agents_report' %}?{{ request.GET.urlencode }}" hx-swap="none">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        Exporter Excel
     </button>
 </div>
 {% endblock %}
 
 {% block content %}
-<!-- Filtres -->
-<div class="card bg-base-100 shadow-xl mb-6 print:hidden">
-    <div class="card-body">
-        <h3 class="text-lg font-medium mb-4">Filtres du rapport</h3>
-        <form hx-get="{% url 'rapport_agent' %}" class="flex flex-wrap gap-4" hx-target="#rapport-content" hx-indicator="#loading">
-            <div class="form-control w-full md:w-64">
-                <label class="label">
-                    <span class="label-text">Période</span>
-                </label>
-                <select name="periode" class="select select-bordered" hx-get="{% url 'rapport_agent' %}" hx-target="#rapport-content" hx-indicator="#loading" hx-trigger="change">
-                    <option value="7" {% if request.GET.periode == '7' %}selected{% endif %}>7 derniers jours</option>
-                    <option value="30" {% if request.GET.periode == '30' %}selected{% endif %}>30 derniers jours</option>
-                    <option value="90" {% if request.GET.periode == '90' %}selected{% endif %}>3 derniers mois</option>
-                    <option value="180" {% if request.GET.periode == '180' %}selected{% endif %}>6 derniers mois</option>
-                    <option value="365" {% if request.GET.periode == '365' %}selected{% endif %}>Année en cours</option>
-                    <option value="custom" {% if request.GET.periode == 'custom' %}selected{% endif %}>Période personnalisée</option>
-                </select>
-            </div>
-            
-            <div class="form-control w-full md:w-64" id="date-debut-container" {% if request.GET.periode != 'custom' %}style="display: none;"{% endif %}>
-                <label class="label">
-                    <span class="label-text">Date début</span>
-                </label>
-                <input type="date" name="date_debut" value="{{ request.GET.date_debut|default:'' }}" class="input input-bordered">
-            </div>
-            
-            <div class="form-control w-full md:w-64" id="date-fin-container" {% if request.GET.periode != 'custom' %}style="display: none;"{% endif %}>
-                <label class="label">
-                    <span class="label-text">Date fin</span>
-                </label>
-                <input type="date" name="date_fin" value="{{ request.GET.date_fin|default:'' }}" class="input input-bordered">
-            </div>
-            
-            <div class="form-control w-full md:w-64">
-                <label class="label">
-                    <span class="label-text">Agent</span>
-                </label>
-                <select name="agent" class="select select-bordered">
-                    <option value="">Tous les agents</option>
-                    {% for agent in agents %}
-                        <option value="{{ agent.id }}" {% if request.GET.agent == agent.id|stringformat:"i" %}selected{% endif %}>
-                            {{ agent.nom_agent }} {{ agent.prenom_agent }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="form-control w-full md:w-64">
-                <label class="label">
-                    <span class="label-text">Trier par</span>
-                </label>
-                <select name="tri" class="select select-bordered">
-                    <option value="ca" {% if request.GET.tri == 'ca' %}selected{% endif %}>Chiffre d'affaires</option>
-                    <option value="commission" {% if request.GET.tri == 'commission' %}selected{% endif %}>Commission</option>
-                    <option value="machines" {% if request.GET.tri == 'machines' %}selected{% endif %}>Nombre de machines</option>
-                </select>
-            </div>
-            
-            <div class="form-control w-full md:w-64">
-                <label class="label">
-                    <span class="label-text">Vue</span>
-                </label>
-                <select name="vue" class="select select-bordered">
-                    <option value="ca" {% if request.GET.vue == 'ca' %}selected{% endif %}>Chiffres d'affaires</option>
-                    <option value="commissions" {% if request.GET.vue == 'commissions' %}selected{% endif %}>Commissions</option>
-                    <option value="penalites" {% if request.GET.vue == 'penalites' %}selected{% endif %}>Pénalités</option>
-                    <option value="balance" {% if request.GET.vue == 'balance' %}selected{% endif %}>Balance</option>
-                </select>
-            </div>
-            
-            <div class="form-control mt-8">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bx bx-filter mr-2"></i> Générer le rapport
-                </button>
-            </div>
-        </form>
+<div class="space-y-6">
+
+  <!-- Filtres -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 print:hidden animate-fade-in">
+    <div class="p-6">
+      <div class="flex items-center mb-6">
+        <div class="h-10 w-10 bg-gradient-to-br from-orange-400 to-pink-500 rounded-lg flex items-center justify-center mr-3">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800">Filtres du rapport</h3>
+      </div>
+      
+      <form hx-get="{% url 'rapport_agent' %}" 
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+            hx-target="#rapport-content" 
+            hx-indicator="#loading">
+        
+        <!-- Période -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Période
+          </label>
+          <select name="periode" 
+                  class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" 
+                  hx-get="{% url 'rapport_agent' %}" 
+                  hx-target="#rapport-content" 
+                  hx-indicator="#loading" 
+                  hx-trigger="change">
+            <option value="7" {% if request.GET.periode == '7' %}selected{% endif %}>7 derniers jours</option>
+            <option value="30" {% if request.GET.periode == '30' %}selected{% endif %}>30 derniers jours</option>
+            <option value="90" {% if request.GET.periode == '90' %}selected{% endif %}>3 derniers mois</option>
+            <option value="180" {% if request.GET.periode == '180' %}selected{% endif %}>6 derniers mois</option>
+            <option value="365" {% if request.GET.periode == '365' %}selected{% endif %}>Année en cours</option>
+            <option value="custom" {% if request.GET.periode == 'custom' %}selected{% endif %}>Période personnalisée</option>
+          </select>
+        </div>
+        
+        <!-- Date début -->
+        <div class="space-y-2" id="date-debut-container" {% if request.GET.periode != 'custom' %}style="display: none;"{% endif %}>
+          <label class="block text-sm font-medium text-gray-700">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Date début
+          </label>
+          <input type="date" 
+                 name="date_debut" 
+                 value="{{ request.GET.date_debut|default:'' }}" 
+                 class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+        </div>
+        
+        <!-- Date fin -->
+        <div class="space-y-2" id="date-fin-container" {% if request.GET.periode != 'custom' %}style="display: none;"{% endif %}>
+          <label class="block text-sm font-medium text-gray-700">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Date fin
+          </label>
+          <input type="date" 
+                 name="date_fin" 
+                 value="{{ request.GET.date_fin|default:'' }}" 
+                 class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+        </div>
+        
+        <!-- Agent -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            Agent
+          </label>
+          <select name="agent" 
+                  class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+            <option value="">Tous les agents</option>
+            {% for agent in agents %}
+              <option value="{{ agent.id }}" {% if request.GET.agent == agent.id|stringformat:"i" %}selected{% endif %}>
+                {{ agent.nom_agent }} {{ agent.prenom_agent }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        
+        <!-- Trier par -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+            </svg>
+            Trier par
+          </label>
+          <select name="tri" 
+                  class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+            <option value="ca" {% if request.GET.tri == 'ca' %}selected{% endif %}>Chiffre d'affaires</option>
+            <option value="commission" {% if request.GET.tri == 'commission' %}selected{% endif %}>Commission</option>
+            <option value="machines" {% if request.GET.tri == 'machines' %}selected{% endif %}>Nombre de machines</option>
+          </select>
+        </div>
+        
+        <!-- Vue -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+            Vue
+          </label>
+          <select name="vue" 
+                  class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+            <option value="ca" {% if request.GET.vue == 'ca' %}selected{% endif %}>Chiffres d'affaires</option>
+            <option value="commissions" {% if request.GET.vue == 'commissions' %}selected{% endif %}>Commissions</option>
+            <option value="penalites" {% if request.GET.vue == 'penalites' %}selected{% endif %}>Pénalités</option>
+            <option value="balance" {% if request.GET.vue == 'balance' %}selected{% endif %}>Balance</option>
+          </select>
+        </div>
+        
+        <!-- Bouton générer -->
+        <div class="flex items-end">
+          <button type="submit" 
+                  class="w-full inline-flex items-center justify-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 btn-primary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+            </svg>
+            Générer le rapport
+          </button>
+        </div>
+        
+      </form>
     </div>
-</div>
+  </div>
 
-<!-- Loading indicator -->
-<div id="loading" class="htmx-indicator flex justify-center my-4">
-    <span class="loading loading-spinner loading-lg text-primary"></span>
-</div>
+  <!-- Loading indicator -->
+  <div id="loading" class="htmx-indicator flex justify-center my-8">
+    <div class="flex items-center space-x-3">
+      <div class="loading-spinner"></div>
+      <span class="text-gray-600 font-medium">Génération du rapport en cours...</span>
+    </div>
+  </div>
 
-<!-- En-tête du rapport (pour l'impression) -->
-<div class="hidden print:block mb-8">
+  <!-- En-tête du rapport (pour l'impression) -->
+  <div class="hidden print:block mb-8 bg-white p-6 border-b">
     <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold">LONATO - GESTLOTO</h1>
-            <p class="text-gray-600">Rapport des Agents</p>
-        </div>
-        <div class="text-right">
-            <p>Date d'édition: {% now "d/m/Y H:i" %}</p>
-            <p>Période: {{ periode_texte }}</p>
-        </div>
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800">LONATO - GESTLOTO</h1>
+        <p class="text-lg text-gray-600 mt-1">Rapport des Agents</p>
+      </div>
+      <div class="text-right">
+        <p class="text-sm text-gray-600">Date d'édition: {% now "d/m/Y H:i" %}</p>
+        <p class="text-sm text-gray-600">Période: {{ periode_texte }}</p>
+      </div>
     </div>
-    <hr class="my-4">
-</div>
+  </div>
 
-<!-- Contenu du rapport -->
-<div id="rapport-content">
-    <!-- Résumé -->
-    <div class="card bg-base-100 shadow-xl mb-6">
-        <div class="card-body">
-            <h2 class="card-title text-xl mb-4">Résumé global</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Chiffre d'affaires total</div>
-                        <div class="stat-value text-primary">{{ resume.total_ca|floatformat:0 }}</div>
-                        <div class="stat-desc">FCFA</div>
-                    </div>
-                </div>
-                
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Commissions totales</div>
-                        <div class="stat-value text-success">{{ resume.total_commission|floatformat:0 }}</div>
-                        <div class="stat-desc">FCFA</div>
-                    </div>
-                </div>
-                
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Pénalités totales</div>
-                        <div class="stat-value text-error">{{ resume.total_penalite|floatformat:0 }}</div>
-                        <div class="stat-desc">FCFA</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Nombre d'agents actifs</div>
-                        <div class="stat-value">{{ resume.nb_agents_actifs }}</div>
-                        <div class="stat-desc">Sur {{ resume.nb_agents_total }} au total</div>
-                    </div>
-                    
-                    <div class="stat">
-                        <div class="stat-title">Machines utilisées</div>
-                        <div class="stat-value">{{ resume.nb_machines }}</div>
-                    </div>
-                </div>
-                
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Balance totale</div>
-                        <div class="stat-value {% if resume.balance >= 0 %}text-success{% else %}text-error{% endif %}">
-                            {{ resume.balance|floatformat:0 }}
-                        </div>
-                        <div class="stat-desc">FCFA (Commissions - Pénalités)</div>
-                    </div>
-                </div>
-            </div>
+  <!-- Contenu du rapport -->
+  <div id="rapport-content" class="space-y-6">
+    
+    <!-- Résumé global -->
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-200 animate-slide-in">
+      <div class="p-6">
+        <div class="flex items-center mb-6">
+          <div class="h-10 w-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-lg flex items-center justify-center mr-3">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <h2 class="text-xl font-bold text-gray-800">Résumé global</h2>
         </div>
+        
+        <!-- Statistiques principales -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="stat-card rounded-xl p-6 text-center">
+            <div class="text-3xl font-bold text-blue-600 mb-2">{{ resume.total_ca|floatformat:0 }}</div>
+            <div class="text-sm font-medium text-gray-600 mb-1">Chiffre d'affaires total</div>
+            <div class="text-xs text-gray-500">FCFA</div>
+          </div>
+          
+          <div class="stat-card stat-card-success rounded-xl p-6 text-center">
+            <div class="text-3xl font-bold text-green-600 mb-2">{{ resume.total_commission|floatformat:0 }}</div>
+            <div class="text-sm font-medium text-gray-600 mb-1">Commissions totales</div>
+            <div class="text-xs text-gray-500">FCFA</div>
+          </div>
+          
+          <div class="stat-card stat-card-error rounded-xl p-6 text-center">
+            <div class="text-3xl font-bold text-red-600 mb-2">{{ resume.total_penalite|floatformat:0 }}</div>
+            <div class="text-sm font-medium text-gray-600 mb-1">Pénalités totales</div>
+            <div class="text-xs text-gray-500">FCFA</div>
+          </div>
+        </div>
+        
+        <!-- Statistiques secondaires -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="stat-card rounded-xl p-6">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-gray-800 mb-1">{{ resume.nb_agents_actifs }}</div>
+                <div class="text-sm text-gray-600">Agents actifs</div>
+                <div class="text-xs text-gray-500">Sur {{ resume.nb_agents_total }} au total</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-gray-800 mb-1">{{ resume.nb_machines }}</div>
+                <div class="text-sm text-gray-600">Machines utilisées</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card {% if resume.balance >= 0 %}stat-card-success{% else %}stat-card-error{% endif %} rounded-xl p-6 text-center">
+            <div class="text-3xl font-bold {% if resume.balance >= 0 %}text-green-600{% else %}text-red-600{% endif %} mb-2">
+              {{ resume.balance|floatformat:0 }}
+            </div>
+            <div class="text-sm font-medium text-gray-600 mb-1">Balance totale</div>
+            <div class="text-xs text-gray-500">FCFA (Commissions - Pénalités)</div>
+          </div>
+        </div>
+      </div>
     </div>
     
     <!-- Graphique d'évolution -->
-    <div class="card bg-base-100 shadow-xl mb-6 print:break-inside-avoid">
-        <div class="card-body">
-            <h2 class="card-title text-xl mb-4">Évolution des performances</h2>
-            <div class="bg-base-200 h-80 rounded-lg flex items-center justify-center">
-                <!-- Intégrer un graphique linéaire ici -->
-                <p class="text-center text-gray-500">
-                    <i class="bx bx-line-chart text-6xl"></i><br>
-                    Graphique d'évolution
-                </p>
-            </div>
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-200 print:break-inside-avoid animate-fade-in">
+      <div class="p-6">
+        <div class="flex items-center mb-6">
+          <div class="h-10 w-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center mr-3">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+            </svg>
+          </div>
+          <h2 class="text-xl font-bold text-gray-800">Évolution des performances</h2>
         </div>
+        
+        <div class="chart-placeholder rounded-xl p-12 text-center">
+          <svg class="w-20 h-20 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+          <p class="text-xl font-medium text-gray-600 mb-2">Graphique d'évolution</p>
+          <p class="text-gray-400">(à implémenter)</p>
+        </div>
+      </div>
     </div>
     
     <!-- Tableau des agents -->
-    <div class="card bg-base-100 shadow-xl mb-6 print:break-inside-avoid">
-        <div class="card-body">
-            <h2 class="card-title text-xl mb-4">Performance des agents</h2>
-            <div class="overflow-x-auto">
-                <table class="table table-zebra w-full">
-                    <thead>
-                        <tr>
-                            <th class="bg-base-200">Rang</th>
-                            <th class="bg-base-200">Agent</th>
-                            <th class="bg-base-200 text-right">Chiffre d'affaires</th>
-                            <th class="bg-base-200 text-right">Commissions</th>
-                            <th class="bg-base-200 text-right">Pénalités</th>
-                            <th class="bg-base-200 text-right">Balance</th>
-                            <th class="bg-base-200 text-center">Machines</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for agent in agents_data %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>
-                                <div class="flex items-center">
-                                    <div class="avatar mr-3">
-                                        <div class="w-10 rounded-full">
-                                            <img src="https://ui-avatars.com/api/?name={{ agent.nom_agent }}&background=1c64f2&color=fff" />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="font-bold">{{ agent.nom_agent }} {{ agent.prenom_agent }}</div>
-                                        <div class="text-xs opacity-70">{{ agent.reference_agent }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="text-right font-bold">{{ agent.total_ca|floatformat:0 }} FCFA</td>
-                            <td class="text-right text-success">{{ agent.total_commission|floatformat:0 }} FCFA</td>
-                            <td class="text-right text-error">{{ agent.total_penalite|floatformat:0 }} FCFA</td>
-                            <td class="text-right font-bold {% if agent.balance >= 0 %}text-success{% else %}text-error{% endif %}">
-                                {{ agent.balance|floatformat:0 }} FCFA
-                            </td>
-                            <td class="text-center">
-                                <div class="badge badge-neutral">{{ agent.nb_machines }}</div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-4">Aucune donnée disponible pour cette période</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="2" class="font-bold">TOTAL</td>
-                            <td class="text-right font-bold">{{ resume.total_ca|floatformat:0 }} FCFA</td>
-                            <td class="text-right font-bold text-success">{{ resume.total_commission|floatformat:0 }} FCFA</td>
-                            <td class="text-right font-bold text-error">{{ resume.total_penalite|floatformat:0 }} FCFA</td>
-                            <td class="text-right font-bold {% if resume.balance >= 0 %}text-success{% else %}text-error{% endif %}">
-                                {{ resume.balance|floatformat:0 }} FCFA
-                            </td>
-                            <td class="text-center font-bold">{{ resume.nb_machines }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-200 print:break-inside-avoid animate-slide-in">
+      <div class="p-6">
+        <div class="flex items-center mb-6">
+          <div class="h-10 w-10 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-lg flex items-center justify-center mr-3">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+          <h2 class="text-xl font-bold text-gray-800">Performance des agents</h2>
         </div>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full table-hover">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="text-left py-4 px-4 font-semibold text-gray-700 bg-gray-50">Rang</th>
+                <th class="text-left py-4 px-4 font-semibold text-gray-700 bg-gray-50">Agent</th>
+                <th class="text-right py-4 px-4 font-semibold text-gray-700 bg-gray-50">Chiffre d'affaires</th>
+                <th class="text-right py-4 px-4 font-semibold text-gray-700 bg-gray-50">Commissions</th>
+                <th class="text-right py-4 px-4 font-semibold text-gray-700 bg-gray-50">Pénalités</th>
+                <th class="text-right py-4 px-4 font-semibold text-gray-700 bg-gray-50">Balance</th>
+                <th class="text-center py-4 px-4 font-semibold text-gray-700 bg-gray-50">Machines</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for agent in agents_data %}
+              <tr class="border-b border-gray-100">
+                <td class="py-4 px-4">
+                  <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                    {{ forloop.counter }}
+                  </div>
+                </td>
+                <td class="py-4 px-4">
+                  <div class="flex items-center space-x-3">
+                    <img src="https://ui-avatars.com/api/?name={{ agent.nom_agent }}&background=1c64f2&color=fff&size=40" 
+                         class="w-10 h-10 rounded-full" 
+                         alt="{{ agent.nom_agent }}" />
+                    <div>
+                      <div class="font-semibold text-gray-800">{{ agent.nom_agent }} {{ agent.prenom_agent }}</div>
+                      <div class="text-xs text-gray-500">{{ agent.reference_agent }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-4 text-right font-bold text-gray-800">{{ agent.total_ca|floatformat:0 }} FCFA</td>
+                <td class="py-4 px-4 text-right font-semibold text-green-600">{{ agent.total_commission|floatformat:0 }} FCFA</td>
+                <td class="py-4 px-4 text-right font-semibold text-red-600">{{ agent.total_penalite|floatformat:0 }} FCFA</td>
+                <td class="py-4 px-4 text-right font-bold {% if agent.balance >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                  {{ agent.balance|floatformat:0 }} FCFA
+                </td>
+                <td class="py-4 px-4 text-center">
+                  <span class="badge-neutral">{{ agent.nb_machines }}</span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" class="text-center py-12">
+                  <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                  </svg>
+                  <p class="text-gray-500 font-medium">Aucune donnée disponible pour cette période</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            {% if agents_data %}
+            <tfoot>
+              <tr class="border-t-2 border-gray-300 bg-gray-50">
+                <td colspan="2" class="py-4 px-4 font-bold text-gray-800">TOTAL</td>
+                <td class="py-4 px-4 text-right font-bold text-gray-800">{{ resume.total_ca|floatformat:0 }} FCFA</td>
+                <td class="py-4 px-4 text-right font-bold text-green-600">{{ resume.total_commission|floatformat:0 }} FCFA</td>
+                <td class="py-4 px-4 text-right font-bold text-red-600">{{ resume.total_penalite|floatformat:0 }} FCFA</td>
+                <td class="py-4 px-4 text-right font-bold {% if resume.balance >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                  {{ resume.balance|floatformat:0 }} FCFA
+                </td>
+                <td class="py-4 px-4 text-center font-bold">{{ resume.nb_machines }}</td>
+              </tr>
+            </tfoot>
+            {% endif %}
+          </table>
+        </div>
+      </div>
     </div>
     
     {% if agent_selectionne %}
     <!-- Détail de l'agent sélectionné -->
-    <div class="card bg-base-100 shadow-xl mb-6 print:break-inside-avoid">
-        <div class="card-body">
-            <h2 class="card-title text-xl mb-4">
-                <div class="flex items-center">
-                    <div class="avatar mr-3">
-                        <div class="w-12 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                            <img src="https://ui-avatars.com/api/?name={{ agent_selectionne.nom_agent }}&background=1c64f2&color=fff" />
-                        </div>
-                    </div>
-                    Détails pour {{ agent_selectionne.nom_agent }} {{ agent_selectionne.prenom_agent }}
-                </div>
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Chiffre d'affaires</div>
-                        <div class="stat-value">{{ agent_details.total_ca|floatformat:0 }}</div>
-                        <div class="stat-desc">FCFA</div>
-                    </div>
-                </div>
-                
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Commissions</div>
-                        <div class="stat-value text-success">{{ agent_details.total_commission|floatformat:0 }}</div>
-                        <div class="stat-desc">FCFA</div>
-                    </div>
-                </div>
-                
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Pénalités</div>
-                        <div class="stat-value text-error">{{ agent_details.total_penalite|floatformat:0 }}</div>
-                        <div class="stat-desc">FCFA</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="divider">Machines gérées</div>
-            
-            <div class="flex flex-wrap gap-4 mb-6">
-                {% for machine in agent_machines %}
-                <div class="card w-full md:w-80 bg-base-200 shadow-md">
-                    <div class="card-body p-4">
-                        <h3 class="card-title text-lg">
-                            <i class="bx bx-laptop text-primary text-xl mr-2"></i>
-                            {{ machine.numero_terminal }}
-                        </h3>
-                        <p>{{ machine.nom_point_vente }}</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="text-sm">CA: {{ machine.total_ca|floatformat:0 }} FCFA</span>
-                            <div class="badge badge-primary">{{ machine.nb_transactions }} transactions</div>
-                        </div>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="alert alert-warning">
-                    <i class="bx bx-info-circle"></i>
-                    <span>Cet agent ne gère actuellement aucune machine.</span>
-                </div>
-                {% endfor %}
-            </div>
-            
-            {% if request.GET.vue == 'ca' or not request.GET.vue %}
-            <div class="divider">Chiffres d'affaires récents</div>
-            <div class="overflow-x-auto">
-                <table class="table table-zebra w-full">
-                    <thead>
-                        <tr>
-                            <th class="bg-base-200">Date</th>
-                            <th class="bg-base-200">Machine</th>
-                            <th class="bg-base-200 text-right">Ventes</th>
-                            <th class="bg-base-200 text-right">Annulations</th>
-                            <th class="bg-base-200 text-right">Paiements</th>
-                            <th class="bg-base-200 text-right">Solde</th>
-                            <th class="bg-base-200 text-right">Commission</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ca in agent_chiffres_affaire %}
-                        <tr>
-                            <td>{{ ca.date_chiffre_affaire|date:"d/m/Y" }}</td>
-                            <td>{{ ca.machine.numero_terminal }}</td>
-                            <td class="text-right">{{ ca.ventes_totales|floatformat:0 }} FCFA</td>
-                            <td class="text-right">{{ ca.annulations_totales|floatformat:0 }} FCFA</td>
-                            <td class="text-right">{{ ca.paiements_totaux|floatformat:0 }} FCFA</td>
-                            <td class="text-right font-bold">{{ ca.solde_total|floatformat:0 }} FCFA</td>
-                            <td class="text-right text-success">{{ ca.montant_commission|floatformat:0 }} FCFA</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-4">Aucun chiffre d'affaires pour cette période</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% endif %}
-            
-            {% if request.GET.vue == 'commissions' %}
-            <div class="divider">Commissions reçues</div>
-            <div class="overflow-x-auto">
-                <table class="table table-zebra w-full">
-                    <thead>
-                        <tr>
-                            <th class="bg-base-200">Date</th>
-                            <th class="bg-base-200">Machine</th>
-                            <th class="bg-base-200">Point de vente</th>
-                            <th class="bg-base-200 text-right">Montant</th>
-                            <th class="bg-base-200">Observations</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for commission in agent_commissions %}
-                        <tr>
-                            <td>{{ commission.date_commission|date:"d/m/Y" }}</td>
-                            <td>{{ commission.machine.numero_terminal }}</td>
-                            <td>{{ commission.machine.nom_point_vente }}</td>
-                            <td class="text-right font-bold text-success">{{ commission.montant_commission|floatformat:0 }} FCFA</td>
-                            <td>{{ commission.observations|truncatechars:50|default:"-" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center py-4">Aucune commission pour cette période</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% endif %}
-            
-            {% if request.GET.vue == 'penalites' %}
-            <div class="divider">Pénalités reçues</div>
-            <div class="overflow-x-auto">
-                <table class="table table-zebra w-full">
-                    <thead>
-                        <tr>
-                            <th class="bg-base-200">Date</th>
-                            <th class="bg-base-200">Machine</th>
-                            <th class="bg-base-200">Point de vente</th>
-                            <th class="bg-base-200 text-right">Montant</th>
-                            <th class="bg-base-200">Motif</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for penalite in agent_penalites %}
-                        <tr>
-                            <td>{{ penalite.date_penalite|date:"d/m/Y" }}</td>
-                            <td>{{ penalite.machine.numero_terminal }}</td>
-                            <td>{{ penalite.machine.nom_point_vente }}</td>
-                            <td class="text-right font-bold text-error">{{ penalite.montant_penalite|floatformat:0 }} FCFA</td>
-                            <td>{{ penalite.motif_penalite|truncatechars:50|default:"-" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center py-4">Aucune pénalité pour cette période</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% endif %}
-            
-            {% if request.GET.vue == 'balance' %}
-            <div class="divider">Balance des commissions et pénalités</div>
-            <div class="overflow-x-auto">
-                <table class="table table-zebra w-full">
-                    <thead>
-                        <tr>
-                            <th class="bg-base-200">Mois</th>
-                            <th class="bg-base-200 text-right">Commissions</th>
-                            <th class="bg-base-200 text-right">Pénalités</th>
-                            <th class="bg-base-200 text-right">Balance</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for balance in agent_balance_mensuelle %}
-                        <tr>
-                            <td>{{ balance.mois_texte }} {{ balance.annee }}</td>
-                            <td class="text-right text-success">{{ balance.total_commission|floatformat:0 }} FCFA</td>
-                            <td class="text-right text-error">{{ balance.total_penalite|floatformat:0 }} FCFA</td>
-                            <td class="text-right font-bold {% if balance.balance >= 0 %}text-success{% else %}text-error{% endif %}">
-                                {{ balance.balance|floatformat:0 }} FCFA
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center py-4">Aucune donnée disponible</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td class="font-bold">TOTAL</td>
-                            <td class="text-right font-bold text-success">{{ agent_details.total_commission|floatformat:0 }} FCFA</td>
-                            <td class="text-right font-bold text-error">{{ agent_details.total_penalite|floatformat:0 }} FCFA</td>
-                            <td class="text-right font-bold {% if agent_details.balance >= 0 %}text-success{% else %}text-error{% endif %}">
-                                {{ agent_details.balance|floatformat:0 }} FCFA
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-            {% endif %}
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-200 print:break-inside-avoid animate-fade-in">
+      <div class="p-6">
+        <div class="flex items-center mb-6">
+          <img src="https://ui-avatars.com/api/?name={{ agent_selectionne.nom_agent }}&background=1c64f2&color=fff&size=48" 
+               class="w-12 h-12 rounded-full ring-4 ring-blue-100 mr-4" 
+               alt="{{ agent_selectionne.nom_agent }}" />
+          <div>
+            <h2 class="text-xl font-bold text-gray-800">{{ agent_selectionne.nom_agent }} {{ agent_selectionne.prenom_agent }}</h2>
+            <p class="text-sm text-gray-500">Détails des performances</p>
+          </div>
         </div>
+        
+        <!-- Statistiques de l'agent -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="stat-card rounded-xl p-6 text-center">
+            <div class="text-2xl font-bold text-blue-600 mb-1">{{ agent_details.total_ca|floatformat:0 }}</div>
+            <div class="text-sm text-gray-600">Chiffre d'affaires</div>
+            <div class="text-xs text-gray-500">FCFA</div>
+          </div>
+          
+          <div class="stat-card stat-card-success rounded-xl p-6 text-center">
+            <div class="text-2xl font-bold text-green-600 mb-1">{{ agent_details.total_commission|floatformat:0 }}</div>
+            <div class="text-sm text-gray-600">Commissions</div>
+            <div class="text-xs text-gray-500">FCFA</div>
+          </div>
+          
+          <div class="stat-card stat-card-error rounded-xl p-6 text-center">
+            <div class="text-2xl font-bold text-red-600 mb-1">{{ agent_details.total_penalite|floatformat:0 }}</div>
+            <div class="text-sm text-gray-600">Pénalités</div>
+            <div class="text-xs text-gray-500">FCFA</div>
+          </div>
+        </div>
+        
+        <div class="border-t border-gray-200 pt-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Machines gérées</h3>
+          
+          {% if agent_machines %}
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            {% for machine in agent_machines %}
+            <div class="stat-card rounded-xl p-4">
+              <div class="flex items-center mb-3">
+                <div class="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                  <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <h4 class="font-semibold text-gray-800">{{ machine.numero_terminal }}</h4>
+              </div>
+              <p class="text-sm text-gray-600 mb-3">{{ machine.nom_point_vente }}</p>
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-500">CA: {{ machine.total_ca|floatformat:0 }} FCFA</span>
+                <span class="badge-success text-xs">{{ machine.nb_transactions }} transactions</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-8">
+            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-gray-500">Cet agent ne gère actuellement aucune machine.</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Tables conditionnelles selon la vue -->
+        {% if request.GET.vue == 'ca' or not request.GET.vue %}
+        <div class="border-t border-gray-200 pt-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Chiffres d'affaires récents</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full table-hover">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">Date</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">Machine</th>
+                  <th class="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">Ventes</th>
+                  <th class="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">Annulations</th>
+                  <th class="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">Paiements</th>
+                  <th class="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">Solde</th>
+                  <th class="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">Commission</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for ca in agent_chiffres_affaire %}
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-gray-800">{{ ca.date_chiffre_affaire|date:"d/m/Y" }}</td>
+                  <td class="py-3 px-4 text-gray-800">{{ ca.machine.numero_terminal }}</td>
+                  <td class="py-3 px-4 text-right text-gray-800">{{ ca.ventes_totales|floatformat:0 }} FCFA</td>
+                  <td class="py-3 px-4 text-right text-gray-800">{{ ca.annulations_totales|floatformat:0 }} FCFA</td>
+                  <td class="py-3 px-4 text-right text-gray-800">{{ ca.paiements_totaux|floatformat:0 }} FCFA</td>
+                  <td class="py-3 px-4 text-right font-bold text-gray-800">{{ ca.solde_total|floatformat:0 }} FCFA</td>
+                  <td class="py-3 px-4 text-right font-semibold text-green-600">{{ ca.montant_commission|floatformat:0 }} FCFA</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center py-8 text-gray-500">Aucun chiffre d'affaires pour cette période</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Autres vues (commissions, pénalités, balance) -->
+        {% if request.GET.vue == 'commissions' %}
+        <div class="border-t border-gray-200 pt-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Commissions reçues</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full table-hover">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">Date</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">Machine</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">Point de vente</th>
+                  <th class="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">Montant</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">Observations</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for commission in agent_commissions %}
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-gray-800">{{ commission.date_commission|date:"d/m/Y" }}</td>
+                  <td class="py-3 px-4 text-gray-800">{{ commission.machine.numero_terminal }}</td>
+                  <td class="py-3 px-4 text-gray-800">{{ commission.machine.nom_point_vente }}</td>
+                  <td class="py-3 px-4 text-right font-bold text-green-600">{{ commission.montant_commission|floatformat:0 }} FCFA</td>
+                  <td class="py-3 px-4 text-gray-600">{{ commission.observations|truncatechars:50|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-8 text-gray-500">Aucune commission pour cette période</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if request.GET.vue == 'penalites' %}
+        <div class="border-t border-gray-200 pt-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Pénalités reçues</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full table-hover">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">Date</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">Machine</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">Point de vente</th>
+                  <th class="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">Montant</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">Motif</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for penalite in agent_penalites %}
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-gray-800">{{ penalite.date_penalite|date:"d/m/Y" }}</td>
+                  <td class="py-3 px-4 text-gray-800">{{ penalite.machine.numero_terminal }}</td>
+                  <td class="py-3 px-4 text-gray-800">{{ penalite.machine.nom_point_vente }}</td>
+                  <td class="py-3 px-4 text-right font-bold text-red-600">{{ penalite.montant_penalite|floatformat:0 }} FCFA</td>
+                  <td class="py-3 px-4 text-gray-600">{{ penalite.motif_penalite|truncatechars:50|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-8 text-gray-500">Aucune pénalité pour cette période</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if request.GET.vue == 'balance' %}
+        <div class="border-t border-gray-200 pt-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Balance des commissions et pénalités</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full table-hover">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">Mois</th>
+                  <th class="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">Commissions</th>
+                  <th class="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">Pénalités</th>
+                  <th class="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for balance in agent_balance_mensuelle %}
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-gray-800">{{ balance.mois_texte }} {{ balance.annee }}</td>
+                  <td class="py-3 px-4 text-right font-semibold text-green-600">{{ balance.total_commission|floatformat:0 }} FCFA</td>
+                  <td class="py-3 px-4 text-right font-semibold text-red-600">{{ balance.total_penalite|floatformat:0 }} FCFA</td>
+                  <td class="py-3 px-4 text-right font-bold {% if balance.balance >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {{ balance.balance|floatformat:0 }} FCFA
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center py-8 text-gray-500">Aucune donnée disponible</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr class="border-t-2 border-gray-300 bg-gray-50">
+                  <td class="py-3 px-4 font-bold text-gray-800">TOTAL</td>
+                  <td class="py-3 px-4 text-right font-bold text-green-600">{{ agent_details.total_commission|floatformat:0 }} FCFA</td>
+                  <td class="py-3 px-4 text-right font-bold text-red-600">{{ agent_details.total_penalite|floatformat:0 }} FCFA</td>
+                  <td class="py-3 px-4 text-right font-bold {% if agent_details.balance >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {{ agent_details.balance|floatformat:0 }} FCFA
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
     </div>
     {% endif %}
     
-    <!-- Footer for printing -->
-    <div class="hidden print:block mt-8">
-        <div class="text-center text-gray-500 text-sm">
-            <p>Rapport généré le {% now "d/m/Y à H:i" %} par {{ user.username }}</p>
-            <p>LONATO GESTLOTO - Système de gestion des activités de loterie</p>
-        </div>
+    <!-- Footer pour l'impression -->
+    <div class="hidden print:block mt-12 pt-8 border-t border-gray-200">
+      <div class="text-center text-gray-500 text-sm">
+        <p class="mb-1">Rapport généré le {% now "d/m/Y à H:i" %} par {{ user.username }}</p>
+        <p>LONATO GESTLOTO - Système de gestion des activités de loterie</p>
+      </div>
     </div>
+    
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const periodeSelect = document.querySelector('select[name="periode"]');
-        const dateDebutContainer = document.getElementById('date-debut-container');
-        const dateFinContainer = document.getElementById('date-fin-container');
-        
-        periodeSelect.addEventListener('change', function() {
-            if (this.value === 'custom') {
-                dateDebutContainer.style.display = 'block';
-                dateFinContainer.style.display = 'block';
-            } else {
-                dateDebutContainer.style.display = 'none';
-                dateFinContainer.style.display = 'none';
-            }
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    const periodeSelect = document.querySelector('select[name="periode"]');
+    const dateDebutContainer = document.getElementById('date-debut-container');
+    const dateFinContainer = document.getElementById('date-fin-container');
+    
+    periodeSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            dateDebutContainer.style.display = 'block';
+            dateFinContainer.style.display = 'block';
+        } else {
+            dateDebutContainer.style.display = 'none';
+            dateFinContainer.style.display = 'none';
+        }
     });
+
+    // Animation des cartes statistiques
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.6s ease';
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        }, index * 100);
+    });
+});
 </script>
 {% endblock %}

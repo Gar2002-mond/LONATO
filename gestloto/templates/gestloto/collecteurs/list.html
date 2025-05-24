@@ -1,5 +1,22 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+/* Force l'application de la couleur indigo sur les boutons */
+.btn-indigo {
+    background-color: #4f46e5 !important; /* indigo-600 */
+    color: white !important;
+    border-color: transparent !important;
+}
+.btn-indigo:hover {
+    background-color: #4338ca !important; /* indigo-700 */
+}
+.btn-indigo:focus {
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5) !important;
+}
+</style>
+{% endblock %}
+
 {% block title %}Collecteurs - LONATO GESTLOTO{% endblock %}
 
 {% block breadcrumb_items %}
@@ -7,204 +24,447 @@
 {% endblock %}
 
 {% block page_title %}Collecteurs{% endblock %}
-{% block page_subtitle %}Gestion des collecteurs de fonds{% endblock %}
+{% block page_subtitle %}Gestion et suivi des collecteurs de fonds{% endblock %}
 
 {% block page_actions %}
-<a href="{% url 'collecteur_create' %}" class="btn btn-primary">
-    <i class="bx bx-plus mr-2"></i> Ajouter un collecteur
+<a href="{% url 'collecteur_create' %}" class="btn-indigo inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150 shadow-md">
+    <i class="bx bx-plus mr-2 -ml-1 h-5 w-5"></i>
+    Ajouter un collecteur
 </a>
 {% endblock %}
 
 {% block content %}
+
 <!-- Filtres -->
-<div class="card bg-base-100 shadow-xl mb-6">
-    <div class="card-body">
-        <h3 class="text-lg font-medium mb-4">Filtres</h3>
-        <form hx-get="{% url 'collecteur_list' %}" hx-target="#collecteur-list" hx-swap="innerHTML" hx-indicator="#loading" class="flex flex-wrap gap-4">
-            <div class="form-control w-full max-w-xs">
-                <label class="label">
-                    <span class="label-text">Recherche</span>
-                </label>
-                <input type="text" name="q" placeholder="Nom, référence..." class="input input-bordered" 
-                       value="{{ request.GET.q|default:'' }}"
-                       hx-trigger="keyup changed delay:500ms" 
-                       hx-get="{% url 'collecteur_list' %}" 
-                       hx-target="#collecteur-list" 
-                       hx-include="closest form" />
-            </div>
-            <div class="form-control w-full max-w-xs">
-                <label class="label">
-                    <span class="label-text">Trier par</span>
-                </label>
-                <select name="sort" class="select select-bordered" hx-get="{% url 'collecteur_list' %}" hx-target="#collecteur-list" hx-indicator="#loading">
-                    <option value="nom" {% if request.GET.sort == 'nom' %}selected{% endif %}>Nom</option>
-                    <option value="reference" {% if request.GET.sort == 'reference' %}selected{% endif %}>Référence</option>
-                    <option value="date" {% if request.GET.sort == 'date' %}selected{% endif %}>Date d'activité</option>
-                    <option value="commission" {% if request.GET.sort == 'commission' %}selected{% endif %}>Commission</option>
-                </select>
-            </div>
-            <div class="form-control mt-8">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bx bx-filter mr-2"></i> Filtrer
-                </button>
-            </div>
-        </form>
+<div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+  <h3 class="text-xl font-semibold text-slate-800 mb-6 border-b border-slate-200 pb-4">Filtrer les collecteurs</h3>
+  <form
+    hx-get="{% url 'collecteur_list' %}"
+    hx-target="#collecteur-list"
+    hx-swap="innerHTML"
+    hx-indicator="#loading"
+    hx-select="#collecteur-list"
+    hx-push-url="true"
+    class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start"
+    hx-trigger="change from:find select, keyup changed delay:350ms from:find input[type='text']"
+  >
+    <div class="space-y-2">
+      <label for="search_q" class="block text-sm font-semibold text-slate-700 mb-2"
+        >Rechercher un collecteur</label
+      >
+      <div class="relative group">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <i class="bx bx-search text-slate-400 text-lg group-focus-within:text-indigo-500 transition-colors duration-200"></i>
+        </div>
+        <input
+            type="text"
+            name="q"
+            id="search_q"
+            value="{{ request.GET.q|default:'' }}"
+            placeholder="Nom, prénom, référence..."
+            class="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-lg shadow-sm bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm placeholder-slate-400"
+        />
+      </div>
+      <p class="text-xs text-slate-500 mt-1">Tapez pour rechercher instantanément</p>
     </div>
+    
+    <div class="space-y-2">
+      <label for="sort_by" class="block text-sm font-semibold text-slate-700 mb-2"
+        >Trier par</label
+      >
+      <div class="relative">
+        <select
+          name="sort"
+          id="sort_by"
+          class="w-full px-4 py-3 border border-slate-300 rounded-lg shadow-sm bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm appearance-none cursor-pointer"
+        >
+          <option value="nom" {% if request.GET.sort == 'nom' %}selected{% endif %}>Nom alphabétique</option>
+          <option value="reference" {% if request.GET.sort == 'reference' %}selected{% endif %}>Référence</option>
+          <option value="date" {% if request.GET.sort == 'date' %}selected{% endif %}>Date d'activité</option>
+          <option value="commission" {% if request.GET.sort == 'commission' %}selected{% endif %}>Commission</option>
+        </select>
+        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+          <i class="bx bx-chevron-down text-slate-400 text-lg"></i>
+        </div>
+      </div>
+      <p class="text-xs text-slate-500 mt-1">Choisissez l'ordre d'affichage</p>
+    </div>
+  </form>
 </div>
 
 <!-- Loading indicator -->
-<div id="loading" class="htmx-indicator flex justify-center my-4">
-    <span class="loading loading-spinner loading-lg text-primary"></span>
+<div
+  id="loading"
+  class="htmx-indicator flex flex-col justify-center items-center my-12 text-indigo-600"
+>
+  <svg
+    class="animate-spin h-12 w-12"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <circle
+      class="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      stroke-width="4"
+    ></circle>
+    <path
+      class="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+    ></path>
+  </svg>
+  <span class="mt-4 text-lg font-medium text-slate-700">Chargement des collecteurs...</span>
 </div>
 
 <!-- Liste des collecteurs -->
 <div id="collecteur-list">
-    <div class="card bg-base-100 shadow-xl overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="table table-zebra w-full">
-                <thead>
-                    <tr>
-                        <th class="bg-base-200">Référence</th>
-                        <th class="bg-base-200">Nom & Prénom</th>
-                        <th class="bg-base-200">Contact</th>
-                        <th class="bg-base-200">Date d'activité</th>
-                        <th class="bg-base-200">Commission</th>
-                        <th class="bg-base-200">Activités</th>
-                        <th class="bg-base-200">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for collecteur in collecteurs %}
-                    <tr>
-                        <td>
-                            <div class="font-bold">{{ collecteur.reference_collecteur }}</div>
-                        </td>
-                        <td>
-                            <div class="font-bold">{{ collecteur.nom_collecteur }}</div>
-                            <div class="text-sm opacity-70">{{ collecteur.prenom_collecteur }}</div>
-                        </td>
-                        <td>
-                            <div class="flex flex-col">
-                                <span>{{ collecteur.num_tel_collecteur }}</span>
-                                <span class="text-xs opacity-70">{{ collecteur.email_collecteur|default:"" }}</span>
-                            </div>
-                        </td>
-                        <td>{{ collecteur.date_debut_activites|date:"d/m/Y" }}</td>
-                        <td>
-                            <div class="badge badge-accent">{{ collecteur.pourcentage_commission }}%</div>
-                        </td>
-                        <td>
-                            <div class="badge badge-outline">{{ collecteur.activites.count }} activité(s)</div>
-                        </td>
-                        <td>
-                            <div class="flex gap-2">
-                                <a href="{% url 'collecteur_detail' collecteur.id %}" class="btn btn-sm btn-circle btn-ghost tooltip" data-tip="Détails">
-                                    <i class="bx bx-show"></i>
-                                </a>
-                                <a href="{% url 'collecteur_update' collecteur.id %}" class="btn btn-sm btn-circle btn-ghost tooltip" data-tip="Modifier">
-                                    <i class="bx bx-edit"></i>
-                                </a>
-                                <button class="btn btn-sm btn-circle btn-ghost text-error tooltip" data-tip="Supprimer"
-                                        hx-get="{% url 'collecteur_delete' collecteur.id %}"
-                                        hx-target="#modal"
-                                        hx-swap="innerHTML">
-                                    <i class="bx bx-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center py-8">
-                            <div class="flex flex-col items-center justify-center text-gray-500">
-                                <i class="bx bx-user-x text-4xl"></i>
-                                <p class="mt-2">Aucun collecteur trouvé</p>
-                                <a href="{% url 'collecteur_create' %}" class="btn btn-sm btn-primary mt-4">
-                                    <i class="bx bx-plus mr-2"></i> Ajouter un collecteur
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- Pagination -->
-        {% if collecteurs.has_other_pages %}
-        <div class="flex justify-center py-4">
-            <div class="join">
-                {% if collecteurs.has_previous %}
-                <button class="join-item btn btn-sm"
-                        hx-get="{% url 'collecteur_list' %}?page={{ collecteurs.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
-                        hx-target="#collecteur-list">
-                    <i class="bx bx-chevron-left"></i>
-                </button>
-                {% else %}
-                <button class="join-item btn btn-sm" disabled>
-                    <i class="bx bx-chevron-left"></i>
-                </button>
+  <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full">
+        <thead class="bg-slate-100">
+          <tr>
+            <th
+              scope="col"
+              class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+            >
+              Référence
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+            >
+              Nom & Prénom(s)
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+            >
+              Contact
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+            >
+              Début activité
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
+            >
+              Commission
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
+            >
+              Activités
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider"
+            >
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-slate-200">
+          {% for collecteur in collecteurs %}
+          <tr
+            class="hover:bg-slate-50 transition duration-150 ease-in-out"
+          >
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="font-semibold text-indigo-700">
+                {{ collecteur.reference_collecteur }}
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="font-medium text-slate-800">
+                {{ collecteur.nom_collecteur }}
+              </div>
+              <div class="text-sm text-slate-500">{{ collecteur.prenom_collecteur }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex flex-col">
+                <span class="text-sm text-slate-700 flex items-center">
+                  <i class="bx bxs-phone text-slate-400 mr-1.5 text-base"></i> {{ collecteur.num_tel_collecteur }}
+                </span>
+                {% if collecteur.email_collecteur %}
+                <span class="text-xs text-slate-500 mt-0.5 flex items-center">
+                  <i class="bx bxs-envelope text-slate-400 mr-1.5 text-base"></i> {{ collecteur.email_collecteur }}
+                </span>
                 {% endif %}
-                
-                {% for i in collecteurs.paginator.page_range %}
-                    {% if collecteurs.number == i %}
-                    <button class="join-item btn btn-sm btn-active">{{ i }}</button>
-                    {% else %}
-                    <button class="join-item btn btn-sm"
-                            hx-get="{% url 'collecteur_list' %}?page={{ i }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
-                            hx-target="#collecteur-list">
-                        {{ i }}
-                    </button>
-                    {% endif %}
-                {% endfor %}
-                
-                {% if collecteurs.has_next %}
-                <button class="join-item btn btn-sm"
-                        hx-get="{% url 'collecteur_list' %}?page={{ collecteurs.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
-                        hx-target="#collecteur-list">
-                    <i class="bx bx-chevron-right"></i>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+              {{ collecteur.date_debut_activites|date:"d M Y" }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <span
+                class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                       {% if collecteur.pourcentage_commission|add:0 >= 10 %}
+                         bg-green-100 text-green-700
+                       {% elif collecteur.pourcentage_commission|add:0 >= 5 %}
+                         bg-sky-100 text-sky-700
+                       {% else %}
+                         bg-amber-100 text-amber-700
+                       {% endif %}"
+                > {{ collecteur.pourcentage_commission }}%
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <span
+                class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-700"
+                >{{ collecteur.activites.count }} activité(s)</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">
+              <div class="flex items-center justify-end space-x-1">
+                <a
+                  href="{% url 'collecteur_detail' collecteur.id %}"
+                  class="p-2 text-slate-500 hover:text-indigo-600 rounded-md transition duration-150 ease-in-out hover:bg-indigo-50"
+                  title="Voir les détails"
+                >
+                  <i class="bx bx-show-alt text-lg"></i>
+                </a>
+                <a
+                  href="{% url 'collecteur_update' collecteur.id %}"
+                  class="p-2 text-slate-500 hover:text-amber-600 rounded-md transition duration-150 ease-in-out hover:bg-amber-50"
+                  title="Modifier"
+                >
+                  <i class="bx bx-edit-alt text-lg"></i>
+                </a>
+                <button
+                  type="button"
+                  class="p-2 text-slate-500 hover:text-red-600 rounded-md transition duration-150 ease-in-out hover:bg-red-50"
+                  title="Supprimer"
+                  hx-get="{% url 'collecteur_delete' collecteur.id %}"
+                  hx-target="#modal-container"
+                  hx-swap="innerHTML"
+                  onclick="document.getElementById('modal-container').classList.remove('hidden');"
+                >
+                  <i class="bx bx-trash-alt text-lg"></i>
                 </button>
-                {% else %}
-                <button class="join-item btn btn-sm" disabled>
-                    <i class="bx bx-chevron-right"></i>
-                </button>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-20">
+              <div
+                class="flex flex-col items-center justify-center text-slate-500"
+              >
+                <svg class="w-16 h-16 text-slate-300 mb-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                <p class="text-xl font-semibold text-slate-700 mb-1">
+                  Aucun collecteur trouvé
+                </p>
+                <p class="mt-1 text-sm text-slate-500 max-w-md text-center">
+                  Il semble qu'aucun collecteur ne corresponde à vos critères actuels, ou qu'aucun collecteur n'ait encore été ajouté.
+                </p>
+                <a
+                  href="{% url 'collecteur_create' %}"
+                  class="btn-indigo mt-6 inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150 shadow-md"
+                >
+                  <i class="bx bx-plus mr-2 -ml-1 h-5 w-5"></i> Ajouter un nouveau collecteur
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+
+    <!-- Pagination -->
+    {% if collecteurs.has_other_pages %}
+    <div
+      class="bg-white px-4 py-4 flex items-center justify-between border-t border-slate-200 sm:px-6 rounded-b-xl"
+    >
+      <div class="flex-1 flex justify-between sm:hidden">
+        {% if collecteurs.has_previous %}
+        <button
+          type="button"
+          class="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50"
+          hx-get="{% url 'collecteur_list' %}?page={{ collecteurs.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"
+          hx-target="#collecteur-list"
+          hx-indicator="#loading"
+        >
+          Précédent
+        </button>
+        {% else %}
+        <button
+          type="button"
+          class="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-400 bg-slate-50 cursor-not-allowed"
+          disabled
+        >
+          Précédent
+        </button>
+        {% endif %}
+        {% if collecteurs.has_next %}
+        <button
+          type="button"
+          class="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50"
+          hx-get="{% url 'collecteur_list' %}?page={{ collecteurs.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"
+          hx-target="#collecteur-list"
+          hx-indicator="#loading"
+        >
+          Suivant
+        </button>
+        {% else %}
+        <button
+          type="button"
+          class="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-400 bg-slate-50 cursor-not-allowed"
+          disabled
+        >
+          Suivant
+        </button>
+        {% endif %}
+      </div>
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-slate-700">
+            Affichage de
+            <span class="font-medium">{{ collecteurs.start_index }}</span>
+            à
+            <span class="font-medium">{{ collecteurs.end_index }}</span>
+            sur
+            <span class="font-medium">{{ collecteurs.paginator.count }}</span>
+            résultat(s)
+          </p>
+        </div>
+        <div>
+          <nav
+            class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+            aria-label="Pagination"
+          >
+            {% if collecteurs.has_previous %}
+            <button
+              type="button"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50"
+              hx-get="{% url 'collecteur_list' %}?page={{ collecteurs.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"
+              hx-target="#collecteur-list"
+              hx-indicator="#loading"
+            >
+              <span class="sr-only">Précédent</span>
+              <i class="bx bx-chevron-left h-5 w-5"></i>
+            </button>
+            {% else %}
+            <button
+              type="button"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-slate-300 bg-slate-50 text-sm font-medium text-slate-400 cursor-not-allowed"
+              disabled
+            >
+              <span class="sr-only">Précédent</span>
+              <i class="bx bx-chevron-left h-5 w-5"></i>
+            </button>
+            {% endif %}
+            {% for i in collecteurs.paginator.page_range %}
+              {% if collecteurs.number == i %}
+            <button
+              type="button"
+              aria-current="page"
+              class="z-10 bg-indigo-50 border-indigo-500 text-indigo-600 font-semibold relative inline-flex items-center px-4 py-2 border text-sm"
+            >
+              {{ i }}
+            </button>
+              {% else %}
+            <button
+              type="button"
+              class="bg-white border-slate-300 text-slate-500 hover:bg-slate-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+              hx-get="{% url 'collecteur_list' %}?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"
+              hx-target="#collecteur-list"
+              hx-indicator="#loading"
+            >
+              {{ i }}
+            </button>
+              {% endif %}
+            {% endfor %}
+            {% if collecteurs.has_next %}
+            <button
+              type="button"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50"
+              hx-get="{% url 'collecteur_list' %}?page={{ collecteurs.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"
+              hx-target="#collecteur-list"
+              hx-indicator="#loading"
+            >
+              <span class="sr-only">Suivant</span>
+              <i class="bx bx-chevron-right h-5 w-5"></i>
+            </button>
+            {% else %}
+            <button
+              type="button"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-slate-300 bg-slate-50 text-sm font-medium text-slate-400 cursor-not-allowed"
+              disabled
+            >
+              <span class="sr-only">Suivant</span>
+              <i class="bx bx-chevron-right h-5 w-5"></i>
+            </button>
+            {% endif %}
+          </nav>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
 </div>
 
 <!-- Statistiques -->
-<div class="mt-8">
-    <h3 class="text-lg font-medium mb-4">Statistiques</h3>
-    <div class="stats shadow bg-base-100 w-full">
-        <div class="stat">
-            <div class="stat-figure text-accent">
-                <i class="bx bxs-user-badge text-3xl"></i>
-            </div>
-            <div class="stat-title">Total collecteurs</div>
-            <div class="stat-value text-accent">{{ collecteurs.paginator.count }}</div>
-        </div>
-        
-        <div class="stat">
-            <div class="stat-figure text-secondary">
-                <i class="bx bxs-calendar text-3xl"></i>
-            </div>
-            <div class="stat-title">Nouveaux ce mois</div>
-            <div class="stat-value text-secondary">{{ nouveaux_collecteurs|default:0 }}</div>
-        </div>
-        
-        <div class="stat">
-            <div class="stat-figure text-primary">
-                <i class="bx bx-money text-3xl"></i>
-            </div>
-            <div class="stat-title">Commission moyenne</div>
-            <div class="stat-value text-primary">{{ commission_moyenne|default:0 }}%</div>
-        </div>
+<div class="mt-10 mb-8">
+  <h3 class="text-xl font-semibold text-slate-800 mb-6 border-b border-slate-200 pb-4">Statistiques Clés</h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Stat Total Collecteurs -->
+    <div class="bg-white p-6 rounded-xl shadow-lg flex items-center hover:shadow-xl transition-shadow duration-300 ease-in-out">
+      <div class="flex-shrink-0 p-3.5 rounded-full bg-indigo-100 text-indigo-600 mr-4">
+        <i class="bx bxs-user-badge text-2xl"></i>
+      </div>
+      <div class="flex-1">
+        <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Total collecteurs</p>
+        <p class="text-3xl font-bold text-indigo-600 mt-1">
+          {% if collecteurs.paginator %}
+            {{ collecteurs.paginator.count }}
+          {% else %}
+            0
+          {% endif %}
+        </p>
+      </div>
     </div>
+
+    <!-- Stat Nouveau ce mois -->
+    <div class="bg-white p-6 rounded-xl shadow-lg flex items-center hover:shadow-xl transition-shadow duration-300 ease-in-out">
+      <div
+        class="flex-shrink-0 p-3.5 rounded-full bg-teal-100 text-teal-600 mr-4"
+      >
+        <i class="bx bxs-user-plus text-2xl"></i>
+      </div>
+      <div class="flex-1">
+        <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Nouveaux ce mois</p>
+        <p class="text-3xl font-bold text-teal-600 mt-1">
+          {{ nouveaux_collecteurs|default:0 }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Stat Commission moyenne -->
+    <div class="bg-white p-6 rounded-xl shadow-lg flex items-center hover:shadow-xl transition-shadow duration-300 ease-in-out">
+      <div
+        class="flex-shrink-0 p-3.5 rounded-full bg-amber-100 text-amber-600 mr-4"
+      >
+        <i class="bx bx-line-chart text-2xl"></i>
+      </div>
+      <div class="flex-1">
+        <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Commission Moyenne</p>
+        <p class="text-3xl font-bold text-amber-600 mt-1">
+          {{ commission_moyenne|default:0 }}%
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Modal pour HTMX -->
-<div id="modal"></div>
+<div id="modal-container" class="hidden"></div>
 {% endblock %}

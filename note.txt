@@ -34,3 +34,25 @@ Si vous choisissez l'option 1 (fichiers locaux), modifiez votre fichier base.htm
 
  pip install -r requirements.txt   
 
+
+------------------Django affichage date :
+J'ai remplacé :
+
+django
+{% now "Y" as current_year %}
+{{ current_year|add:0|sub:collecteur.date_debut_activites.year }} an(s)
+Par :
+
+django
+{{ collecteur.date_debut_activites|timesince|cut:" ago" }}
+✅ Avantages de cette solution :
+Filtre natif Django : timesince est un filtre intégré
+Plus précis : Affiche "X années, Y mois" au lieu de juste les années
+Automatique : Se met à jour automatiquement
+Lisible : Format plus naturel pour l'utilisateur
+🎯 Résultat attendu :
+Au lieu d'afficher "3 an(s)", vous verrez maintenant :
+
+"3 années, 2 mois"
+"1 année, 8 mois"
+"6 mois, 2 semaines"

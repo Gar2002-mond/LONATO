@@ -1,92 +1,227 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+/* Force l'application de la couleur indigo sur les boutons */
+.btn-indigo {
+    background-color: #4f46e5 !important; /* indigo-600 */
+    color: white !important;
+    border-color: transparent !important;
+}
+.btn-indigo:hover {
+    background-color: #4338ca !important; /* indigo-700 */
+}
+.btn-indigo:focus {
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5) !important;
+}
+</style>
+{% endblock %}
+
 {% block title %}{{ title }} - LONATO GESTLOTO{% endblock %}
 
 {% block breadcrumb_items %}
 <li><a href="{% url 'machine_list' %}">Machines</a></li>
-<li>{{ title }}</li>
+<li><a href="#">{{ title }}</a></li>
 {% endblock %}
 
 {% block page_title %}{{ title }}{% endblock %}
-{% block page_subtitle %}Veuillez remplir les informations ci-dessous{% endblock %}
+{% block page_subtitle %}Formulaire de gestion des machines et terminaux{% endblock %}
 
 {% block content %}
-<div class="card bg-base-100 shadow-xl max-w-3xl mx-auto">
-    <div class="card-body">
-        <form method="post" hx-boost="true" class="space-y-6">
-            {% csrf_token %}
-            
-            {% if form.errors %}
-            <div class="alert alert-error shadow-lg">
-                <div class="flex items-start">
-                    <i class="bx bx-error-circle text-2xl mr-2"></i>
-                    <div>
-                        <h3 class="font-bold">Erreur dans le formulaire</h3>
-                        <ul class="mt-1 list-disc list-inside text-sm">
-                            {% for field in form %}
-                                {% for error in field.errors %}
-                                    <li>{{ field.label }}: {{ error }}</li>
+
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="px-6 py-8">
+            <form method="post" class="space-y-8">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <i class="bx bx-error-circle text-red-500 text-xl mr-3 mt-0.5"></i>
+                        <div>
+                            <h3 class="font-semibold text-red-800 mb-2">Erreurs dans le formulaire</h3>
+                            <ul class="text-sm text-red-700 space-y-1">
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li class="flex items-center">
+                                            <i class="bx bx-x text-red-500 mr-1"></i>
+                                            <strong>{{ field.label }}:</strong> {{ error }}
+                                        </li>
+                                    {% endfor %}
                                 {% endfor %}
-                            {% endfor %}
-                            {% for error in form.non_field_errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
+                                {% for error in form.non_field_errors %}
+                                    <li class="flex items-center">
+                                        <i class="bx bx-x text-red-500 mr-1"></i>
+                                        {{ error }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
-            {% endif %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Numéro de terminal</span>
-                        <span class="label-text-alt text-error">Requis, Unique</span>
-                    </label>
-                    <input type="text" name="numero_terminal" value="{{ form.numero_terminal.value|default:'' }}" class="input input-bordered {% if form.numero_terminal.errors %}input-error{% endif %}" required autofocus>
+                {% endif %}
+
+                <!-- Informations de base -->
+                <div class="border-b border-slate-200 pb-8">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-6 flex items-center">
+                        <i class="bx bx-desktop text-indigo-600 mr-3 text-xl"></i>
+                        Informations de base
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Numéro de terminal -->
+                        <div class="space-y-2">
+                            <label for="{{ form.numero_terminal.id_for_label }}" class="block text-sm font-semibold text-slate-700">
+                                Numéro de terminal <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="{{ form.numero_terminal.name }}"
+                                id="{{ form.numero_terminal.id_for_label }}"
+                                value="{{ form.numero_terminal.value|default:'' }}"
+                                class="w-full px-4 py-3 border {% if form.numero_terminal.errors %}border-red-300 bg-red-50{% else %}border-slate-300 hover:border-indigo-300{% endif %} rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm"
+                                placeholder="Ex: T001, TERM-001"
+                                {% if form.numero_terminal.field.required %}required{% endif %}
+                                autofocus
+                            />
+                            {% if form.numero_terminal.errors %}
+                                <div class="text-red-600 text-sm mt-1">
+                                    {% for error in form.numero_terminal.errors %}
+                                        <p class="flex items-center">
+                                            <i class="bx bx-error-circle mr-1"></i>
+                                            {{ error }}
+                                        </p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <p class="text-xs text-slate-500 mt-1">Identifiant unique du terminal</p>
+                        </div>
+
+                        <!-- Nom du point de vente -->
+                        <div class="space-y-2">
+                            <label for="{{ form.nom_point_vente.id_for_label }}" class="block text-sm font-semibold text-slate-700">
+                                Nom du point de vente <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="{{ form.nom_point_vente.name }}"
+                                id="{{ form.nom_point_vente.id_for_label }}"
+                                value="{{ form.nom_point_vente.value|default:'' }}"
+                                class="w-full px-4 py-3 border {% if form.nom_point_vente.errors %}border-red-300 bg-red-50{% else %}border-slate-300 hover:border-indigo-300{% endif %} rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm"
+                                placeholder="Ex: Boutique Centre-ville"
+                                {% if form.nom_point_vente.field.required %}required{% endif %}
+                            />
+                            {% if form.nom_point_vente.errors %}
+                                <div class="text-red-600 text-sm mt-1">
+                                    {% for error in form.nom_point_vente.errors %}
+                                        <p class="flex items-center">
+                                            <i class="bx bx-error-circle mr-1"></i>
+                                            {{ error }}
+                                        </p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <p class="text-xs text-slate-500 mt-1">Nom commercial du point de vente</p>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Nom du point de vente</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="text" name="nom_point_vente" value="{{ form.nom_point_vente.value|default:'' }}" class="input input-bordered {% if form.nom_point_vente.errors %}input-error{% endif %}" required>
+
+                <!-- Assignation -->
+                <div class="border-b border-slate-200 pb-8">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-6 flex items-center">
+                        <i class="bx bx-user text-indigo-600 mr-3 text-xl"></i>
+                        Assignation d'agent
+                    </h3>
+                    
+                    <div class="space-y-2">
+                        <label for="{{ form.agent.id_for_label }}" class="block text-sm font-semibold text-slate-700">
+                            Agent responsable
+                        </label>
+                        <div class="relative">
+                            <select
+                                name="{{ form.agent.name }}"
+                                id="{{ form.agent.id_for_label }}"
+                                class="w-full px-4 py-3 border {% if form.agent.errors %}border-red-300 bg-red-50{% else %}border-slate-300 hover:border-indigo-300{% endif %} rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm appearance-none cursor-pointer"
+                            >
+                                <option value="">-- Sélectionner un agent --</option>
+                                {% for agent in form.fields.agent.queryset %}
+                                    <option value="{{ agent.id }}" {% if form.agent.value == agent.id %}selected{% endif %}>
+                                        {{ agent.nom_agent }} {{ agent.prenom_agent }} ({{ agent.reference_agent }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i class="bx bx-chevron-down text-slate-400 text-lg"></i>
+                            </div>
+                        </div>
+                        {% if form.agent.errors %}
+                            <div class="text-red-600 text-sm mt-1">
+                                {% for error in form.agent.errors %}
+                                    <p class="flex items-center">
+                                        <i class="bx bx-error-circle mr-1"></i>
+                                        {{ error }}
+                                    </p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="text-xs text-slate-500 mt-1">Agent qui gérera cette machine (optionnel)</p>
+                    </div>
                 </div>
-                
-                <div class="form-control md:col-span-2">
-                    <label class="label">
-                        <span class="label-text">Agent responsable</span>
-                        <span class="label-text-alt">Optionnel</span>
-                    </label>
-                    <select name="agent" class="select select-bordered {% if form.agent.errors %}select-error{% endif %}">
-                        <option value="">-- Sélectionner un agent --</option>
-                        {% for agent in form.fields.agent.queryset %}
-                            <option value="{{ agent.id }}" {% if form.agent.value == agent.id %}selected{% endif %}>
-                                {{ agent.nom_agent }} {{ agent.prenom_agent }} ({{ agent.reference_agent }})
-                            </option>
-                        {% endfor %}
-                    </select>
+
+                <!-- Détails supplémentaires -->
+                <div class="pb-8">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-6 flex items-center">
+                        <i class="bx bx-detail text-indigo-600 mr-3 text-xl"></i>
+                        Informations supplémentaires
+                    </h3>
+                    
+                    <div class="space-y-2">
+                        <label for="{{ form.details.id_for_label }}" class="block text-sm font-semibold text-slate-700">
+                            Détails et remarques
+                        </label>
+                        <textarea
+                            name="{{ form.details.name }}"
+                            id="{{ form.details.id_for_label }}"
+                            rows="4"
+                            class="w-full px-4 py-3 border {% if form.details.errors %}border-red-300 bg-red-50{% else %}border-slate-300 hover:border-indigo-300{% endif %} rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 ease-in-out text-sm resize-none"
+                            placeholder="Informations complémentaires sur la machine, localisation, observations..."
+                        >{{ form.details.value|default:'' }}</textarea>
+                        {% if form.details.errors %}
+                            <div class="text-red-600 text-sm mt-1">
+                                {% for error in form.details.errors %}
+                                    <p class="flex items-center">
+                                        <i class="bx bx-error-circle mr-1"></i>
+                                        {{ error }}
+                                    </p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="text-xs text-slate-500 mt-1">Détails optionnels sur la machine</p>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Détails</span>
-                    <span class="label-text-alt">Optionnel</span>
-                </label>
-                <textarea name="details" rows="3" class="textarea textarea-bordered {% if form.details.errors %}textarea-error{% endif %}">{{ form.details.value|default:'' }}</textarea>
-            </div>
-            
-            <div class="flex justify-end gap-2 mt-6">
-                <a href="{% url 'machine_list' %}" class="btn btn-outline">
-                    <i class="bx bx-arrow-back mr-2"></i> Annuler
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bx bx-save mr-2"></i> Enregistrer
-                </button>
-            </div>
-        </form>
+
+                <!-- Boutons d'action -->
+                <div class="flex items-center justify-between pt-6 border-t border-slate-200">
+                    <a href="{% url 'machine_list' %}" hx-boost="false"
+                       class="inline-flex items-center px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150">
+                        <i class="bx bx-arrow-back mr-2"></i>
+                        Retour à la liste
+                    </a>
+                    
+                    <button type="submit" 
+                            class="btn-indigo inline-flex items-center px-6 py-2 bg-indigo-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150 shadow-md">
+                        <i class="bx bx-save mr-2"></i>
+                        {% if 'create' in request.resolver_match.url_name %}
+                            Créer la machine
+                        {% else %}
+                            Mettre à jour
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+
 {% endblock %}
