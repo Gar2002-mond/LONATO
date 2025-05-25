@@ -1,0 +1,333 @@
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="min-w-full">
+      <thead class="bg-slate-100">
+        <tr>
+          <th
+            scope="col"
+            class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+          >
+            Référence
+          </th>
+          <th
+            scope="col"
+            class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+          >
+            Nom & Prénom(s)
+          </th>
+          <th
+            scope="col"
+            class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+          >
+            Contact
+          </th>
+          <th
+            scope="col"
+            class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+          >
+            Début activité
+          </th>
+          <th
+            scope="col"
+            class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
+          >
+            Commission
+          </th>
+          <th
+            scope="col"
+            class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
+          >
+            Activités
+          </th>
+          <th
+            scope="col"
+            class="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider"
+          >
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-slate-200">
+        {% for collecteur in collecteurs %}
+        <tr class="hover:bg-slate-50 transition duration-150 ease-in-out">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="font-semibold text-indigo-700">
+              {{ collecteur.reference_collecteur }}
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="font-medium text-slate-800">
+              {{ collecteur.nom_collecteur }}
+            </div>
+            <div class="text-sm text-slate-500">
+              {{ collecteur.prenom_collecteur }}
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex flex-col">
+              <span class="text-sm text-slate-700 flex items-center">
+                <i class="bx bxs-phone text-slate-400 mr-1.5 text-base"></i>
+                {{ collecteur.num_tel_collecteur|default:"-" }}
+              </span>
+              {% if collecteur.email_collecteur %}
+              <span class="text-xs text-slate-500 mt-0.5 flex items-center">
+                <i class="bx bxs-envelope text-slate-400 mr-1.5 text-base"></i>
+                {{ collecteur.email_collecteur }}
+              </span>
+              {% endif %}
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+            {% if collecteur.date_debut_activites %}
+              {{ collecteur.date_debut_activites|date:"d M Y" }}
+            {% else %}
+              <span class="text-slate-400">Non définie</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-center">
+            <span
+              class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {% if collecteur.pourcentage_commission >= 10 %}bg-green-100 text-green-700{% elif collecteur.pourcentage_commission >= 5 %}bg-sky-100 text-sky-700{% else %}bg-amber-100 text-amber-700{% endif %}"
+            >
+              {{ collecteur.pourcentage_commission|floatformat:1 }}%
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-center">
+            <span
+              class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-700"
+            >
+              {{ collecteur.activites.count }} activité(s)
+            </span>
+          </td>
+          <td
+            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-right"
+          >
+            <div class="flex items-center justify-end space-x-1">
+              <a
+                href="{% url 'collecteur_detail' collecteur.id %}"
+                class="p-2 text-slate-500 hover:text-indigo-600 rounded-md transition duration-150 ease-in-out hover:bg-indigo-50"
+                title="Voir les détails"
+              >
+                <i class="bx bx-show-alt text-lg"></i>
+              </a>
+              <a
+                href="{% url 'collecteur_update' collecteur.id %}"
+                class="p-2 text-slate-500 hover:text-amber-600 rounded-md transition duration-150 ease-in-out hover:bg-amber-50"
+                title="Modifier"
+              >
+                <i class="bx bx-edit-alt text-lg"></i>
+              </a>
+              <button
+                type="button"
+                class="p-2 text-slate-500 hover:text-red-600 rounded-md transition duration-150 ease-in-out hover:bg-red-50"
+                title="Supprimer"
+                onclick="confirmDelete('{{ collecteur.id }}', '{{ collecteur.nom_collecteur }} {{ collecteur.prenom_collecteur }}')"
+              >
+                <i class="bx bx-trash-alt text-lg"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-20">
+            <div
+              class="flex flex-col items-center justify-center text-slate-500 empty-state rounded-lg mx-4 py-8"
+            >
+              <svg
+                class="w-16 h-16 text-slate-300 mb-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                ></path>
+              </svg>
+              <p class="text-xl font-semibold text-slate-700 mb-1">
+                {% if search_query %}
+                  Aucun collecteur trouvé pour "{{ search_query }}"
+                {% else %}
+                  Aucun collecteur trouvé
+                {% endif %}
+              </p>
+              <p class="mt-1 text-sm text-slate-500 max-w-md text-center">
+                {% if search_query %}
+                  Essayez de modifier vos critères de recherche ou ajoutez un nouveau collecteur.
+                {% else %}
+                  Il semble qu'aucun collecteur ne corresponde à vos critères actuels, ou qu'aucun collecteur n'ait encore été ajouté.
+                {% endif %}
+              </p>
+              <div class="mt-6 flex space-x-3">
+                {% if search_query %}
+                <button
+                  onclick="clearSearch()"
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg font-semibold text-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150"
+                >
+                  <i class="bx bx-refresh mr-2 -ml-1 h-5 w-5"></i> Effacer la recherche
+                </button>
+                {% endif %}
+                <a
+                  href="{% url 'collecteur_create' %}"
+                  class="btn-indigo inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150 shadow-md"
+                >
+                  <i class="bx bx-plus mr-2 -ml-1 h-5 w-5"></i> Ajouter un nouveau collecteur
+                </a>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination CORRIGÉE -->
+  {% if collecteurs.paginator and collecteurs.paginator.num_pages > 1 %}
+  <div
+    class="bg-white px-4 py-4 flex items-center justify-between border-t border-slate-200 sm:px-6 rounded-b-xl"
+  >
+    <div class="flex-1 flex justify-between sm:hidden">
+      {% if collecteurs.has_previous %}
+      <button
+        type="button"
+        class="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50"
+        onclick="goToPage('{{ collecteurs.previous_page_number }}')"
+      >
+        Précédent
+      </button>
+      {% else %}
+      <button
+        type="button"
+        class="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-400 bg-slate-50 cursor-not-allowed"
+        disabled
+      >
+        Précédent
+      </button>
+      {% endif %}
+      
+      {% if collecteurs.has_next %}
+      <button
+        type="button"
+        class="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50"
+        onclick="goToPage('{{ collecteurs.next_page_number }}')"
+      >
+        Suivant
+      </button>
+      {% else %}
+      <button
+        type="button"
+        class="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-400 bg-slate-50 cursor-not-allowed"
+        disabled
+      >
+        Suivant
+      </button>
+      {% endif %}
+    </div>
+
+    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+      <div>
+        <p class="text-sm text-slate-700">
+          Affichage de
+          <span class="font-medium">{{ collecteurs.start_index|default:0 }}</span>
+          à
+          <span class="font-medium">{{ collecteurs.end_index|default:0 }}</span>
+          sur
+          <span class="font-medium">{{ collecteurs.paginator.count }}</span>
+          résultat(s)
+        </p>
+      </div>
+      <div>
+        <nav
+          class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+          aria-label="Pagination"
+        >
+          {% if collecteurs.has_previous %}
+          <button
+            type="button"
+            class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50"
+            onclick="goToPage('{{ collecteurs.previous_page_number }}')"
+          >
+            <span class="sr-only">Précédent</span>
+            <i class="bx bx-chevron-left h-5 w-5"></i>
+          </button>
+          {% else %}
+          <button
+            type="button"
+            class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-slate-300 bg-slate-50 text-sm font-medium text-slate-400 cursor-not-allowed"
+            disabled
+          >
+            <span class="sr-only">Précédent</span>
+            <i class="bx bx-chevron-left h-5 w-5"></i>
+          </button>
+          {% endif %}
+          
+          <!-- CORRECTION : Syntaxe Django correcte -->
+          {% for i in collecteurs.paginator.page_range %}
+            {% if collecteurs.number == i %}
+          <button
+            type="button"
+            aria-current="page"
+            class="z-10 bg-indigo-50 border-indigo-500 text-indigo-600 font-semibold relative inline-flex items-center px-4 py-2 border text-sm"
+          >
+            {{ i }}
+          </button>
+            {% else %}
+          <button
+            type="button"
+            class="bg-white border-slate-300 text-slate-500 hover:bg-slate-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+            onclick="goToPage('{{ i }}')"
+          >
+            {{ i }}
+          </button>
+            {% endif %}
+          {% endfor %}
+          
+          {% if collecteurs.has_next %}
+          <button
+            type="button"
+            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50"
+            onclick="goToPage('{{ collecteurs.next_page_number }}')"
+          >
+            <span class="sr-only">Suivant</span>
+            <i class="bx bx-chevron-right h-5 w-5"></i>
+          </button>
+          {% else %}
+          <button
+            type="button"
+            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-slate-300 bg-slate-50 text-sm font-medium text-slate-400 cursor-not-allowed"
+            disabled
+          >
+            <span class="sr-only">Suivant</span>
+            <i class="bx bx-chevron-right h-5 w-5"></i>
+          </button>
+          {% endif %}
+        </nav>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Script pour mettre à jour le compteur de résultats -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Mettre à jour le compteur de résultats
+    const searchCount = document.getElementById("search-count");
+    const searchStatus = document.getElementById("search-status");
+
+    if (searchCount && searchStatus) {
+      const totalCount = parseInt("{{ collecteurs.paginator.count|default:0 }}");
+      searchCount.textContent = totalCount;
+
+      if (totalCount > 0 && "{{ search_query|escapejs }}") {
+        searchStatus.style.display = "block";
+      } else {
+        searchStatus.style.display = "none";
+      }
+    }
+  });
+</script>

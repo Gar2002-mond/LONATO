@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from decimal import Decimal
+from django.core.exceptions import ValidationError
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -78,6 +79,14 @@ class ActiviteCollecteur(models.Model):
     observations = models.TextField(blank=True)
     autres_details = models.TextField(blank=True)
 
+    def clean(self):
+        
+        # Validation pour s'assurer que la date n'est pas dans le futur
+        if self.date_activite and self.date_activite > timezone.now().date():
+            raise ValidationError({
+                'date_activite': 'La date d\'activité ne peut pas être dans le futur.'
+            })
+    
     def __str__(self):
         return f"Activité de {self.collecteur} - {self.date_activite}"
     

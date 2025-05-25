@@ -1,246 +1,346 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+  /* Animations et styles personnalisés */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+   
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+  }
+  
+  .stats-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+  }
+  
+  .stats-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .htmx-indicator {
+    display: none;
+  }
+  
+  .htmx-request .htmx-indicator {
+    display: flex;
+  }
+  
+  .filter-card {
+    background: linear-gradient(135deg, #fef7f0 0%, #fed7aa 100%);
+    border: 1px solid #fdba74;
+  }
+  
+  .table-card {
+    background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+    border: 1px solid #e5e5e5;
+  }
+</style>
+{% endblock %}
+
 {% block title %}Dépenses - LONATO GESTLOTO{% endblock %}
 
 {% block breadcrumb_items %}
-<li><a href="#">Dépenses</a></li>
+<li>
+  <a href="{% url 'dashboard' %}" class="text-amber-600 hover:text-amber-800 font-medium">Dashboard</a>
+</li>
+<li>
+  <span class="text-gray-500">Dépenses</span>
+</li>
 {% endblock %}
 
-{% block page_title %}Dépenses{% endblock %}
-{% block page_subtitle %}Gestion des dépenses de la société{% endblock %}
+{% block page_title %}
+<div class="flex items-center space-x-3">
+  <div class="h-10 w-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
+    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+    </svg>
+  </div>
+  <span class="bg-gradient-to-r from-amber-600 to-orange-200 bg-clip-text text-transparent">Gestion des Dépenses</span>
+</div>
+{% endblock %}
+
+{% block page_subtitle %}
+<div class="flex items-center space-x-2">
+  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+  </svg>
+  <span class="text-gray-600">Suivi et analyse des dépenses de la société</span>
+</div>
+{% endblock %}
 
 {% block page_actions %}
-<a href="{% url 'depense_create' %}" class="btn btn-primary">
-    <i class="bx bx-plus mr-2"></i> Ajouter une dépense
-</a>
+<div class="flex items-center space-x-3">
+  <a href="{% url 'export_depenses_report' %}?{{ request.GET.urlencode }}" 
+     class="inline-flex items-center px-4 py-2  border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-150 ease-in-out shadow-sm">
+    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+    </svg>
+    Exporter
+  </a>
+  <a href="{% url 'depense_create' %}" 
+     class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 btn-primary">
+    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+    </svg>
+    Ajouter une dépense
+  </a>
+</div>
 {% endblock %}
 
 {% block content %}
-<!-- Filtres -->
-<div class="card bg-base-100 shadow-xl mb-6">
-    <div class="card-body">
-        <h3 class="text-lg font-medium mb-4">Filtres</h3>
-        <form hx-get="{% url 'depense_list' %}" hx-target="#depense-list" hx-swap="innerHTML" hx-indicator="#loading" class="flex flex-wrap gap-4">
-            <div class="form-control w-full md:w-64">
-                <label class="label">
-                    <span class="label-text">Type de dépense</span>
-                </label>
-                <select name="type" class="select select-bordered" hx-get="{% url 'depense_list' %}" hx-target="#depense-list" hx-trigger="change">
-                    <option value="">Tous les types</option>
-                    {% for type in types_depenses %}
-                        <option value="{{ type.id }}" {% if request.GET.type == type.id|stringformat:"i" %}selected{% endif %}>
-                            {{ type.get_libelle_display }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="form-control w-full md:w-64">
-                <label class="label">
-                    <span class="label-text">Date début</span>
-                </label>
-                <input type="date" name="date_debut" value="{{ request.GET.date_debut|default:'' }}" class="input input-bordered" 
-                       hx-get="{% url 'depense_list' %}" 
-                       hx-target="#depense-list" 
-                       hx-include="closest form" 
-                       hx-trigger="change">
-            </div>
-            
-            <div class="form-control w-full md:w-64">
-                <label class="label">
-                    <span class="label-text">Date fin</span>
-                </label>
-                <input type="date" name="date_fin" value="{{ request.GET.date_fin|default:'' }}" class="input input-bordered" 
-                       hx-get="{% url 'depense_list' %}" 
-                       hx-target="#depense-list" 
-                       hx-include="closest form" 
-                       hx-trigger="change">
-            </div>
-            
-            <div class="form-control mt-8">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bx bx-filter mr-2"></i> Filtrer
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Loading indicator -->
-<div id="loading" class="htmx-indicator flex justify-center my-4">
-    <span class="loading loading-spinner loading-lg text-primary"></span>
-</div>
-
-<!-- Liste des dépenses -->
-<div id="depense-list">
-    <div class="card bg-base-100 shadow-xl overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="table table-zebra w-full">
-                <thead>
-                    <tr>
-                        <th class="bg-base-200">Date</th>
-                        <th class="bg-base-200">Type de dépense</th>
-                        <th class="bg-base-200">Référence</th>
-                        <th class="bg-base-200">Agent concerné</th>
-                        <th class="bg-base-200 text-right">Montant</th>
-                        <th class="bg-base-200">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for depense in depenses %}
-                    <tr>
-                        <td>{{ depense.date_depense|date:"d/m/Y" }}</td>
-                        <td>
-                            <div class="badge {% if depense.type_depense.libelle == 'salaire' %}badge-primary{% elif depense.type_depense.libelle == 'loyer' %}badge-secondary{% elif depense.type_depense.libelle == 'impot' %}badge-accent{% elif depense.type_depense.libelle == 'fourniture' %}badge-info{% else %}badge-neutral{% endif %}">
-                                {{ depense.type_depense.get_libelle_display }}
-                            </div>
-                        </td>
-                        <td>{{ depense.reference }}</td>
-                        <td>
-                            {% if depense.agent %}
-                                <div class="flex items-center space-x-3">
-                                    <div class="avatar">
-                                        <div class="mask mask-squircle w-8 h-8">
-                                            <img src="https://ui-avatars.com/api/?name={{ depense.agent.nom_agent }}&background=1c64f2&color=fff" alt="{{ depense.agent.nom_agent }}" />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="font-bold">{{ depense.agent.reference_agent }}</div>
-                                        <div class="text-sm opacity-70">{{ depense.agent.nom_agent }} {{ depense.agent.prenom_agent }}</div>
-                                    </div>
-                                </div>
-                            {% else %}
-                                <span class="opacity-70">Non associé</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-right font-bold">{{ depense.montant|floatformat:0 }} FCFA</td>
-                        <td>
-                            <div class="flex gap-1">
-                                <a href="{% url 'depense_update' depense.id %}" class="btn btn-ghost btn-xs tooltip" data-tip="Modifier">
-                                    <i class="bx bx-edit"></i>
-                                </a>
-                                <button class="btn btn-ghost btn-xs text-error tooltip" data-tip="Supprimer"
-                                        hx-get="{% url 'depense_delete' depense.id %}"
-                                        hx-target="#modal"
-                                        hx-swap="innerHTML">
-                                    <i class="bx bx-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center py-8">
-                            <div class="flex flex-col items-center justify-center text-gray-500">
-                                <i class="bx bx-search text-4xl"></i>
-                                <p class="mt-2">Aucune dépense trouvée</p>
-                                <a href="{% url 'depense_create' %}" class="btn btn-sm btn-primary mt-4">
-                                    <i class="bx bx-plus mr-2"></i> Ajouter une dépense
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="4" class="text-right font-bold">Total:</td>
-                        <td class="text-right font-bold">{{ total_depenses|floatformat:0 }} FCFA</td>
-                        <td></td>
-                    </tr>
-                </tfoot>
-            </table>
+<div class="space-y-6">
+  
+  <!-- Statistiques rapides -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="stats-card rounded-xl p-6 animate-fade-in">
+      <div class="flex items-center">
+        <div class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
         </div>
-        
-        <!-- Pagination -->
-        {% if depenses.has_other_pages %}
-        <div class="flex justify-center py-4">
-            <div class="join">
-                {% if depenses.has_previous %}
-                <button class="join-item btn btn-sm"
-                        hx-get="{% url 'depense_list' %}?page={{ depenses.previous_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.date_debut %}&date_debut={{ request.GET.date_debut }}{% endif %}{% if request.GET.date_fin %}&date_fin={{ request.GET.date_fin }}{% endif %}"
-                        hx-target="#depense-list">
-                    <i class="bx bx-chevron-left"></i>
-                </button>
-                {% else %}
-                <button class="join-item btn btn-sm" disabled>
-                    <i class="bx bx-chevron-left"></i>
-                </button>
-                {% endif %}
-                
-                {% for i in depenses.paginator.page_range %}
-                    {% if depenses.number == i %}
-                    <button class="join-item btn btn-sm btn-active">{{ i }}</button>
-                    {% else %}
-                    <button class="join-item btn btn-sm"
-                            hx-get="{% url 'depense_list' %}?page={{ i }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.date_debut %}&date_debut={{ request.GET.date_debut }}{% endif %}{% if request.GET.date_fin %}&date_fin={{ request.GET.date_fin }}{% endif %}"
-                            hx-target="#depense-list">
-                        {{ i }}
-                    </button>
-                    {% endif %}
-                {% endfor %}
-                
-                {% if depenses.has_next %}
-                <button class="join-item btn btn-sm"
-                        hx-get="{% url 'depense_list' %}?page={{ depenses.next_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.date_debut %}&date_debut={{ request.GET.date_debut }}{% endif %}{% if request.GET.date_fin %}&date_fin={{ request.GET.date_fin }}{% endif %}"
-                        hx-target="#depense-list">
-                    <i class="bx bx-chevron-right"></i>
-                </button>
-                {% else %}
-                <button class="join-item btn btn-sm" disabled>
-                    <i class="bx bx-chevron-right"></i>
-                </button>
-                {% endif %}
-            </div>
+        <div>
+          <p class="text-2xl font-bold text-gray-900">{{ stats.total_depenses|floatformat:0 }}</p>
+          <p class="text-sm text-gray-600">Total des dépenses (FCFA)</p>
         </div>
-        {% endif %}
+      </div>
     </div>
     
-    <!-- Graphique de répartition -->
-    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                <h3 class="card-title">Dépenses par type</h3>
-                <div class="flex flex-wrap gap-4 mt-4">
-                    {% for type in repartition_par_type %}
-                    <div class="badge badge-lg gap-2 {% if type.libelle == 'salaire' %}badge-primary{% elif type.libelle == 'loyer' %}badge-secondary{% elif type.libelle == 'impot' %}badge-accent{% elif type.libelle == 'fourniture' %}badge-info{% else %}badge-neutral{% endif %}">
-                        {{ type.get_libelle_display }}: {{ type.total|floatformat:0 }} FCFA
-                    </div>
-                    {% endfor %}
-                </div>
-                <!-- Placeholder pour un graphique visuel -->
-                <div class="h-48 bg-base-200 rounded-lg mt-4 flex items-center justify-center">
-                    <p class="text-gray-500">Graphique de répartition des dépenses</p>
-                </div>
-            </div>
+    <div class="stats-card rounded-xl p-6 animate-fade-in" style="animation-delay: 0.1s;">
+      <div class="flex items-center">
+        <div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+          </svg>
         </div>
-        
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                <h3 class="card-title">Statistiques</h3>
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Total dépenses</div>
-                        <div class="stat-value">{{ total_depenses|floatformat:0 }}</div>
-                        <div class="stat-desc">FCFA</div>
-                    </div>
-                    
-                    <div class="stat">
-                        <div class="stat-title">Nombre de transactions</div>
-                        <div class="stat-value">{{ depenses.paginator.count }}</div>
-                    </div>
-                    
-                    <div class="stat">
-                        <div class="stat-title">Moyenne par transaction</div>
-                        <div class="stat-value">{{ moyenne_depense|default:0|floatformat:0 }}</div>
-                        <div class="stat-desc">FCFA</div>
-                    </div>
-                </div>
-            </div>
+        <div>
+          <p class="text-2xl font-bold text-gray-900">{{ stats.nb_depenses }}</p>
+          <p class="text-sm text-gray-600">Nombre de transactions</p>
         </div>
+      </div>
     </div>
+    
+    <div class="stats-card rounded-xl p-6 animate-fade-in" style="animation-delay: 0.2s;">
+      <div class="flex items-center">
+        <div class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+          <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-gray-900">{{ depenses_ce_mois|floatformat:0 }}</p>
+          <p class="text-sm text-gray-600">Dépenses ce mois (FCFA)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <div class="filter-card rounded-xl p-6 animate-fade-in" style="animation-delay: 0.3s;">
+    <div class="flex items-center mb-4">
+      <div class="h-8 w-8 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
+        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+        </svg>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-800">Filtres et recherche</h3>
+    </div>
+    
+    <form id="filters-form" 
+          hx-get="{% url 'depense_list' %}" 
+          hx-target="#depense-list" 
+          hx-indicator="#loading"
+          hx-push-url="true"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      
+      <!-- Recherche -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">Recherche</label>
+        <input type="text" 
+               name="q" 
+               value="{{ search_query }}" 
+               placeholder="Référence, agent..."
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all duration-200"
+               hx-trigger="keyup changed delay:500ms"
+               hx-get="{% url 'depense_list' %}"
+               hx-target="#depense-list"
+               hx-include="closest form">
+      </div>
+      
+      <!-- Type de dépense -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">Type</label>
+        <select name="type" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all duration-200"
+                hx-trigger="change"
+                hx-get="{% url 'depense_list' %}"
+                hx-target="#depense-list"
+                hx-include="closest form">
+          <option value="">Tous les types</option>
+          {% for type in types_depenses %}
+            <option value="{{ type.id }}" {% if type_filter == type.id|stringformat:"s" %}selected{% endif %}>
+              {{ type.get_libelle_display }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <!-- Agent -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">Agent</label>
+        <select name="agent" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all duration-200"
+                hx-trigger="change"
+                hx-get="{% url 'depense_list' %}"
+                hx-target="#depense-list"
+                hx-include="closest form">
+          <option value="">Tous les agents</option>
+          {% for agent in agents %}
+            <option value="{{ agent.id }}" {% if agent_filter == agent.id|stringformat:"s" %}selected{% endif %}>
+              {{ agent.nom_agent }} {{ agent.prenom_agent }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <!-- Date début -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">Date début</label>
+        <input type="date" 
+               name="date_debut" 
+               value="{{ date_debut }}" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all duration-200"
+               hx-trigger="change"
+               hx-get="{% url 'depense_list' %}"
+               hx-target="#depense-list"
+               hx-include="closest form">
+      </div>
+      
+      <!-- Date fin -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">Date fin</label>
+        <input type="date" 
+               name="date_fin" 
+               value="{{ date_fin }}" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all duration-200"
+               hx-trigger="change"
+               hx-get="{% url 'depense_list' %}"
+               hx-target="#depense-list"
+               hx-include="closest form">
+      </div>
+      
+      <!-- Tri -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">Trier par</label>
+        <select name="sort" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-200 transition-all duration-200"
+                hx-trigger="change"
+                hx-get="{% url 'depense_list' %}"
+                hx-target="#depense-list"
+                hx-include="closest form">
+          <option value="-date_depense" {% if sort_by == '-date_depense' %}selected{% endif %}>Date (récent)</option>
+          <option value="date_depense" {% if sort_by == 'date_depense' %}selected{% endif %}>Date (ancien)</option>
+          <option value="-montant" {% if sort_by == '-montant' %}selected{% endif %}>Montant (élevé)</option>
+          <option value="montant" {% if sort_by == 'montant' %}selected{% endif %}>Montant (faible)</option>
+          <option value="type_depense__libelle" {% if sort_by == 'type_depense__libelle' %}selected{% endif %}>Type</option>
+          <option value="reference" {% if sort_by == 'reference' %}selected{% endif %}>Référence</option>
+        </select>
+      </div>
+    </form>
+    
+    <!-- Bouton de réinitialisation -->
+    <div class="flex items-center justify-between mt-4 pt-4 border-t border-amber-200">
+      <button onclick="resetFilters()" 
+              class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-150 ease-in-out">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Réinitialiser
+      </button>
+      <div class="text-sm text-gray-600">
+        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Les filtres s'appliquent automatiquement
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicateur de chargement -->
+  <div id="loading" class="htmx-indicator flex justify-center items-center my-8">
+    <div class="flex items-center space-x-3">
+      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-600"></div>
+      <span class="text-gray-600 font-medium">Chargement des dépenses...</span>
+    </div>
+  </div>
+
+  <!-- Contenu de la liste -->
+  <div id="depense-list">
+    {% include 'gestloto/depenses/list_partial.html' %}
+  </div>
 </div>
 
-<!-- Modal pour HTMX -->
-<div id="modal"></div>
+<!-- Modal pour les actions -->
+<div id="modal" class="hidden"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function resetFilters() {
+  const form = document.getElementById('filters-form');
+  form.reset();
+  
+  // Déclencher le rechargement avec les filtres réinitialisés
+  htmx.trigger(form, 'change');
+}
+
+// Fonction pour gérer les erreurs HTMX
+document.body.addEventListener('htmx:responseError', function(event) {
+  console.error('Erreur HTMX:', event.detail);
+  
+  // Afficher un message d'erreur à l'utilisateur
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4';
+  errorDiv.innerHTML = `
+    <div class="flex items-center">
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span>Erreur lors du chargement des dépenses. Veuillez réessayer.</span>
+    </div>
+  `;
+  
+  const depenseList = document.getElementById('depense-list');
+  depenseList.innerHTML = '';
+  depenseList.appendChild(errorDiv);
+});
+
+// Animation lors du succès des requêtes HTMX
+document.body.addEventListener('htmx:afterRequest', function(event) {
+  if (event.detail.successful) {
+    // Réinitialiser le scroll vers le haut de la liste
+    document.getElementById('depense-list').scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'start' 
+    });
+  }
+});
+</script>
 {% endblock %}

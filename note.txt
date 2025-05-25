@@ -56,3 +56,15 @@ Au lieu d'afficher "3 an(s)", vous verrez maintenant :
 "3 années, 2 mois"
 "1 année, 8 mois"
 "6 mois, 2 semaines"
+
+--------------------------
+mises à jour du rapports/rapport.py(views):
+   Imports corrigés : Ajout des imports manquants et suppression des doublons
+Gestion des erreurs : Meilleure gestion des exceptions avec try/except
+Cohérence des données : Utilisation systématique de Coalesce pour éviter les valeurs NULL
+Formatage Excel : Simplification et correction de la fonction de formatage
+Types de données : Correction des types DateTime vs Date
+Noms de champs : Vérification de la cohérence avec les modèles
+Logique métier : Amélioration des calculs de commission et statistiques
+Performance : Optimisation des requêtes avec select_related et prefetch_related
+Code propre : Suppression du code dupliqué et amélioration de la lisibilité

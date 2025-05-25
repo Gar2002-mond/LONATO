@@ -1,0 +1,167 @@
+<!-- Top 5 collecteurs -->
+{% if stats_par_collecteur %}
+<div class="bg-white rounded-2xl shadow-lg border border-gray-200 mb-6 animate-fade-in">
+  <div class="p-6">
+    <div class="flex items-center mb-6">
+      <div class="h-10 w-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center mr-3">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-800">Top 5 Collecteurs</h3>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      {% for collecteur in stats_par_collecteur %}
+      <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
+        <div class="text-sm font-medium text-gray-600 mb-1">{{ collecteur.collecteur__nom_collecteur }}</div>
+        <div class="text-lg font-bold text-gray-800 mb-1">{{ collecteur.total_montant|floatformat:0 }} FCFA</div>
+        <div class="text-xs text-gray-500">{{ collecteur.count }} activité(s)</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Liste des activités -->
+<div class="bg-white rounded-2xl shadow-lg border border-gray-200 animate-slide-in">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center">
+        <div class="h-10 w-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center mr-3">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800">Liste des activités</h3>
+      </div>
+      
+      <!-- Tri -->
+      <div class="flex items-center space-x-3">
+        <label class="text-sm font-medium text-gray-700">Trier par:</label>
+        <select name="sort" 
+                class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm"
+                hx-get="{% url 'activite_collecteur_list' %}" 
+                hx-target="#activites-content" 
+                hx-indicator="#loading"
+                hx-include="[name='q'], [name='date_debut'], [name='date_fin'], [name='collecteur']">
+          <option value="-date_activite" {% if sort_by == '-date_activite' %}selected{% endif %}>Date (récent)</option>
+          <option value="date_activite" {% if sort_by == 'date_activite' %}selected{% endif %}>Date (ancien)</option>
+          <option value="-montant_activite" {% if sort_by == '-montant_activite' %}selected{% endif %}>Montant (élevé)</option>
+          <option value="montant_activite" {% if sort_by == 'montant_activite' %}selected{% endif %}>Montant (faible)</option>
+          <option value="collecteur__nom_collecteur" {% if sort_by == 'collecteur__nom_collecteur' %}selected{% endif %}>Collecteur (A-Z)</option>
+          <option value="reference_recu" {% if sort_by == 'reference_recu' %}selected{% endif %}>Référence</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full table-hover">
+        <thead>
+          <tr class="border-b border-gray-200">
+            <th class="text-left py-4 px-4 font-semibold text-gray-700 bg-gray-50">Date</th>
+            <th class="text-left py-4 px-4 font-semibold text-gray-700 bg-gray-50">Collecteur</th>
+            <th class="text-left py-4 px-4 font-semibold text-gray-700 bg-gray-50">Référence</th>
+            <th class="text-right py-4 px-4 font-semibold text-gray-700 bg-gray-50">Montant</th>
+            <th class="text-right py-4 px-4 font-semibold text-gray-700 bg-gray-50">Commission</th>
+            <th class="text-left py-4 px-4 font-semibold text-gray-700 bg-gray-50">Observations</th>
+            <th class="text-center py-4 px-4 font-semibold text-gray-700 bg-gray-50">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for activite in activites %}
+          <tr class="border-b border-gray-100">
+            <td class="py-4 px-4 text-gray-800">{{ activite.date_activite|date:"d/m/Y" }}</td>
+            <td class="py-4 px-4">
+              <div class="flex items-center">
+                <div class="h-8 w-8 rounded-full overflow-hidden mr-3">
+                  <img class="h-full w-full object-cover" 
+                       src="https://ui-avatars.com/api/?name={{ activite.collecteur.nom_collecteur }}&background=f59e0b&color=fff" 
+                       alt="{{ activite.collecteur.nom_collecteur }}">
+                </div>
+                <div class="text-sm">
+                  <div class="font-medium text-gray-800">{{ activite.collecteur.nom_collecteur }}</div>
+                  <div class="text-gray-500">{{ activite.collecteur.prenom_collecteur }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="py-4 px-4">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                {{ activite.reference_recu }}
+              </span>
+            </td>
+            <td class="py-4 px-4 text-right font-bold text-gray-800">{{ activite.montant_activite|floatformat:0 }} FCFA</td>
+            <td class="py-4 px-4 text-right">
+              <div class="font-bold text-green-600">{{ activite.commission_calculee|floatformat:0 }} FCFA</div>
+              <div class="text-xs text-gray-500">({{ activite.pourcentage_commission }}%)</div>
+            </td>
+            <td class="py-4 px-4 text-gray-600 max-w-xs truncate">{{ activite.observations|default:"-"|truncatechars:30 }}</td>
+            <td class="py-4 px-4 text-center">
+              <div class="flex items-center justify-center space-x-2">
+                <a href="{% url 'activite_collecteur_update' activite.pk %}" 
+                   class="inline-flex items-center px-2 py-1 text-xs font-medium text-orange-600 bg-orange-100 rounded-md hover:bg-orange-200 transition-colors duration-150">
+                  <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                  Modifier
+                </a>
+                <a href="{% url 'activite_collecteur_delete' activite.pk %}" 
+                   class="inline-flex items-center px-2 py-1 text-xs font-medium text-red-600 bg-red-100 rounded-md hover:bg-red-200 transition-colors duration-150">
+                  <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                  Supprimer
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-12">
+              <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              <p class="text-gray-500 font-medium">Aucune activité trouvée</p>
+              <p class="text-gray-400 text-sm mt-1">Essayez de modifier vos critères de recherche</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if activites.has_other_pages %}
+    <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+      <div class="text-sm text-gray-600">
+        Affichage {{ activites.start_index }} à {{ activites.end_index }} sur {{ activites.paginator.count }} résultats
+      </div>
+      <div class="flex space-x-2">
+        {% if activites.has_previous %}
+          <a href="?page={{ activites.previous_page_number }}&q={{ search_query }}&date_debut={{ date_debut }}&date_fin={{ date_fin }}&collecteur={{ collecteur_filter }}&sort={{ sort_by }}"
+             class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">
+            Précédent
+          </a>
+        {% endif %}
+        
+        {% for num in activites.paginator.page_range %}
+          {% if activites.number == num %}
+            <span class="px-3 py-1 text-sm text-white bg-amber-600 border border-amber-600 rounded">{{ num }}</span>
+          {% elif num > activites.number|add:'-3' and num < activites.number|add:'3' %}
+            <a href="?page={{ num }}&q={{ search_query }}&date_debut={{ date_debut }}&date_fin={{ date_fin }}&collecteur={{ collecteur_filter }}&sort={{ sort_by }}"
+               class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        
+        {% if activites.has_next %}
+          <a href="?page={{ activites.next_page_number }}&q={{ search_query }}&date_debut={{ date_debut }}&date_fin={{ date_fin }}&collecteur={{ collecteur_filter }}&sort={{ sort_by }}"
+             class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">
+            Suivant
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>

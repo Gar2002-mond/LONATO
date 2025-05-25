@@ -1,230 +1,341 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+  /* Animations et styles personnalisés */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  
+  .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+  .animate-slide-in { animation: slideIn 0.8s ease-out; }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  }
+  
+  .btn-outline {
+    background: white;
+    border: 2px solid #e5e7eb;
+    color: #4b5563;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-outline:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .stat-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .stat-card-success {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-color: #86efac;
+  }
+  
+  .stat-card-info {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-color: #93c5fd;
+  }
+  
+  .stat-card-warning {
+    background: linear-gradient(135deg, #fffbeb 0%, #fed7aa 100%);
+    border-color: #fdba74;
+  }
+  
+  .table-hover tr:hover {
+    background-color: #f8fafc;
+    transform: scale(1.002);
+    transition: all 0.2s ease;
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, #059669, #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .htmx-indicator {
+    display: none;
+  }
+  
+  .htmx-request .htmx-indicator {
+    display: flex;
+  }
+</style>
+{% endblock %}
+
 {% block title %}Chiffres d'Affaires - LONATO GESTLOTO{% endblock %}
 
 {% block breadcrumb_items %}
-<li><a href="#">Chiffres d'affaires</a></li>
+<li>
+  <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">Gestion</a>
+</li>
+<li>
+  <span class="text-gray-500">Chiffres d'Affaires</span>
+</li>
 {% endblock %}
 
-{% block page_title %}Chiffres d'Affaires{% endblock %}
-{% block page_subtitle %}Gestion des ventes et soldes par machine{% endblock %}
+{% block page_title %}
+<div class="flex items-center space-x-3">
+  <div class="h-8 w-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+    </svg>
+  </div>
+  <span class="gradient-text">Chiffres d'Affaires</span>
+</div>
+{% endblock %}
+
+{% block page_subtitle %}
+<div class="flex items-center space-x-2">
+  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+  </svg>
+  <span class="text-gray-600">Gestion des performances des machines</span>
+</div>
+{% endblock %}
 
 {% block page_actions %}
-<a href="{% url 'chiffre_affaire_create' %}" class="btn btn-primary">
-    <i class="bx bx-plus mr-2"></i> Ajouter un chiffre d'affaires
-</a>
+<div class="flex gap-3">
+    <a href="{% url 'chiffre_affaire_create' %}"
+       class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 btn-primary">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Nouveau CA
+    </a>
+</div>
 {% endblock %}
 
 {% block content %}
-<!-- Filtres -->
-<div class="card bg-base-100 shadow-xl mb-6">
-    <div class="card-body">
-        <h3 class="text-lg font-medium mb-4">Filtres</h3>
-        <form hx-get="{% url 'chiffre_affaire_list' %}" hx-target="#chiffre-affaire-list" hx-swap="innerHTML" hx-indicator="#loading" class="flex flex-wrap gap-4">
-            <div class="form-control w-full max-w-xs">
-                <label class="label">
-                    <span class="label-text">Date</span>
-                </label>
-                <input type="date" name="date" value="{{ request.GET.date|default:'' }}" class="input input-bordered" 
-                       hx-get="{% url 'chiffre_affaire_list' %}" 
-                       hx-target="#chiffre-affaire-list" 
-                       hx-include="closest form" />
-            </div>
-            
-            <div class="form-control w-full max-w-xs">
-                <label class="label">
-                    <span class="label-text">Machine</span>
-                </label>
-                <select name="machine" class="select select-bordered" hx-get="{% url 'chiffre_affaire_list' %}" hx-target="#chiffre-affaire-list" hx-indicator="#loading">
-                    <option value="">Toutes les machines</option>
-                    {% for machine in machines %}
-                        <option value="{{ machine.id }}" {% if request.GET.machine == machine.id|stringformat:"i" %}selected{% endif %}>
-                            {{ machine.numero_terminal }} - {{ machine.nom_point_vente }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="form-control w-full max-w-xs">
-                <label class="label">
-                    <span class="label-text">Agent enregistreur</span>
-                </label>
-                <select name="agent" class="select select-bordered" hx-get="{% url 'chiffre_affaire_list' %}" hx-target="#chiffre-affaire-list" hx-indicator="#loading">
-                    <option value="">Tous les agents</option>
-                    {% for agent in agents %}
-                        <option value="{{ agent.id }}" {% if request.GET.agent == agent.id|stringformat:"i" %}selected{% endif %}>
-                            {{ agent.nom_agent }} {{ agent.prenom_agent }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="form-control mt-8">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bx bx-filter mr-2"></i> Filtrer
-                </button>
-            </div>
-        </form>
+<div class="space-y-6">
+
+  <!-- Statistiques globales -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
+    <div class="stat-card stat-card-success rounded-xl p-6 text-center">
+      <div class="text-3xl font-bold text-green-600 mb-2">{{ stats.total_solde|floatformat:0 }}</div>
+      <div class="text-sm font-medium text-gray-600 mb-1">Solde Total</div>
+      <div class="text-xs text-gray-500">FCFA</div>
     </div>
-</div>
+    
+    <div class="stat-card stat-card-info rounded-xl p-6 text-center">
+      <div class="text-3xl font-bold text-blue-600 mb-2">{{ stats.total_commission|floatformat:0 }}</div>
+      <div class="text-sm font-medium text-gray-600 mb-1">Commissions Totales</div>
+      <div class="text-xs text-gray-500">FCFA</div>
+    </div>
+    
+    <div class="stat-card stat-card-warning rounded-xl p-6 text-center">
+      <div class="text-3xl font-bold text-orange-600 mb-2">{{ stats.nb_enregistrements }}</div>
+      <div class="text-sm font-medium text-gray-600 mb-1">Enregistrements</div>
+      <div class="text-xs text-gray-500">Total</div>
+    </div>
+    
+    <div class="stat-card rounded-xl p-6 text-center">
+      <div class="text-3xl font-bold text-purple-600 mb-2">{{ stats.solde_moyen|floatformat:0 }}</div>
+      <div class="text-sm font-medium text-gray-600 mb-1">Solde Moyen</div>
+      <div class="text-xs text-gray-500">FCFA</div>
+    </div>
+  </div>
 
-<!-- Loading indicator -->
-<div id="loading" class="htmx-indicator flex justify-center my-4">
-    <span class="loading loading-spinner loading-lg text-primary"></span>
-</div>
-
-<!-- Liste des chiffres d'affaires -->
-<div id="chiffre-affaire-list">
-    <div class="card bg-base-100 shadow-xl overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="table table-zebra w-full">
-                <thead>
-                    <tr>
-                        <th class="bg-base-200">Date</th>
-                        <th class="bg-base-200">Machine</th>
-                        <th class="bg-base-200">Point de vente</th>
-                        <th class="bg-base-200 text-right">Ventes</th>
-                        <th class="bg-base-200 text-right">Annulations</th>
-                        <th class="bg-base-200 text-right">Solde</th>
-                        <th class="bg-base-200 text-right">Commission</th>
-                        <th class="bg-base-200">Agent</th>
-                        <th class="bg-base-200">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for ca in chiffres_affaire %}
-                    <tr>
-                        <td>
-                            <div class="font-bold">{{ ca.date_chiffre_affaire|date:"d/m/Y" }}</div>
-                            <div class="text-xs opacity-60">Jour {{ ca.jour_tirage }}</div>
-                        </td>
-                        <td>
-                            <div class="font-medium">{{ ca.machine.numero_terminal }}</div>
-                        </td>
-                        <td>{{ ca.machine.nom_point_vente }}</td>
-                        <td class="text-right">{{ ca.ventes_totales|floatformat:0 }} FCFA</td>
-                        <td class="text-right">{{ ca.annulations_totales|floatformat:0 }} FCFA</td>
-                        <td class="text-right font-bold">{{ ca.solde_total|floatformat:0 }} FCFA</td>
-                        <td class="text-right text-success">{{ ca.montant_commission|floatformat:0 }} FCFA</td>
-                        <td>
-                            <div class="flex items-center space-x-3">
-                                <div class="avatar">
-                                    <div class="mask mask-squircle w-8 h-8">
-                                        <img src="https://ui-avatars.com/api/?name={{ ca.agent_enregistreur.nom_agent }}&background=1c64f2&color=fff" alt="{{ ca.agent_enregistreur.nom_agent }}" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="text-xs opacity-70">{{ ca.agent_enregistreur.reference_agent }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="flex gap-1">
-                                <a href="{% url 'chiffre_affaire_detail' ca.id %}" class="btn btn-ghost btn-xs tooltip" data-tip="Détails">
-                                    <i class="bx bx-show"></i>
-                                </a>
-                                <a href="{% url 'chiffre_affaire_update' ca.id %}" class="btn btn-ghost btn-xs tooltip" data-tip="Modifier">
-                                    <i class="bx bx-edit"></i>
-                                </a>
-                                <button class="btn btn-ghost btn-xs text-error tooltip" data-tip="Supprimer"
-                                        hx-get="{% url 'chiffre_affaire_delete' ca.id %}"
-                                        hx-target="#modal"
-                                        hx-swap="innerHTML">
-                                    <i class="bx bx-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="9" class="text-center py-8">
-                            <div class="flex flex-col items-center justify-center text-gray-500">
-                                <i class="bx bx-search text-4xl"></i>
-                                <p class="mt-2">Aucun chiffre d'affaires trouvé</p>
-                                <a href="{% url 'chiffre_affaire_create' %}" class="btn btn-sm btn-primary mt-4">
-                                    <i class="bx bx-plus mr-2"></i> Ajouter un chiffre d'affaires
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+  <!-- Filtres et recherche -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 animate-slide-in">
+    <div class="p-6">
+      <div class="flex items-center mb-6">
+        <div class="h-10 w-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center mr-3">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800">Filtres et recherche</h3>
+      </div>
+      
+      <form id="filter-form" 
+            hx-get="{% url 'chiffre_affaire_list' %}" 
+            hx-target="#chiffres-content" 
+            hx-indicator="#loading"
+            hx-push-url="true"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        
+        <!-- Recherche -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            Recherche
+          </label>
+          <input type="text" 
+                 name="q" 
+                 value="{{ search_query|default:'' }}" 
+                 placeholder="Machine, agent, observations..."
+                 class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                 hx-trigger="keyup changed delay:500ms">
         </div>
         
-        <!-- Pagination -->
-        {% if chiffres_affaire.has_other_pages %}
-        <div class="flex justify-center py-4">
-            <div class="join">
-                {% if chiffres_affaire.has_previous %}
-                <button class="join-item btn btn-sm"
-                        hx-get="{% url 'chiffre_affaire_list' %}?page={{ chiffres_affaire.previous_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.machine %}&machine={{ request.GET.machine }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}"
-                        hx-target="#chiffre-affaire-list">
-                    <i class="bx bx-chevron-left"></i>
-                </button>
-                {% else %}
-                <button class="join-item btn btn-sm" disabled>
-                    <i class="bx bx-chevron-left"></i>
-                </button>
-                {% endif %}
-                
-                {% for i in chiffres_affaire.paginator.page_range %}
-                    {% if chiffres_affaire.number == i %}
-                    <button class="join-item btn btn-sm btn-active">{{ i }}</button>
-                    {% else %}
-                    <button class="join-item btn btn-sm"
-                            hx-get="{% url 'chiffre_affaire_list' %}?page={{ i }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.machine %}&machine={{ request.GET.machine }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}"
-                            hx-target="#chiffre-affaire-list">
-                        {{ i }}
-                    </button>
-                    {% endif %}
-                {% endfor %}
-                
-                {% if chiffres_affaire.has_next %}
-                <button class="join-item btn btn-sm"
-                        hx-get="{% url 'chiffre_affaire_list' %}?page={{ chiffres_affaire.next_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.machine %}&machine={{ request.GET.machine }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}"
-                        hx-target="#chiffre-affaire-list">
-                    <i class="bx bx-chevron-right"></i>
-                </button>
-                {% else %}
-                <button class="join-item btn btn-sm" disabled>
-                    <i class="bx bx-chevron-right"></i>
-                </button>
-                {% endif %}
-            </div>
+        <!-- Date début -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Date début
+          </label>
+          <input type="date" 
+                 name="date_debut" 
+                 value="{{ date_debut|default:'' }}" 
+                 class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                 hx-trigger="change">
         </div>
-        {% endif %}
+        
+        <!-- Date fin -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Date fin
+          </label>
+          <input type="date" 
+                 name="date_fin" 
+                 value="{{ date_fin|default:'' }}" 
+                 class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                 hx-trigger="change">
+        </div>
+        
+        <!-- Machine -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+            </svg>
+            Machine
+          </label>
+          <select name="machine"
+                  class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                  hx-trigger="change">
+            <option value="">Toutes les machines</option>
+            {% for machine in machines %}
+              <option value="{{ machine.id }}" {% if machine_filter == machine.id|stringformat:"s" %}selected{% endif %}>
+                {{ machine.numero_terminal }} - {{ machine.nom_point_vente }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        
+        <!-- Agent -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            Agent
+          </label>
+          <select name="agent"
+                  class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                  hx-trigger="change">
+            <option value="">Tous les agents</option>
+            {% for agent in agents %}
+              <option value="{{ agent.id }}" {% if agent_filter == agent.id|stringformat:"s" %}selected{% endif %}>
+                {{ agent.nom_agent }} {{ agent.prenom_agent }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </form>
+      
+      <!-- Actions rapides -->
+      <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+        <div class="flex space-x-3">
+          <button onclick="resetFilters()" 
+                  class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Réinitialiser
+          </button>
+        </div>
+        <div class="text-sm text-gray-600">
+          <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Les filtres s'appliquent automatiquement
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Résumé -->
-    {% if chiffres_affaire %}
-    <div class="card bg-base-100 shadow-xl mt-6">
-        <div class="card-body">
-            <h3 class="card-title">Résumé</h3>
-            <div class="stats shadow bg-base-200">
-                <div class="stat">
-                    <div class="stat-title">Total ventes</div>
-                    <div class="stat-value text-primary">{{ totaux.total_ventes|default:0|floatformat:0 }}</div>
-                    <div class="stat-desc">FCFA</div>
-                </div>
-                
-                <div class="stat">
-                    <div class="stat-title">Total solde</div>
-                    <div class="stat-value">{{ totaux.total_solde|default:0|floatformat:0 }}</div>
-                    <div class="stat-desc">FCFA</div>
-                </div>
-                
-                <div class="stat">
-                    <div class="stat-title">Total commission</div>
-                    <div class="stat-value text-success">{{ totaux.total_commission|default:0|floatformat:0 }}</div>
-                    <div class="stat-desc">FCFA</div>
-                </div>
-            </div>
-        </div>
+  <!-- Indicateur de chargement -->
+  <div id="loading" class="htmx-indicator flex justify-center items-center my-8">
+    <div class="flex items-center space-x-3">
+      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+      <span class="text-gray-600 font-medium">Chargement...</span>
     </div>
-    {% endif %}
+  </div>
+
+  <!-- Contenu de la liste -->
+  <div id="chiffres-content">
+    {% include 'gestloto/chiffres_affaire/list_partial.html' %}
+  </div>
+
 </div>
+{% endblock %}
 
-<!-- Modal pour HTMX -->
-<div id="modal"></div>
+{% block extra_js %}
+<script>
+function resetFilters() {
+    const form = document.getElementById('filter-form');
+    form.reset();
+    
+    // Déclencher le rechargement avec les filtres réinitialisés
+    htmx.trigger(form, 'submit');
+}
+
+// Fonction pour gérer les erreurs HTMX
+document.body.addEventListener('htmx:responseError', function(event) {
+    console.error('Erreur HTMX:', event.detail);
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4';
+    errorDiv.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Erreur lors du chargement des données. Veuillez réessayer.</span>
+        </div>
+    `;
+    
+    const content = document.getElementById('chiffres-content');
+    content.innerHTML = '';
+    content.appendChild(errorDiv);
+});
+</script>
 {% endblock %}

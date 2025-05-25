@@ -65,7 +65,7 @@ urlpatterns = [
     path('activites-collecteurs/create/', activite_collecteur_create, name='activite_collecteur_create'),
     path('activites-collecteurs/<int:pk>/update/', activite_collecteur_update, name='activite_collecteur_update'),
     path('activites-collecteurs/<int:pk>/delete/', activite_collecteur_delete, name='activite_collecteur_delete'),
-    path('get-collecteur-commission/', collecteurs.get_collecteur_commission_view, name='get_collecteur_commission'),
+    path('ajax/get-collecteur-commission/', activites_collecteur.get_collecteur_commission_view, name='get_collecteur_commission'),
     path('ajax/calculate-commission/', activites_collecteur.calculate_commission_view, name='calculate_commission'),
 
     # Gestion des pénalités et commissions

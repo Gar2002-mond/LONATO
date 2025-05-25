@@ -1,40 +1,125 @@
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from ..models import ChiffreAffaire, Machine
-from ..forms import ChiffreAffaireForm
+from django.db.models import Sum, Count, Q, Avg
+from django.core.paginator import Paginator
 from django.utils import timezone
-from django.shortcuts import render
+from datetime import timedelta
 from decimal import Decimal, InvalidOperation
+from ..models import ChiffreAffaire, Machine, Agent
+from ..forms import ChiffreAffaireForm
 
 @login_required
 def chiffre_affaire_list(request):
-    date_filter = request.GET.get('date', None)
-    machine_filter = request.GET.get('machine', None)
+    # Récupération des paramètres de recherche et filtrage
+    search_query = request.GET.get('q', '').strip()
+    date_debut = request.GET.get('date_debut', '')
+    date_fin = request.GET.get('date_fin', '')
+    machine_filter = request.GET.get('machine', '')
+    agent_filter = request.GET.get('agent', '')
+    sort_by = request.GET.get('sort', '-date_chiffre_affaire')
+    page_number = request.GET.get('page', 1)
     
-    chiffres_affaire = ChiffreAffaire.objects.all()
+    # Base queryset avec préchargement des relations
+    chiffres_queryset = ChiffreAffaire.objects.select_related('machine', 'agent_enregistreur').all()
     
-    if date_filter:
-        try:
-            date_parts = date_filter.split('-')
-            year, month, day = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
-            filter_date = timezone.datetime(year, month, day).date()
-            chiffres_affaire = chiffres_affaire.filter(date_chiffre_affaire=filter_date)
-        except (ValueError, IndexError):
-            messages.error(request, "Format de date invalide.")
+    # Application de la recherche
+    if search_query:
+        chiffres_queryset = chiffres_queryset.filter(
+            Q(machine__numero_terminal__icontains=search_query) |
+            Q(machine__nom_point_vente__icontains=search_query) |
+            Q(agent_enregistreur__nom_agent__icontains=search_query) |
+            Q(agent_enregistreur__prenom_agent__icontains=search_query) |
+            Q(observations__icontains=search_query)
+        )
     
+    # Application des filtres
     if machine_filter:
-        chiffres_affaire = chiffres_affaire.filter(machine__numero_terminal__icontains=machine_filter)
+        chiffres_queryset = chiffres_queryset.filter(machine_id=machine_filter)
     
-    chiffres_affaire = chiffres_affaire.select_related('machine', 'agent_enregistreur').order_by('-date_chiffre_affaire')
+    if agent_filter:
+        chiffres_queryset = chiffres_queryset.filter(agent_enregistreur_id=agent_filter)
+    
+    # Filtrage par dates
+    if date_debut:
+        try:
+            chiffres_queryset = chiffres_queryset.filter(date_chiffre_affaire__gte=date_debut)
+        except ValueError:
+            pass
+    
+    if date_fin:
+        try:
+            chiffres_queryset = chiffres_queryset.filter(date_chiffre_affaire__lte=date_fin)
+        except ValueError:
+            pass
+    
+    # Application du tri
+    valid_sort_fields = [
+        'date_chiffre_affaire', '-date_chiffre_affaire', 
+        'solde_total', '-solde_total',
+        'montant_commission', '-montant_commission',
+        'machine__numero_terminal', '-machine__numero_terminal',
+        'ventes_totales', '-ventes_totales'
+    ]
+    
+    if sort_by in valid_sort_fields:
+        chiffres_queryset = chiffres_queryset.order_by(sort_by)
+    else:
+        chiffres_queryset = chiffres_queryset.order_by('-date_chiffre_affaire')
+    
+    # Calcul des statistiques
+    stats = chiffres_queryset.aggregate(
+        total_ventes=Sum('ventes_totales') or 0,
+        total_annulations=Sum('annulations_totales') or 0,
+        total_paiements=Sum('paiements_totaux') or 0,
+        total_solde=Sum('solde_total') or 0,
+        total_commission=Sum('montant_commission') or 0,
+        nb_enregistrements=Count('id'),
+        solde_moyen=Avg('solde_total') or 0
+    )
+    
+    # Statistiques par machine
+    stats_par_machine = chiffres_queryset.values(
+        'machine__numero_terminal', 'machine__nom_point_vente'
+    ).annotate(
+        total_solde=Sum('solde_total'),
+        total_commission=Sum('montant_commission'),
+        count=Count('id')
+    ).order_by('-total_solde')[:5]
+    
+    # CA ce mois
+    first_day_of_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    ca_ce_mois = ChiffreAffaire.objects.filter(
+        date_chiffre_affaire__gte=first_day_of_month
+    ).aggregate(total=Sum('solde_total'))['total'] or 0
+    
+    # Pagination
+    paginator = Paginator(chiffres_queryset, 20)  # 20 enregistrements par page
+    chiffres = paginator.get_page(page_number)
+    
+    # Données pour les filtres
+    machines = Machine.objects.all().order_by('numero_terminal')
+    agents = Agent.objects.all().order_by('nom_agent', 'prenom_agent')
     
     context = {
-        'chiffres_affaire': chiffres_affaire,
-        'machines': Machine.objects.all(),
-        'date_filter': date_filter,
+        'chiffres': chiffres,
+        'machines': machines,
+        'agents': agents,
+        'stats': stats,
+        'stats_par_machine': stats_par_machine,
+        'ca_ce_mois': ca_ce_mois,
+        'search_query': search_query,
         'machine_filter': machine_filter,
+        'agent_filter': agent_filter,
+        'date_debut': date_debut,
+        'date_fin': date_fin,
+        'sort_by': sort_by,
     }
+    
+    # Si c'est une requête HTMX, ne retourner que le contenu de la liste
+    if request.headers.get('HX-Request'):
+        return render(request, 'gestloto/chiffres_affaire/list_partial.html', context)
     
     return render(request, 'gestloto/chiffres_affaire/list.html', context)
 
@@ -53,11 +138,24 @@ def chiffre_affaire_create(request):
             chiffre_affaire.save()
             
             messages.success(request, f"Le chiffre d'affaires pour la machine {chiffre_affaire.machine.numero_terminal} a été créé avec succès.")
+            
+            # Standardisation sur HTMX uniquement
+            if request.headers.get('HX-Request'):
+                return redirect('chiffre_affaire_list')
+            
             return redirect('chiffre_affaire_list')
+        else:
+            # Si le formulaire n'est pas valide et c'est HTMX
+            if request.headers.get('HX-Request'):
+                return render(request, 'gestloto/chiffres_affaire/form_partial.html', {'form': form})
     else:
         form = ChiffreAffaireForm()
     
-    return render(request, 'gestloto/chiffres_affaire/form.html', {'form': form, 'title': "Ajouter un chiffre d'affaires"})
+    return render(request, 'gestloto/chiffres_affaire/form.html', {
+        'form': form, 
+        'title': "Ajouter un chiffre d'affaires",
+        'submit_text': 'Créer le chiffre d\'affaires'
+    })
 
 @login_required
 def chiffre_affaire_update(request, pk):
@@ -67,14 +165,24 @@ def chiffre_affaire_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, f"Le chiffre d'affaires pour la machine {chiffre_affaire.machine.numero_terminal} a été modifié avec succès.")
+            
+            # Standardisation sur HTMX uniquement
+            if request.headers.get('HX-Request'):
+                return redirect('chiffre_affaire_list')
+            
             return redirect('chiffre_affaire_detail', pk=chiffre_affaire.pk)
+        else:
+            # Si le formulaire n'est pas valide et c'est HTMX
+            if request.headers.get('HX-Request'):
+                return render(request, 'gestloto/chiffres_affaire/form_partial.html', {'form': form})
     else:
         form = ChiffreAffaireForm(instance=chiffre_affaire)
     
     return render(request, 'gestloto/chiffres_affaire/form.html', {
         'form': form, 
         'chiffre_affaire': chiffre_affaire, 
-        'title': "Modifier un chiffre d'affaires"
+        'title': "Modifier un chiffre d'affaires",
+        'submit_text': 'Sauvegarder les modifications'
     })
 
 @login_required
@@ -84,17 +192,16 @@ def chiffre_affaire_delete(request, pk):
         machine_numero = chiffre_affaire.machine.numero_terminal
         date = chiffre_affaire.date_chiffre_affaire
         chiffre_affaire.delete()
+        
+        # Standardisation sur HTMX uniquement
+        if request.headers.get('HX-Request'):
+            messages.success(request, f"Le chiffre d'affaires du {date} pour la machine {machine_numero} a été supprimé.")
+            return redirect('chiffre_affaire_list')
+        
         messages.success(request, f"Le chiffre d'affaires du {date} pour la machine {machine_numero} a été supprimé.")
         return redirect('chiffre_affaire_list')
     
     return render(request, 'gestloto/chiffres_affaire/delete.html', {'chiffre_affaire': chiffre_affaire})
-
-
-# gestloto/views/chiffres_affaire.py
-# from django.http import HttpResponse
-
-
-# ... autres importations et vues ...
 
 def calculate_solde_view(request):
     if request.method == 'POST':
@@ -110,30 +217,14 @@ def calculate_solde_view(request):
 
             solde_total = ventes_totales - annulations_totales - paiements_totaux
             
-            # Vous pouvez retourner directement la valeur si HTMX s'attend à un simple nombre
-            # ou rendre un petit template si vous voulez mettre à jour un input ou une structure plus complexe.
-            # Pour l'instant, nous allons rendre un template qui met à jour l'input.
-            
-            # Créez un template partiel pour le champ solde_total si ce n'est pas déjà fait,
-            # ou retournez simplement la valeur si vous mettez à jour directement la valeur d'un input.
-            # Exemple : gestloto/templates/gestloto/chiffres_affaire/partials/solde_total_input.html
-            # <input type="number" name="solde_total" value="{{ solde_total|default:'' }}" min="0" step="0.01" class="input input-bordered w-full" readonly>
-            
             context = {'solde_total': solde_total}
             return render(request, 'gestloto/chiffres_affaire/partials/solde_total_input.html', context)
 
         except InvalidOperation:
-            # Gérer le cas où la conversion en Decimal échoue (par exemple, entrée non numérique)
-            # Vous pouvez retourner une erreur ou une valeur par défaut
-            context = {'solde_total': Decimal('0.00')} # Ou une chaîne d'erreur
+            context = {'solde_total': Decimal('0.00')}
             return render(request, 'gestloto/chiffres_affaire/partials/solde_total_input.html', context)
         except Exception as e:
-            # Pour le débogage, vous pourriez vouloir voir l'erreur
-            # return HttpResponse(f"Erreur: {str(e)}", status=400) 
-            # En production, retournez une réponse appropriée
-            context = {'solde_total': Decimal('0.00')} # Ou une chaîne d'erreur
+            context = {'solde_total': Decimal('0.00')}
             return render(request, 'gestloto/chiffres_affaire/partials/solde_total_input.html', context)
 
-
-    # Si ce n'est pas une requête POST, ou si quelque chose d'autre se passe mal
     return HttpResponseBadRequest("Méthode de requête non valide ou erreur.")

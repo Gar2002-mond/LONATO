@@ -1,46 +1,169 @@
-<div class="modal modal-open">
-    <div class="modal-box">
-        <h3 class="font-bold text-lg flex items-center">
-            <i class="bx bx-trash text-error text-xl mr-2"></i>
-            Confirmation de suppression
-        </h3>
-        
-        <p class="py-4">
-            Êtes-vous sûr de vouloir supprimer l'activité du collecteur <strong>{{ activite.collecteur.nom_collecteur }} {{ activite.collecteur.prenom_collecteur }}</strong> du <strong>{{ activite.date_activite|date:"d/m/Y" }}</strong> ?
-        </p>
-        
-        <div class="alert alert-warning mt-2 mb-4">
-            <div class="flex items-center">
-                <i class="bx bx-info-circle text-xl mr-2"></i>
-                <div>
-                    <h3 class="font-bold">Détails de l'activité</h3>
-                    <ul class="mt-1 list-disc list-inside text-sm">
-                        <li>Référence reçu: {{ activite.reference_recu }}</li>
-                        <li>Montant: {{ activite.montant_activite|floatformat:0 }} FCFA</li>
-                        <li>Commission ({{ activite.pourcentage_commission }}%): 
-                            {% load math_filters %}
-                            {{ activite.montant_activite|multiply:activite.pourcentage_commission|divide:100|floatformat:0 }} FCFA
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-base-200 p-4 rounded-lg mt-2 mb-4">
-            <p class="text-sm text-warning flex items-center">
-                <i class="bx bx-error-circle mr-1"></i> 
-                Cette action est irréversible. L'activité sera définitivement supprimée du système.
-            </p>
-        </div>
-        
-        <div class="modal-action">
-            <button class="btn modal-close">Annuler</button>
-            <form method="post" action="{% url 'activite_collecteur_delete' activite.id %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-error">
-                    <i class="bx bx-trash mr-2"></i> Supprimer définitivement
-                </button>
-            </form>
-        </div>
-    </div>
+{% extends 'base.html' %} {% block title %}Supprimer l'activité - LONATO
+GESTLOTO{% endblock %} {% block breadcrumb_items %}
+<li>
+  <a
+    href="{% url 'activite_collecteur_list' %}"
+    class="text-amber-600 hover:text-amber-800 font-medium"
+    >Activités Collecteurs</a
+  >
+</li>
+<li>
+  <span class="text-gray-500">Supprimer</span>
+</li>
+{% endblock %} {% block page_title %}
+<div class="flex items-center space-x-3">
+  <div
+    class="h-8 w-8 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center"
+  >
+    <svg
+      class="w-5 h-5 text-white"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+      ></path>
+    </svg>
+  </div>
+  <span class="text-red-600">Supprimer l'activité</span>
 </div>
+{% endblock %} {% block page_subtitle %}
+<div class="flex items-center space-x-2">
+  <svg
+    class="w-4 h-4 text-gray-500"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+    ></path>
+  </svg>
+  <span class="text-gray-600">Cette action est irréversible</span>
+</div>
+{% endblock %} {% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+    <!-- Avertissement -->
+    <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+      <div class="flex items-start">
+        <svg
+          class="w-6 h-6 text-red-600 mt-1 mr-3"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+          ></path>
+        </svg>
+        <div>
+          <h3 class="text-red-800 font-bold text-lg mb-2">
+            Confirmation de suppression
+          </h3>
+          <p class="text-red-700">
+            Êtes-vous sûr de vouloir supprimer cette activité ? Cette action est
+            définitive et ne peut pas être annulée.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Détails de l'activité -->
+    <div class="bg-gray-50 rounded-lg p-6 mb-6">
+      <h4 class="font-semibold text-gray-800 mb-4">
+        Détails de l'activité à supprimer :
+      </h4>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <span class="text-sm font-medium text-gray-600">Collecteur :</span>
+          <p class="text-gray-800">
+            {{ activite.collecteur.nom_collecteur }} {{
+            activite.collecteur.prenom_collecteur }}
+          </p>
+        </div>
+
+        <div>
+          <span class="text-sm font-medium text-gray-600">Date :</span>
+          <p class="text-gray-800">{{ activite.date_activite|date:"d/m/Y" }}</p>
+        </div>
+
+        <div>
+          <span class="text-sm font-medium text-gray-600">Référence :</span>
+          <p class="text-gray-800">{{ activite.reference_recu }}</p>
+        </div>
+
+        <div>
+          <span class="text-sm font-medium text-gray-600">Montant :</span>
+          <p class="text-gray-800 font-semibold">
+            {{ activite.montant_activite|floatformat:0 }} FCFA
+          </p>
+        </div>
+      </div>
+
+      {% if activite.observations %}
+      <div class="mt-4">
+        <span class="text-sm font-medium text-gray-600">Observations :</span>
+        <p class="text-gray-800">{{ activite.observations }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Boutons d'action -->
+    <form method="post" class="flex items-center justify-end space-x-4">
+      {% csrf_token %}
+
+      <a
+        href="{% url 'activite_collecteur_list' %}"
+        class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-150 ease-in-out"
+      >
+        <svg
+          class="w-4 h-4 mr-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          ></path>
+        </svg>
+        Annuler
+      </a>
+
+      <button
+        type="submit"
+        class="inline-flex items-center px-6 py-3 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out"
+      >
+        <svg
+          class="w-4 h-4 mr-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          ></path>
+        </svg>
+        Confirmer la suppression
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,117 +1,332 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+  .btn-primary {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+  }
+  
+  .form-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+  }
+  
+  .form-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .input-field:focus {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  }
+  
+  .required-asterisk {
+    color: #ef4444;
+  }
+</style>
+{% endblock %}
+
 {% block title %}{{ title }} - LONATO GESTLOTO{% endblock %}
 
 {% block breadcrumb_items %}
-<li><a href="{% url 'depense_list' %}">Dépenses</a></li>
-<li>{{ title }}</li>
+<li>
+  <a href="{% url 'dashboard' %}" class="text-amber-600 hover:text-amber-800 font-medium">Dashboard</a>
+</li>
+<li>
+  <a href="{% url 'depense_list' %}" class="text-amber-600 hover:text-amber-800 font-medium">Dépenses</a>
+</li>
+<li>
+  <span class="text-gray-500">{{ title }}</span>
+</li>
 {% endblock %}
 
-{% block page_title %}{{ title }}{% endblock %}
-{% block page_subtitle %}Veuillez remplir les informations ci-dessous{% endblock %}
+{% block page_title %}
+<div class="flex items-center space-x-3">
+  <div class="h-10 w-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
+    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      {% if depense %}
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+      {% else %}
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+      {% endif %}
+    </svg>
+  </div>
+  <span class="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">{{ title }}</span>
+</div>
+{% endblock %}
+
+{% block page_subtitle %}
+<div class="flex items-center space-x-2">
+  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+  </svg>
+  <span class="text-gray-600">Veuillez remplir tous les champs requis pour {{ submit_text|default:"enregistrer la dépense" }}</span>
+</div>
+{% endblock %}
+
+{% block page_actions %}
+<div class="flex items-center space-x-3">
+  <a href="{% url 'depense_list' %}" 
+     class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-150 ease-in-out shadow-sm">
+    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+    </svg>
+    Retour à la liste
+  </a>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="card bg-base-100 shadow-xl max-w-3xl mx-auto">
-    <div class="card-body">
-        <form method="post" hx-boost="true" class="space-y-6">
-            {% csrf_token %}
-            
-            {% if form.errors %}
-            <div class="alert alert-error shadow-lg">
-                <div class="flex items-start">
-                    <i class="bx bx-error-circle text-2xl mr-2"></i>
-                    <div>
-                        <h3 class="font-bold">Erreur dans le formulaire</h3>
-                        <ul class="mt-1 list-disc list-inside text-sm">
-                            {% for field in form %}
-                                {% for error in field.errors %}
-                                    <li>{{ field.label }}: {{ error }}</li>
-                                {% endfor %}
-                            {% endfor %}
-                            {% for error in form.non_field_errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
+<div class="max-w-4xl mx-auto">
+  <div class="form-card rounded-xl shadow-lg overflow-hidden">
+    <div class="px-8 py-6">
+      <!-- Messages d'erreur -->
+      {% if form.errors %}
+      <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div class="flex-1">
+            <h3 class="font-semibold mb-2">Erreurs dans le formulaire</h3>
+            <ul class="list-disc list-inside space-y-1 text-sm">
+              {% for field in form %}
+                {% for error in field.errors %}
+                  <li>{{ field.label }}: {{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+              {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Section principale -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Type de dépense -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-700">
+              Type de dépense <span class="required-asterisk">*</span>
+            </label>
+            <select name="type_depense" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg input-field focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 {% if form.type_depense.errors %}border-red-500{% endif %}" 
+                    required>
+              <option value="" disabled {% if not form.type_depense.value %}selected{% endif %}>
+                -- Sélectionner un type de dépense --
+              </option>
+              {% for type in form.fields.type_depense.queryset %}
+                <option value="{{ type.id }}" {% if form.type_depense.value == type.id %}selected{% endif %}>
+                  {{ type.get_libelle_display }}
+                </option>
+              {% endfor %}
+            </select>
+            {% if form.type_depense.help_text %}
+              <p class="text-xs text-gray-500">{{ form.type_depense.help_text }}</p>
             {% endif %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Type de dépense</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <select name="type_depense" class="select select-bordered {% if form.type_depense.errors %}select-error{% endif %}" required>
-                        <option value="" disabled {% if not form.type_depense.value %}selected{% endif %}>-- Sélectionner un type --</option>
-                        {% for type in form.fields.type_depense.queryset %}
-                            <option value="{{ type.id }}" {% if form.type_depense.value == type.id %}selected{% endif %}>
-                                {{ type.get_libelle_display }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Agent concerné</span>
-                        <span class="label-text-alt">Optionnel</span>
-                    </label>
-                    <select name="agent" class="select select-bordered {% if form.agent.errors %}select-error{% endif %}">
-                        <option value="">-- Aucun agent --</option>
-                        {% for agent in form.fields.agent.queryset %}
-                            <option value="{{ agent.id }}" {% if form.agent.value == agent.id %}selected{% endif %}>
-                                {{ agent.nom_agent }} {{ agent.prenom_agent }} ({{ agent.reference_agent }})
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Date de la dépense</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="date" name="date_depense" value="{{ form.date_depense.value|date:'Y-m-d'|default:'' }}" class="input input-bordered {% if form.date_depense.errors %}input-error{% endif %}" required>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Montant</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <div class="relative">
-                        <input type="number" name="montant" value="{{ form.montant.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.montant.errors %}input-error{% endif %} w-full" required>
-                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
-                    </div>
-                </div>
-                
-                <div class="form-control md:col-span-2">
-                    <label class="label">
-                        <span class="label-text">Référence</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="text" name="reference" value="{{ form.reference.value|default:'' }}" class="input input-bordered {% if form.reference.errors %}input-error{% endif %}" required>
-                </div>
+          </div>
+
+          <!-- Agent concerné -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-700">
+              Agent concerné
+              <span class="text-xs font-normal text-gray-500">(Optionnel)</span>
+            </label>
+            <select name="agent" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg input-field focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 {% if form.agent.errors %}border-red-500{% endif %}">
+              <option value="">-- Aucun agent spécifique --</option>
+              {% for agent in form.fields.agent.queryset %}
+                <option value="{{ agent.id }}" {% if form.agent.value == agent.id %}selected{% endif %}>
+                  {{ agent.nom_agent }} {{ agent.prenom_agent }} ({{ agent.reference_agent }})
+                </option>
+              {% endfor %}
+            </select>
+            {% if form.agent.help_text %}
+              <p class="text-xs text-gray-500">{{ form.agent.help_text }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Date de la dépense -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-700">
+              Date de la dépense <span class="required-asterisk">*</span>
+            </label>
+            <input type="date" 
+                   name="date_depense" 
+                   value="{{ form.date_depense.value|date:'Y-m-d'|default:'' }}" 
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg input-field focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 {% if form.date_depense.errors %}border-red-500{% endif %}" 
+                   required>
+            {% if form.date_depense.help_text %}
+              <p class="text-xs text-gray-500">{{ form.date_depense.help_text }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Montant -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-700">
+              Montant <span class="required-asterisk">*</span>
+            </label>
+            <div class="relative">
+              <input type="number" 
+                     name="montant" 
+                     value="{{ form.montant.value|default:'' }}" 
+                     min="0" 
+                     step="0.01" 
+                     class="w-full px-4 py-3 pr-16 border border-gray-300 rounded-lg input-field focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 {% if form.montant.errors %}border-red-500{% endif %}" 
+                     placeholder="0.00"
+                     required>
+              <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <span class="text-gray-500 font-medium">FCFA</span>
+              </div>
             </div>
-            
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Autres détails</span>
-                </label>
-                <textarea name="autres_details" rows="3" class="textarea textarea-bordered {% if form.autres_details.errors %}textarea-error{% endif %}">{{ form.autres_details.value|default:'' }}</textarea>
-            </div>
-            
-            <div class="flex justify-end gap-2 mt-6">
-                <a href="{% url 'depense_list' %}" class="btn btn-outline">
-                    <i class="bx bx-arrow-back mr-2"></i> Annuler
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bx bx-save mr-2"></i> Enregistrer
-                </button>
-            </div>
-        </form>
+            {% if form.montant.help_text %}
+              <p class="text-xs text-gray-500">{{ form.montant.help_text }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Référence -->
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700">
+            Référence de la dépense <span class="required-asterisk">*</span>
+          </label>
+          <input type="text" 
+                 name="reference" 
+                 value="{{ form.reference.value|default:'' }}" 
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg input-field focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 {% if form.reference.errors %}border-red-500{% endif %}" 
+                 placeholder="Ex: DEP-2024-001, FACTURE-XXX, etc."
+                 required>
+          {% if form.reference.help_text %}
+            <p class="text-xs text-gray-500">{{ form.reference.help_text }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Autres détails -->
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700">
+            Autres détails et observations
+          </label>
+          <textarea name="autres_details" 
+                    rows="4" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg input-field focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 {% if form.autres_details.errors %}border-red-500{% endif %}"
+                    placeholder="Informations supplémentaires, contexte, justifications...">{{ form.autres_details.value|default:'' }}</textarea>
+          {% if form.autres_details.help_text %}
+            <p class="text-xs text-gray-500">{{ form.autres_details.help_text }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+          <div class="text-sm text-gray-600">
+            <span class="required-asterisk">*</span> Champs obligatoires
+          </div>
+          <div class="flex items-center space-x-3">
+            <a href="{% url 'depense_list' %}" 
+               class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-150 ease-in-out shadow-sm">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+              Annuler
+            </a>
+            <button type="submit" 
+                    class="inline-flex items-center px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 btn-primary">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              {{ submit_text|default:"Enregistrer la dépense" }}
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
+
+<!-- Aide contextuelle -->
+<div class="max-w-4xl mx-auto mt-6">
+  <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+    <div class="flex items-start">
+      <svg class="w-5 h-5 text-amber-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <div class="text-sm text-amber-800">
+        <h4 class="font-semibold mb-2">Conseils pour l'enregistrement des dépenses</h4>
+        <ul class="space-y-1 list-disc list-inside">
+          <li>Assurez-vous que la référence est unique et facilement identifiable</li>
+          <li>La date ne peut pas être dans le futur</li>
+          <li>Associez un agent uniquement si la dépense le concerne directement</li>
+          <li>Utilisez le champ "Autres détails" pour des informations complémentaires</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validation en temps réel
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input[required], select[required]');
+    
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                this.classList.add('border-red-500');
+                this.classList.remove('border-gray-300');
+            } else {
+                this.classList.remove('border-red-500');
+                this.classList.add('border-gray-300');
+            }
+        });
+    });
+    
+    // Validation du montant
+    const montantInput = document.querySelector('input[name="montant"]');
+    if (montantInput) {
+        montantInput.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            if (value <= 0) {
+                this.setCustomValidity('Le montant doit être supérieur à 0');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+    
+    // Validation de la date
+    const dateInput = document.querySelector('input[name="date_depense"]');
+    if (dateInput) {
+        dateInput.addEventListener('change', function() {
+            const selectedDate = new Date(this.value);
+            const today = new Date();
+            today.setHours(23, 59, 59, 999);
+            
+            if (selectedDate > today) {
+                this.setCustomValidity('La date ne peut pas être dans le futur');
+                this.classList.add('border-red-500');
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('border-red-500');
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

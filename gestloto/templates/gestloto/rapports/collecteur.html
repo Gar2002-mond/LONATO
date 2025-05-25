@@ -14,6 +14,15 @@
     .print\\:break-inside-avoid {
         break-inside: avoid;
     }
+    .print\\:hidden {
+        display: none !important;
+    }
+}
+.htmx-indicator {
+    display: none;
+}
+.htmx-request .htmx-indicator {
+    display: flex;
 }
 </style>
 {% endblock %}
@@ -29,17 +38,17 @@
 {% block page_subtitle %}Analyse détaillée des performances des collecteurs{% endblock %}
 
 {% block page_actions %}
-<div class="flex space-x-3">
+<div class="flex space-x-3 print:hidden">
     <button onclick="window.print()" 
             class="inline-flex items-center px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out shadow-sm">
         <i class="bx bx-printer mr-2"></i>
         Imprimer
     </button>
-    <button hx-get="{% url 'export_collecteurs_report' %}?{{ request.GET.urlencode }}" hx-swap="none"
-            class="btn-indigo inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out shadow-sm">
+    <a href="{% url 'export_collecteurs_report' %}?{{ request.GET.urlencode }}"
+       class="btn-indigo inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out shadow-sm">
         <i class="bx bx-download mr-2"></i>
         Exporter Excel
-    </button>
+    </a>
 </div>
 {% endblock %}
 
@@ -55,22 +64,22 @@
             <h3 class="text-lg font-semibold text-slate-800">Filtres du rapport</h3>
         </div>
         
-        <form hx-get="{% url 'rapport_collecteur' %}" 
+        <form id="filters-form" 
+              hx-get="{% url 'rapport_collecteur' %}" 
               hx-target="#rapport-content" 
               hx-indicator="#loading"
+              hx-push-url="true"
               class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             
             <!-- Période -->
             <div class="space-y-2">
                 <label class="block text-sm font-medium text-slate-700">Période</label>
                 <select name="periode" 
+                        id="periode-select"
                         class="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200"
-                        hx-get="{% url 'rapport_collecteur' %}" 
-                        hx-target="#rapport-content" 
-                        hx-indicator="#loading" 
                         hx-trigger="change">
                     <option value="7" {% if request.GET.periode == '7' %}selected{% endif %}>7 derniers jours</option>
-                    <option value="30" {% if request.GET.periode == '30' %}selected{% endif %}>30 derniers jours</option>
+                    <option value="30" {% if request.GET.periode == '30' or not request.GET.periode %}selected{% endif %}>30 derniers jours</option>
                     <option value="90" {% if request.GET.periode == '90' %}selected{% endif %}>3 derniers mois</option>
                     <option value="180" {% if request.GET.periode == '180' %}selected{% endif %}>6 derniers mois</option>
                     <option value="365" {% if request.GET.periode == '365' %}selected{% endif %}>Année en cours</option>
@@ -84,7 +93,8 @@
                 <input type="date" 
                        name="date_debut" 
                        value="{{ request.GET.date_debut|default:'' }}" 
-                       class="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200">
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200"
+                       hx-trigger="change">
             </div>
             
             <!-- Date fin -->
@@ -93,17 +103,19 @@
                 <input type="date" 
                        name="date_fin" 
                        value="{{ request.GET.date_fin|default:'' }}" 
-                       class="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200">
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200"
+                       hx-trigger="change">
             </div>
             
             <!-- Collecteur -->
             <div class="space-y-2">
                 <label class="block text-sm font-medium text-slate-700">Collecteur</label>
                 <select name="collecteur" 
-                        class="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200">
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200"
+                        hx-trigger="change">
                     <option value="">Tous les collecteurs</option>
                     {% for collecteur in collecteurs %}
-                        <option value="{{ collecteur.id }}" {% if request.GET.collecteur == collecteur.id|stringformat:"i" %}selected{% endif %}>
+                        <option value="{{ collecteur.id }}" {% if request.GET.collecteur == collecteur.id|stringformat:"s" %}selected{% endif %}>
                             {{ collecteur.nom_collecteur }} {{ collecteur.prenom_collecteur }}
                         </option>
                     {% endfor %}
@@ -114,29 +126,38 @@
             <div class="space-y-2">
                 <label class="block text-sm font-medium text-slate-700">Trier par</label>
                 <select name="tri" 
-                        class="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200">
-                    <option value="montant" {% if request.GET.tri == 'montant' %}selected{% endif %}>Montant collecté</option>
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200"
+                        hx-trigger="change">
+                    <option value="montant" {% if request.GET.tri == 'montant' or not request.GET.tri %}selected{% endif %}>Montant collecté</option>
                     <option value="commission" {% if request.GET.tri == 'commission' %}selected{% endif %}>Commission</option>
                     <option value="activites" {% if request.GET.tri == 'activites' %}selected{% endif %}>Nombre d'activités</option>
                 </select>
             </div>
-            
-            <!-- Bouton générer -->
-            <div class="flex items-end">
-                <button type="submit" 
-                        class="btn-indigo w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
-                    <i class="bx bx-filter mr-2"></i>
-                    Générer
+        </form>
+        
+        <!-- Boutons d'action rapide -->
+        <div class="flex items-center justify-between mt-6 pt-4 border-t border-slate-200">
+            <div class="flex space-x-3">
+                <button onclick="resetFilters()" 
+                        class="inline-flex items-center px-3 py-2 border border-slate-300 rounded-md text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                    <i class="bx bx-refresh mr-2"></i>
+                    Réinitialiser
                 </button>
             </div>
-        </form>
+            <div class="text-sm text-slate-600">
+                <i class="bx bx-info-circle mr-1"></i>
+                Les filtres s'appliquent automatiquement
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- Indicateur de chargement -->
 <div id="loading" class="htmx-indicator flex justify-center items-center my-8">
-    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-    <span class="ml-3 text-slate-600">Génération du rapport...</span>
+    <div class="flex items-center space-x-3">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+        <span class="text-slate-600 font-medium">Génération du rapport...</span>
+    </div>
 </div>
 
 <!-- En-tête pour impression -->
@@ -155,294 +176,15 @@
 
 <!-- Contenu du rapport -->
 <div id="rapport-content">
-    
-    <!-- Section résumé global -->
-    <div class="bg-white rounded-xl shadow-lg mb-8">
-        <div class="px-6 py-6">
-            <div class="flex items-center mb-6">
-                <div class="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                    <i class="bx bx-bar-chart text-green-600 text-xl"></i>
-                </div>
-                <h2 class="text-xl font-bold text-slate-800">Résumé global</h2>
-            </div>
-            
-            <!-- Statistiques principales -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-blue-600 uppercase tracking-wide">Montant total collecté</p>
-                            <p class="text-3xl font-bold text-blue-700 mt-2">{{ resume.total_montant|floatformat:0 }}</p>
-                            <p class="text-sm text-blue-600 mt-1">FCFA</p>
-                        </div>
-                        <div class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <i class="bx bx-money text-blue-600 text-2xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-green-600 uppercase tracking-wide">Commissions versées</p>
-                            <p class="text-3xl font-bold text-green-700 mt-2">{{ resume.total_commission|floatformat:0 }}</p>
-                            <p class="text-sm text-green-600 mt-1">FCFA</p>
-                        </div>
-                        <div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                            <i class="bx bx-trending-up text-green-600 text-2xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-purple-600 uppercase tracking-wide">Nombre d'activités</p>
-                            <p class="text-3xl font-bold text-purple-700 mt-2">{{ resume.nb_activites }}</p>
-                            <p class="text-sm text-purple-600 mt-1">Total</p>
-                        </div>
-                        <div class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <i class="bx bx-list-ul text-purple-600 text-2xl"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Statistiques secondaires -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-amber-600 uppercase tracking-wide">Collecteurs actifs</p>
-                            <p class="text-2xl font-bold text-amber-700 mt-2">{{ resume.nb_collecteurs_actifs }}</p>
-                            <p class="text-sm text-amber-600 mt-1">Sur {{ resume.nb_collecteurs_total }} au total</p>
-                        </div>
-                        <div class="h-12 w-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                            <i class="bx bx-user-check text-amber-600 text-2xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl p-6 border border-cyan-200">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-cyan-600 uppercase tracking-wide">Taux de commission moyen</p>
-                            <p class="text-2xl font-bold text-cyan-700 mt-2">{{ resume.taux_commission_moyen|floatformat:2 }}%</p>
-                            <p class="text-sm text-cyan-600 mt-1">Moyenne globale</p>
-                        </div>
-                        <div class="h-12 w-12 bg-cyan-100 rounded-lg flex items-center justify-center">
-                            <i class="bx bx-percentage text-cyan-600 text-2xl"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    {% include 'gestloto/rapports/collecteur_content.html' %}
+</div>
+
+<!-- Footer pour impression -->
+<div class="hidden print:block mt-8 pt-4 border-t border-slate-200">
+    <div class="text-center text-slate-500 text-sm">
+        <p>Rapport généré le {% now "d/m/Y à H:i" %} par {{ user.username }}</p>
+        <p class="mt-1">LONATO GESTLOTO - Système de gestion des activités de loterie</p>
     </div>
-    
-    <!-- Graphique d'évolution -->
-    <div class="bg-white rounded-xl shadow-lg mb-8 print:break-inside-avoid">
-        <div class="px-6 py-6">
-            <div class="flex items-center mb-6">
-                <div class="h-10 w-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-4">
-                    <i class="bx bx-line-chart text-indigo-600 text-xl"></i>
-                </div>
-                <h2 class="text-xl font-bold text-slate-800">Évolution des collectes</h2>
-            </div>
-            <div class="bg-slate-50 h-80 rounded-lg flex items-center justify-center border border-slate-200">
-                <div class="text-center text-slate-500">
-                    <i class="bx bx-line-chart text-6xl mb-4"></i>
-                    <p class="text-lg font-medium">Graphique d'évolution</p>
-                    <p class="text-sm">Intégration graphique à venir</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Tableau des collecteurs -->
-    <div class="bg-white rounded-xl shadow-lg mb-8 print:break-inside-avoid">
-        <div class="px-6 py-6">
-            <div class="flex items-center mb-6">
-                <div class="h-10 w-10 bg-emerald-100 rounded-lg flex items-center justify-center mr-4">
-                    <i class="bx bx-trophy text-emerald-600 text-xl"></i>
-                </div>
-                <h2 class="text-xl font-bold text-slate-800">Performance des collecteurs</h2>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Rang</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Collecteur</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Montant collecté</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Commission</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Activités</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Taux</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-slate-200">
-                        {% for collecteur in collecteurs_data %}
-                        <tr class="hover:bg-slate-50 transition-colors duration-150">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 text-indigo-600 text-sm font-medium">
-                                    {{ forloop.counter }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="h-10 w-10 rounded-full overflow-hidden mr-4">
-                                        <img class="h-full w-full object-cover" 
-                                             src="https://ui-avatars.com/api/?name={{ collecteur.nom_collecteur }}&background=f59e0b&color=fff" 
-                                             alt="{{ collecteur.nom_collecteur }}">
-                                    </div>
-                                    <div>
-                                        <div class="text-sm font-medium text-slate-900">
-                                            {{ collecteur.nom_collecteur }} {{ collecteur.prenom_collecteur }}
-                                        </div>
-                                        <div class="text-xs text-slate-500">{{ collecteur.reference_collecteur }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-slate-900">
-                                {{ collecteur.total_montant|floatformat:0 }} FCFA
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-emerald-600">
-                                {{ collecteur.total_commission|floatformat:0 }} FCFA
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                                    {{ collecteur.nb_activites }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-slate-900">
-                                {{ collecteur.pourcentage_commission|floatformat:2 }}%
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="px-6 py-12 text-center">
-                                <div class="text-slate-500">
-                                    <i class="bx bx-info-circle text-3xl mb-2"></i>
-                                    <p>Aucune donnée disponible pour cette période</p>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    {% if collecteurs_data %}
-                    <tfoot class="bg-slate-50">
-                        <tr class="font-bold">
-                            <td colspan="2" class="px-6 py-4 text-sm text-slate-900">TOTAL</td>
-                            <td class="px-6 py-4 text-right text-sm text-slate-900">{{ resume.total_montant|floatformat:0 }} FCFA</td>
-                            <td class="px-6 py-4 text-right text-sm text-emerald-600">{{ resume.total_commission|floatformat:0 }} FCFA</td>
-                            <td class="px-6 py-4 text-center text-sm text-slate-900">{{ resume.nb_activites }}</td>
-                            <td class="px-6 py-4 text-center text-sm text-slate-900">{{ resume.taux_commission_moyen|floatformat:2 }}%</td>
-                        </tr>
-                    </tfoot>
-                    {% endif %}
-                </table>
-            </div>
-        </div>
-    </div>
-    
-    {% if collecteur_selectionne %}
-    <!-- Détail du collecteur sélectionné -->
-    <div class="bg-white rounded-xl shadow-lg mb-8 print:break-inside-avoid">
-        <div class="px-6 py-6">
-            <div class="flex items-center mb-6">
-                <div class="h-12 w-12 rounded-full overflow-hidden mr-4 border-2 border-amber-300">
-                    <img class="h-full w-full object-cover" 
-                         src="https://ui-avatars.com/api/?name={{ collecteur_selectionne.nom_collecteur }}&background=f59e0b&color=fff" 
-                         alt="{{ collecteur_selectionne.nom_collecteur }}">
-                </div>
-                <div>
-                    <h2 class="text-xl font-bold text-slate-800">
-                        Détails pour {{ collecteur_selectionne.nom_collecteur }} {{ collecteur_selectionne.prenom_collecteur }}
-                    </h2>
-                    <p class="text-sm text-slate-600">{{ collecteur_selectionne.reference_collecteur }}</p>
-                </div>
-            </div>
-            
-            <!-- Statistiques du collecteur -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Montant total collecté</div>
-                        <div class="stat-value">{{ collecteur_details.total_montant|floatformat:0 }}</div>
-                        <div class="stat-desc">FCFA</div>
-                    </div>
-                    
-                    <div class="stat">
-                        <div class="stat-title">Commission totale</div>
-                        <div class="stat-value text-accent">{{ collecteur_details.total_commission|floatformat:0 }}</div>
-                        <div class="stat-desc">FCFA</div>
-                    </div>
-                </div>
-                
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Nombre d'activités</div>
-                        <div class="stat-value">{{ collecteur_details.nb_activites }}</div>
-                    </div>
-                    
-                    <div class="stat">
-                        <div class="stat-title">Taux de commission</div>
-                        <div class="stat-value">{{ collecteur_selectionne.pourcentage_commission|floatformat:2 }}%</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Liste des activités -->
-            <h3 class="font-bold text-lg mb-4 text-slate-800">Liste des activités</h3>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Référence</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Montant</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Commission</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Observations</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-slate-200">
-                        {% for activite in collecteur_activites %}
-                        <tr class="hover:bg-slate-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{{ activite.date_activite|date:"d/m/Y" }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    {{ activite.reference_recu }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-slate-900">{{ activite.montant_activite|floatformat:0 }} FCFA</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-emerald-600">
-                                {% load math_filters %}
-                                {{ activite.montant_activite|multiply:activite.pourcentage_commission|divide:100|floatformat:0 }} FCFA
-                            </td>
-                            <td class="px-6 py-4 text-sm text-slate-900">{{ activite.observations|truncatechars:50|default:"-" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-slate-500">
-                                Aucune activité pour cette période
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-    
-    <!-- Footer pour impression -->
-    <div class="hidden print:block mt-8 pt-4 border-t border-slate-200">
-        <div class="text-center text-slate-500 text-sm">
-            <p>Rapport généré le {% now "d/m/Y à H:i" %} par {{ user.username }}</p>
-            <p class="mt-1">LONATO GESTLOTO - Système de gestion des activités de loterie</p>
-        </div>
-    </div>
-    
 </div>
 
 {% endblock %}
@@ -450,19 +192,65 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const periodeSelect = document.querySelector('select[name="periode"]');
+    const periodeSelect = document.getElementById('periode-select');
     const dateDebutContainer = document.getElementById('date-debut-container');
     const dateFinContainer = document.getElementById('date-fin-container');
     
-    if (periodeSelect) {
-        periodeSelect.addEventListener('change', function() {
-            if (this.value === 'custom') {
-                dateDebutContainer.style.display = 'block';
-                dateFinContainer.style.display = 'block';
-            } else {
-                dateDebutContainer.style.display = 'none';
-                dateFinContainer.style.display = 'none';
-            }
+    function toggleCustomDateFields() {
+        if (periodeSelect.value === 'custom') {
+            dateDebutContainer.style.display = 'block';
+            dateFinContainer.style.display = 'block';
+        } else {
+            dateDebutContainer.style.display = 'none';
+            dateFinContainer.style.display = 'none';
+        }
+    }
+    
+    // Écouter les changements de période
+    periodeSelect.addEventListener('change', toggleCustomDateFields);
+    
+    // Initialiser l'état au chargement
+    toggleCustomDateFields();
+});
+
+function resetFilters() {
+    const form = document.getElementById('filters-form');
+    form.reset();
+    
+    // Masquer les champs de date personnalisée
+    document.getElementById('date-debut-container').style.display = 'none';
+    document.getElementById('date-fin-container').style.display = 'none';
+    
+    // Déclencher le rechargement avec les filtres réinitialisés
+    htmx.trigger(form, 'change');
+}
+
+// Fonction pour gérer les erreurs HTMX
+document.body.addEventListener('htmx:responseError', function(event) {
+    console.error('Erreur HTMX:', event.detail);
+    
+    // Afficher un message d'erreur à l'utilisateur
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4';
+    errorDiv.innerHTML = `
+        <div class="flex items-center">
+            <i class="bx bx-error-circle mr-2"></i>
+            <span>Erreur lors du chargement du rapport. Veuillez réessayer.</span>
+        </div>
+    `;
+    
+    const reportContent = document.getElementById('rapport-content');
+    reportContent.innerHTML = '';
+    reportContent.appendChild(errorDiv);
+});
+
+// Fonction pour gérer le succès des requêtes HTMX
+document.body.addEventListener('htmx:afterRequest', function(event) {
+    if (event.detail.successful) {
+        // Réinitialiser le scroll vers le haut du contenu
+        document.getElementById('rapport-content').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
         });
     }
 });

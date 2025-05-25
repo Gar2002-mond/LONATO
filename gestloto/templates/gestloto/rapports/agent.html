@@ -134,6 +134,28 @@
     border: 2px dashed #cbd5e1;
   }
   
+  .filter-active {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+    color: white !important;
+    border-color: #3b82f6 !important;
+  }
+  
+  .filter-results-count {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .chart-container {
+    position: relative;
+    height: 400px;
+    width: 100%;
+  }
+  
   @media print {
     .print\\:hidden { display: none !important; }
     .print\\:block { display: block !important; }
@@ -183,11 +205,18 @@
         Imprimer
     </button>
     <button class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 btn-primary"
-            hx-get="{% url 'export_agents_report' %}?{{ request.GET.urlencode }}" hx-swap="none">
+            onclick="exportToExcel()">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
         </svg>
         Exporter Excel
+    </button>
+    <button class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 btn-outline"
+            onclick="resetFilters()">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Réinitialiser
     </button>
 </div>
 {% endblock %}
@@ -198,19 +227,21 @@
   <!-- Filtres -->
   <div class="bg-white rounded-2xl shadow-lg border border-gray-200 print:hidden animate-fade-in">
     <div class="p-6">
-      <div class="flex items-center mb-6">
-        <div class="h-10 w-10 bg-gradient-to-br from-orange-400 to-pink-500 rounded-lg flex items-center justify-center mr-3">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
-          </svg>
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center">
+          <div class="h-10 w-10 bg-gradient-to-br from-orange-400 to-pink-500 rounded-lg flex items-center justify-center mr-3">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800">Filtres du rapport</h3>
         </div>
-        <h3 class="text-xl font-bold text-gray-800">Filtres du rapport</h3>
+        <div id="filter-count" class="filter-results-count" style="display: none;">
+          <span id="filter-count-text">0 agents trouvés</span>
+        </div>
       </div>
       
-      <form hx-get="{% url 'rapport_agent' %}" 
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
-            hx-target="#rapport-content" 
-            hx-indicator="#loading">
+      <form id="filter-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         
         <!-- Période -->
         <div class="space-y-2">
@@ -220,12 +251,8 @@
             </svg>
             Période
           </label>
-          <select name="periode" 
-                  class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" 
-                  hx-get="{% url 'rapport_agent' %}" 
-                  hx-target="#rapport-content" 
-                  hx-indicator="#loading" 
-                  hx-trigger="change">
+          <select name="periode" id="periode-select"
+                  class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
             <option value="7" {% if request.GET.periode == '7' %}selected{% endif %}>7 derniers jours</option>
             <option value="30" {% if request.GET.periode == '30' %}selected{% endif %}>30 derniers jours</option>
             <option value="90" {% if request.GET.periode == '90' %}selected{% endif %}>3 derniers mois</option>
@@ -243,8 +270,7 @@
             </svg>
             Date début
           </label>
-          <input type="date" 
-                 name="date_debut" 
+          <input type="date" name="date_debut" id="date-debut"
                  value="{{ request.GET.date_debut|default:'' }}" 
                  class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
         </div>
@@ -257,8 +283,7 @@
             </svg>
             Date fin
           </label>
-          <input type="date" 
-                 name="date_fin" 
+          <input type="date" name="date_fin" id="date-fin"
                  value="{{ request.GET.date_fin|default:'' }}" 
                  class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
         </div>
@@ -271,7 +296,7 @@
             </svg>
             Agent
           </label>
-          <select name="agent" 
+          <select name="agent" id="agent-select"
                   class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
             <option value="">Tous les agents</option>
             {% for agent in agents %}
@@ -282,6 +307,20 @@
           </select>
         </div>
         
+        <!-- Filtre par montant minimum CA -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+            </svg>
+            CA minimum (FCFA)
+          </label>
+          <input type="number" name="ca_min" id="ca-min" 
+                 value="{{ request.GET.ca_min|default:'' }}" 
+                 placeholder="Ex: 100000"
+                 class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+        </div>
+        
         <!-- Trier par -->
         <div class="space-y-2">
           <label class="block text-sm font-medium text-gray-700">
@@ -290,11 +329,16 @@
             </svg>
             Trier par
           </label>
-          <select name="tri" 
+          <select name="tri" id="tri-select"
                   class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-            <option value="ca" {% if request.GET.tri == 'ca' %}selected{% endif %}>Chiffre d'affaires</option>
-            <option value="commission" {% if request.GET.tri == 'commission' %}selected{% endif %}>Commission</option>
-            <option value="machines" {% if request.GET.tri == 'machines' %}selected{% endif %}>Nombre de machines</option>
+            <option value="ca" {% if request.GET.tri == 'ca' %}selected{% endif %}>Chiffre d'affaires ↓</option>
+            <option value="ca_asc" {% if request.GET.tri == 'ca_asc' %}selected{% endif %}>Chiffre d'affaires ↑</option>
+            <option value="commission" {% if request.GET.tri == 'commission' %}selected{% endif %}>Commission ↓</option>
+            <option value="commission_asc" {% if request.GET.tri == 'commission_asc' %}selected{% endif %}>Commission ↑</option>
+            <option value="balance" {% if request.GET.tri == 'balance' %}selected{% endif %}>Balance ↓</option>
+            <option value="balance_asc" {% if request.GET.tri == 'balance_asc' %}selected{% endif %}>Balance ↑</option>
+            <option value="machines" {% if request.GET.tri == 'machines' %}selected{% endif %}>Nb machines ↓</option>
+            <option value="nom" {% if request.GET.tri == 'nom' %}selected{% endif %}>Nom alphabétique</option>
           </select>
         </div>
         
@@ -307,7 +351,7 @@
             </svg>
             Vue
           </label>
-          <select name="vue" 
+          <select name="vue" id="vue-select"
                   class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
             <option value="ca" {% if request.GET.vue == 'ca' %}selected{% endif %}>Chiffres d'affaires</option>
             <option value="commissions" {% if request.GET.vue == 'commissions' %}selected{% endif %}>Commissions</option>
@@ -316,18 +360,30 @@
           </select>
         </div>
         
-        <!-- Bouton générer -->
-        <div class="flex items-end">
-          <button type="submit" 
-                  class="w-full inline-flex items-center justify-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 btn-primary">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
-            </svg>
-            Générer le rapport
+      </form>
+      
+      <!-- Filtres rapides -->
+      <div class="mt-6 pt-6 border-t border-gray-200">
+        <h4 class="text-sm font-medium text-gray-700 mb-3">Filtres rapides</h4>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="filter-quick px-3 py-2 text-xs font-medium rounded-lg border transition-all duration-200"
+                  data-filter="top_performers" onclick="applyQuickFilter('top_performers')">
+            Top performers
+          </button>
+          <button type="button" class="filter-quick px-3 py-2 text-xs font-medium rounded-lg border transition-all duration-200"
+                  data-filter="low_performers" onclick="applyQuickFilter('low_performers')">
+            Faibles performances
+          </button>
+          <button type="button" class="filter-quick px-3 py-2 text-xs font-medium rounded-lg border transition-all duration-200"
+                  data-filter="high_commission" onclick="applyQuickFilter('high_commission')">
+            Commissions élevées
+          </button>
+          <button type="button" class="filter-quick px-3 py-2 text-xs font-medium rounded-lg border transition-all duration-200"
+                  data-filter="negative_balance" onclick="applyQuickFilter('negative_balance')">
+            Balance négative
           </button>
         </div>
-        
-      </form>
+      </div>
     </div>
   </div>
 
@@ -416,7 +472,7 @@
       </div>
     </div>
     
-    <!-- Graphique d'évolution -->
+    <!-- Graphique d'évolution avec Chart.js -->
     <div class="bg-white rounded-2xl shadow-lg border border-gray-200 print:break-inside-avoid animate-fade-in">
       <div class="p-6">
         <div class="flex items-center mb-6">
@@ -428,12 +484,24 @@
           <h2 class="text-xl font-bold text-gray-800">Évolution des performances</h2>
         </div>
         
-        <div class="chart-placeholder rounded-xl p-12 text-center">
-          <svg class="w-20 h-20 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-          </svg>
-          <p class="text-xl font-medium text-gray-600 mb-2">Graphique d'évolution</p>
-          <p class="text-gray-400">(à implémenter)</p>
+        <div class="chart-container mb-4">
+          <canvas id="performanceChart"></canvas>
+        </div>
+        
+        <!-- Contrôles du graphique -->
+        <div class="flex justify-center space-x-2 mt-4">
+          <button type="button" class="chart-control px-3 py-1 text-xs font-medium rounded-lg border transition-all duration-200"
+                  data-chart="ca" onclick="updateChart('ca')">
+            Chiffre d'affaires
+          </button>
+          <button type="button" class="chart-control px-3 py-1 text-xs font-medium rounded-lg border transition-all duration-200"
+                  data-chart="commission" onclick="updateChart('commission')">
+            Commissions
+          </button>
+          <button type="button" class="chart-control px-3 py-1 text-xs font-medium rounded-lg border transition-all duration-200"
+                  data-chart="balance" onclick="updateChart('balance')">
+            Balance
+          </button>
         </div>
       </div>
     </div>
@@ -761,33 +829,334 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const periodeSelect = document.querySelector('select[name="periode"]');
-    const dateDebutContainer = document.getElementById('date-debut-container');
-    const dateFinContainer = document.getElementById('date-fin-container');
+    // Variables globales
+    let performanceChart = null;
+    let agentsData = JSON.parse('{{ agents_data|escapejs|default:"[]" }}');
+    let chartData = JSON.parse('{{ chart_data|escapejs|default:"{}" }}');
     
-    periodeSelect.addEventListener('change', function() {
-        if (this.value === 'custom') {
+    // Initialisation
+    initializeFilters();
+    initializeChart();
+    
+    function initializeFilters() {
+        const form = document.getElementById('filter-form');
+        const inputs = form.querySelectorAll('select, input');
+        
+        // Écouteurs d'événements pour tous les filtres
+        inputs.forEach(input => {
+            input.addEventListener('change', debounce(applyFilters, 500));
+        });
+        
+        // Gestion des dates personnalisées
+        const periodeSelect = document.getElementById('periode-select');
+        periodeSelect.addEventListener('change', toggleCustomDates);
+        
+        // Mise à jour initiale du compteur
+        updateFilterCount();
+    }
+    
+    function toggleCustomDates() {
+        const periodeSelect = document.getElementById('periode-select');
+        const dateDebutContainer = document.getElementById('date-debut-container');
+        const dateFinContainer = document.getElementById('date-fin-container');
+        
+        if (periodeSelect.value === 'custom') {
             dateDebutContainer.style.display = 'block';
             dateFinContainer.style.display = 'block';
         } else {
             dateDebutContainer.style.display = 'none';
             dateFinContainer.style.display = 'none';
         }
-    });
-
-    // Animation des cartes statistiques
-    const statCards = document.querySelectorAll('.stat-card');
-    statCards.forEach((card, index) => {
-        setTimeout(() => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            card.style.transition = 'all 0.6s ease';
-            setTimeout(() => {
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, 100);
-        }, index * 100);
-    });
+    }
+    
+    function applyFilters() {
+        showLoading();
+        
+        const formData = new FormData(document.getElementById('filter-form'));
+        const params = new URLSearchParams(formData);
+        
+        // Requête AJAX pour filtrer les données
+        fetch(`{% url 'rapport_agent' %}?${params.toString()}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            updateContent(data);
+            updateFilterCount(data.agents_data.length);
+            updateChart('ca', data.chart_data);
+            hideLoading();
+        })
+        .catch(error => {
+            console.error('Erreur lors du filtrage:', error);
+            hideLoading();
+        });
+    }
+    
+    function applyQuickFilter(filterType) {
+        // Réinitialiser les filtres rapides
+        document.querySelectorAll('.filter-quick').forEach(btn => {
+            btn.classList.remove('filter-active');
+        });
+        
+        // Activer le filtre sélectionné
+        document.querySelector(`[data-filter="${filterType}"]`).classList.add('filter-active');
+        
+        const form = document.getElementById('filter-form');
+        
+        switch(filterType) {
+            case 'top_performers':
+                form.querySelector('#tri-select').value = 'ca';
+                form.querySelector('#ca-min').value = '500000';
+                break;
+            case 'low_performers':
+                form.querySelector('#tri-select').value = 'ca_asc';
+                form.querySelector('#ca-min').value = '';
+                break;
+            case 'high_commission':
+                form.querySelector('#tri-select').value = 'commission';
+                form.querySelector('#vue-select').value = 'commissions';
+                break;
+            case 'negative_balance':
+                form.querySelector('#tri-select').value = 'balance_asc';
+                form.querySelector('#vue-select').value = 'balance';
+                break;
+        }
+        
+        applyFilters();
+    }
+    
+    function resetFilters() {
+        document.getElementById('filter-form').reset();
+        document.querySelectorAll('.filter-quick').forEach(btn => {
+            btn.classList.remove('filter-active');
+        });
+        toggleCustomDates();
+        applyFilters();
+    }
+    
+    function updateContent(data) {
+        // Mettre à jour le résumé
+        updateResume(data.resume);
+        
+        // Mettre à jour le tableau des agents
+        updateAgentsTable(data.agents_data);
+        
+        // Sauvegarder les nouvelles données
+        agentsData = data.agents_data;
+    }
+    
+    function updateResume(resume) {
+        // Mettre à jour les statistiques principales
+        document.querySelector('.total-ca').textContent = formatNumber(resume.total_ca);
+        document.querySelector('.total-commission').textContent = formatNumber(resume.total_commission);
+        document.querySelector('.total-penalite').textContent = formatNumber(resume.total_penalite);
+        document.querySelector('.balance-total').textContent = formatNumber(resume.balance);
+        document.querySelector('.nb-agents').textContent = resume.nb_agents_actifs;
+        document.querySelector('.nb-machines').textContent = resume.nb_machines;
+    }
+    
+    function updateAgentsTable(agents) {
+        const tbody = document.querySelector('#agents-table tbody');
+        tbody.innerHTML = '';
+        
+        if (agents.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-12">
+                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                        </svg>
+                        <p class="text-gray-500 font-medium">Aucun agent trouvé avec ces critères</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        agents.forEach((agent, index) => {
+            const row = `
+                <tr class="border-b border-gray-100 agent-row" data-agent-id="${agent.id}">
+                    <td class="py-4 px-4">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                            ${index + 1}
+                        </div>
+                    </td>
+                    <td class="py-4 px-4">
+                        <div class="flex items-center space-x-3">
+                            <img src="https://ui-avatars.com/api/?name=${agent.nom_agent}&background=1c64f2&color=fff&size=40" 
+                                 class="w-10 h-10 rounded-full" 
+                                 alt="${agent.nom_agent}" />
+                            <div>
+                                <div class="font-semibold text-gray-800">${agent.nom_agent} ${agent.prenom_agent}</div>
+                                <div class="text-xs text-gray-500">${agent.reference_agent}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-4 text-right font-bold text-gray-800">${formatNumber(agent.total_ca)} FCFA</td>
+                    <td class="py-4 px-4 text-right font-semibold text-green-600">${formatNumber(agent.total_commission)} FCFA</td>
+                    <td class="py-4 px-4 text-right font-semibold text-red-600">${formatNumber(agent.total_penalite)} FCFA</td>
+                    <td class="py-4 px-4 text-right font-bold ${agent.balance >= 0 ? 'text-green-600' : 'text-red-600'}">
+                        ${formatNumber(agent.balance)} FCFA
+                    </td>
+                    <td class="py-4 px-4 text-center">
+                        <span class="badge-neutral">${agent.nb_machines}</span>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+    
+    function initializeChart() {
+        const ctx = document.getElementById('performanceChart');
+        if (!ctx || !window.Chart) {
+            console.warn('Chart.js non disponible ou canvas introuvable');
+            return;
+        }
+        
+        performanceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels || [],
+                datasets: [{
+                    label: 'Chiffre d\'affaires',
+                    data: chartData.ca || [],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Évolution des performances'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return formatNumber(value) + ' FCFA';
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+        
+        // Activer le premier contrôle du graphique
+        document.querySelector('[data-chart="ca"]').classList.add('filter-active');
+    }
+    
+    function updateChart(type, data = null) {
+        if (!performanceChart) return;
+        
+        // Mettre à jour les contrôles
+        document.querySelectorAll('.chart-control').forEach(btn => {
+            btn.classList.remove('filter-active');
+        });
+        document.querySelector(`[data-chart="${type}"]`).classList.add('filter-active');
+        
+        // Utiliser les données fournies ou les données globales
+        const chartDataToUse = data || chartData;
+        
+        let dataset = {
+            label: 'Données',
+            data: [],
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)'
+        };
+        
+        switch(type) {
+            case 'ca':
+                dataset.label = 'Chiffre d\'affaires';
+                dataset.data = chartDataToUse.ca || [];
+                dataset.borderColor = '#3b82f6';
+                dataset.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                break;
+            case 'commission':
+                dataset.label = 'Commissions';
+                dataset.data = chartDataToUse.commission || [];
+                dataset.borderColor = '#10b981';
+                dataset.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                break;
+            case 'balance':
+                dataset.label = 'Balance';
+                dataset.data = chartDataToUse.balance || [];
+                dataset.borderColor = '#8b5cf6';
+                dataset.backgroundColor = 'rgba(139, 92, 246, 0.1)';
+                break;
+        }
+        
+        performanceChart.data.labels = chartDataToUse.labels || [];
+        performanceChart.data.datasets[0] = {
+            ...performanceChart.data.datasets[0],
+            ...dataset
+        };
+        
+        performanceChart.update('active');
+    }
+    
+    function updateFilterCount(count = null) {
+        const filterCount = document.getElementById('filter-count');
+        const filterCountText = document.getElementById('filter-count-text');
+        
+        if (count !== null) {
+            filterCountText.textContent = `${count} agent${count > 1 ? 's' : ''} trouvé${count > 1 ? 's' : ''}`;
+            filterCount.style.display = 'block';
+        } else {
+            filterCount.style.display = 'none';
+        }
+    }
+    
+    function showLoading() {
+        document.getElementById('loading').classList.add('htmx-indicator');
+    }
+    
+    function hideLoading() {
+        document.getElementById('loading').classList.remove('htmx-indicator');
+    }
+    
+    function formatNumber(number) {
+        return new Intl.NumberFormat('fr-FR').format(Math.round(number || 0));
+    }
+    
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // Fonctions globales
+    window.applyQuickFilter = applyQuickFilter;
+    window.resetFilters = resetFilters;
+    window.updateChart = updateChart;
+    window.exportToExcel = function() {
+        const params = new URLSearchParams(new FormData(document.getElementById('filter-form')));
+        window.open(`{% url 'export_agents_report' %}?${params.toString()}`, '_blank');
+    };
 });
 </script>
 {% endblock %}
