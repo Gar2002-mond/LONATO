@@ -137,7 +137,8 @@
         Imprimer
     </button>
     <a href="{% url 'export_depenses_report' %}?{{ request.GET.urlencode }}"
-       class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 btn-primary">
+       class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 btn-primary"
+       download>
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
         </svg>
@@ -377,14 +378,8 @@
           <h2 class="text-xl font-bold text-gray-800">Évolution des dépenses</h2>
         </div>
         
-        <div class="bg-gray-50 h-64 rounded-lg flex items-center justify-center">
-          <div class="text-center text-gray-500">
-            <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-            </svg>
-            <p class="font-medium">Graphique d'évolution</p>
-            <p class="text-sm">Chart.js sera intégré ici</p>
-          </div>
+        <div class="bg-gray-50 rounded-lg p-4">
+          <canvas id="depensesChart" height="250"></canvas>
         </div>
       </div>
     </div>
@@ -539,6 +534,9 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Inclusion de Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const periodeSelect = document.getElementById('periode-select');
@@ -560,6 +558,178 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialiser l'état au chargement
     toggleCustomDates();
+    
+    // Création du graphique d'évolution des dépenses
+    const chartCanvas = document.getElementById('depensesChart');
+    if (chartCanvas) {
+        const ctx = chartCanvas.getContext('2d');
+        
+        // Création du gradient pour l'arrière-plan
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(239, 68, 68, 0.5)');  // Rouge adapté à LONATO
+        gradient.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
+        
+        // Récupération des données depuis le backend
+        const labels = {{ evolution.labels|safe|default:'[]' }};
+        const data = {{ evolution.data|safe|default:'[]' }};
+        
+        // Configuration du graphique
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Montant des dépenses',
+                    data: data,
+                    backgroundColor: gradient,
+                    borderColor: 'rgb(239, 68, 68)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,  // Courbe lissée
+                    pointBackgroundColor: 'rgb(239, 68, 68)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: 'rgb(220, 38, 38)',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 12,
+                                weight: 'bold'
+                            },
+                            usePointStyle: true,
+                            padding: 20,
+                            color: '#4b5563'
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleFont: {
+                            family: "'Inter', sans-serif",
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            family: "'Inter', sans-serif",
+                            size: 13
+                        },
+                        padding: 15,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                let value = context.raw;
+                                return new Intl.NumberFormat('fr-FR').format(value) + ' FCFA';
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Période',
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 13,
+                                weight: 'bold'
+                            },
+                            padding: {top: 10, bottom: 0},
+                            color: '#4b5563'
+                        },
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 11
+                            },
+                            color: '#6b7280',
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Montant (FCFA)',
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 13,
+                                weight: 'bold'
+                            },
+                            padding: {top: 0, bottom: 10},
+                            color: '#4b5563'
+                        },
+                        ticks: {
+                            beginAtZero: true,
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 11
+                            },
+                            color: '#6b7280',
+                            callback: function(value) {
+                                return new Intl.NumberFormat('fr-FR').format(value) + ' FCFA';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(243, 244, 246, 1)',
+                            borderDash: [8, 4]
+                        }
+                    }
+                },
+                animations: {
+                    tension: {
+                        duration: 1000,
+                        easing: 'linear'
+                    },
+                    radius: {
+                        duration: 400,
+                        easing: 'linear'
+                    },
+                    y: {
+                        duration: 1500,
+                        easing: 'easeOutQuart'
+                    }
+                },
+                elements: {
+                    line: {
+                        borderJoinStyle: 'round'
+                    }
+                },
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 25,
+                        top: 20,
+                        bottom: 10
+                    }
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

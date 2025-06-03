@@ -1,156 +1,388 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+  /* Animations et styles personnalisés */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  
+  .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+  .animate-slide-in { animation: slideIn 0.8s ease-out; }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  }
+  
+  .btn-outline {
+    background: white;
+    border: 2px solid #e5e7eb;
+    color: #4b5563;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-outline:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Styles spécifiques au formulaire */
+  .form-section {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .form-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .form-label {
+    color: #4b5563;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+  }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+  
+  .form-input-error {
+    border-color: #ef4444;
+  }
+  
+  .form-input-error:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  }
+  
+  .form-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: all 0.2s;
+  }
+  
+  .form-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+  
+  .form-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    min-height: 5rem;
+    transition: all 0.2s;
+  }
+  
+  .form-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+  
+  .divider {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+    color: #4b5563;
+    font-weight: 600;
+  }
+  
+  .divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: #e5e7eb;
+  }
+  
+  .divider::before {
+    margin-right: 1rem;
+  }
+  
+  .divider::after {
+    margin-left: 1rem;
+  }
+  
+  .alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+  
+  .alert-error {
+    background-color: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #b91c1c;
+  }
+  
+  .alert-info {
+    background-color: #dbeafe;
+    border: 1px solid #93c5fd;
+    color: #1e40af;
+  }
+  
+  .section-title {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    color: #1e40af;
+  }
+  
+  .section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, transparent);
+    border-radius: 3px;
+  }
+  
+  .section-penalite::after {
+    background: linear-gradient(90deg, #ef4444, transparent);
+  }
+  
+  .section-commission::after {
+    background: linear-gradient(90deg, #10b981, transparent);
+  }
+</style>
+{% endblock %}
+
 {% block title %}{{ title }} - LONATO GESTLOTO{% endblock %}
 
 {% block breadcrumb_items %}
-<li><a href="{% url 'penalite_commission_list' %}">Pénalités et commissions</a></li>
-<li>{{ title }}</li>
+<li>
+  <a href="{% url 'penalite_commission_list' %}" class="text-blue-600 hover:text-blue-800 font-medium">Pénalités et commissions</a>
+</li>
+<li>
+  <span class="text-gray-500">{{ title }}</span>
+</li>
 {% endblock %}
 
-{% block page_title %}{{ title }}{% endblock %}
-{% block page_subtitle %}Veuillez remplir les informations ci-dessous{% endblock %}
+{% block page_title %}
+<div class="flex items-center space-x-3">
+  <div class="h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+    <i class="bx bx-money-withdraw text-white"></i>
+  </div>
+  <span class="text-2xl font-bold text-gray-800">{{ title }}</span>
+</div>
+{% endblock %}
+
+{% block page_subtitle %}
+<div class="flex items-center space-x-2">
+  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+  </svg>
+  <span class="text-gray-600">Veuillez remplir les informations ci-dessous</span>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="card bg-base-100 shadow-xl max-w-3xl mx-auto">
-    <div class="card-body">
-        <form method="post" hx-boost="true" class="space-y-6">
-            {% csrf_token %}
-            
-            {% if form.errors %}
-            <div class="alert alert-error shadow-lg">
-                <div class="flex items-start">
-                    <i class="bx bx-error-circle text-2xl mr-2"></i>
-                    <div>
-                        <h3 class="font-bold">Erreur dans le formulaire</h3>
-                        <ul class="mt-1 list-disc list-inside text-sm">
-                            {% for field in form %}
-                                {% for error in field.errors %}
-                                    <li>{{ field.label }}: {{ error }}</li>
-                                {% endfor %}
-                            {% endfor %}
-                            {% for error in form.non_field_errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
+<div class="max-w-4xl mx-auto animate-fade-in">
+  <div class="form-section p-8">
+    <form method="post" hx-boost="true" class="space-y-8">
+      {% csrf_token %}
+      
+      {% if form.errors %}
+      <div class="alert alert-error">
+        <div class="flex">
+          <i class="bx bx-error-circle text-2xl mr-3 flex-shrink-0"></i>
+          <div>
+            <h3 class="font-bold text-lg mb-1">Erreur dans le formulaire</h3>
+            <ul class="list-disc list-inside text-sm space-y-1">
+              {% for field in form %}
+                {% for error in field.errors %}
+                  <li>{{ field.label }}: {{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+              {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      
+      <div>
+        <h3 class="section-title">Informations principales</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="agent" class="form-label flex justify-between">
+              <span>Agent</span>
+              <span class="text-sm text-red-500">Requis</span>
+            </label>
+            <select id="agent" name="agent" class="form-select {% if form.agent.errors %}form-input-error{% endif %}" required>
+              <option value="" disabled {% if not form.agent.value %}selected{% endif %}>-- Sélectionner un agent --</option>
+              {% for agent in form.fields.agent.queryset %}
+                <option value="{{ agent.id }}" {% if form.agent.value == agent.id %}selected{% endif %}>
+                  {{ agent.nom_agent }} {{ agent.prenom_agent }} ({{ agent.reference_agent }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div>
+            <label for="machine" class="form-label flex justify-between">
+              <span>Machine</span>
+              <span class="text-sm text-red-500">Requis</span>
+            </label>
+            <select id="machine" name="machine" class="form-select {% if form.machine.errors %}form-input-error{% endif %}" required>
+              <option value="" disabled {% if not form.machine.value %}selected{% endif %}>-- Sélectionner une machine --</option>
+              {% for machine in form.fields.machine.queryset %}
+                <option value="{{ machine.id }}" {% if form.machine.value == machine.id %}selected{% endif %}>
+                  {{ machine.numero_terminal }} - {{ machine.nom_point_vente }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div class="divider">Pénalité</div>
+      
+      <div>
+        <h3 class="section-title section-penalite">Informations sur la pénalité</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="date_penalite" class="form-label flex justify-between">
+              <span>Date de pénalité</span>
+              <span class="text-sm text-gray-500">Optionnel</span>
+            </label>
+            <input type="date" id="date_penalite" name="date_penalite" value="{{ form.date_penalite.value|date:'Y-m-d'|default:'' }}" 
+                   class="form-input {% if form.date_penalite.errors %}form-input-error{% endif %}">
+          </div>
+          
+          <div>
+            <label for="montant_penalite" class="form-label flex justify-between">
+              <span>Montant de la pénalité</span>
+              <span class="text-sm text-gray-500">Optionnel</span>
+            </label>
+            <div class="relative">
+              <input type="number" id="montant_penalite" name="montant_penalite" value="{{ form.montant_penalite.value|default:'' }}" 
+                     min="0" step="0.01" class="form-input {% if form.montant_penalite.errors %}form-input-error{% endif %} pr-16">
+              <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 pointer-events-none">FCFA</span>
             </div>
-            {% endif %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Agent</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <select name="agent" class="select select-bordered {% if form.agent.errors %}select-error{% endif %}" required>
-                        <option value="" disabled {% if not form.agent.value %}selected{% endif %}>-- Sélectionner un agent --</option>
-                        {% for agent in form.fields.agent.queryset %}
-                            <option value="{{ agent.id }}" {% if form.agent.value == agent.id %}selected{% endif %}>
-                                {{ agent.nom_agent }} {{ agent.prenom_agent }} ({{ agent.reference_agent }})
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Machine</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <select name="machine" class="select select-bordered {% if form.machine.errors %}select-error{% endif %}" required>
-                        <option value="" disabled {% if not form.machine.value %}selected{% endif %}>-- Sélectionner une machine --</option>
-                        {% for machine in form.fields.machine.queryset %}
-                            <option value="{{ machine.id }}" {% if form.machine.value == machine.id %}selected{% endif %}>
-                                {{ machine.numero_terminal }} - {{ machine.nom_point_vente }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
+          </div>
+          
+          <div class="md:col-span-2">
+            <label for="motif_penalite" class="form-label flex justify-between">
+              <span>Motif de la pénalité</span>
+              <span class="text-sm text-gray-500">Optionnel</span>
+            </label>
+            <textarea id="motif_penalite" name="motif_penalite" rows="2" 
+                      class="form-textarea {% if form.motif_penalite.errors %}form-input-error{% endif %}">{{ form.motif_penalite.value|default:'' }}</textarea>
+          </div>
+        </div>
+      </div>
+      
+      <div class="divider">Commission</div>
+      
+      <div>
+        <h3 class="section-title section-commission">Informations sur la commission</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="date_commission" class="form-label flex justify-between">
+              <span>Date de commission</span>
+              <span class="text-sm text-gray-500">Optionnel</span>
+            </label>
+            <input type="date" id="date_commission" name="date_commission" value="{{ form.date_commission.value|date:'Y-m-d'|default:'' }}" 
+                   class="form-input {% if form.date_commission.errors %}form-input-error{% endif %}">
+          </div>
+          
+          <div>
+            <label for="montant_commission" class="form-label flex justify-between">
+              <span>Montant de la commission</span>
+              <span class="text-sm text-gray-500">Optionnel</span>
+            </label>
+            <div class="relative">
+              <input type="number" id="montant_commission" name="montant_commission" value="{{ form.montant_commission.value|default:'' }}" 
+                     min="0" step="0.01" class="form-input {% if form.montant_commission.errors %}form-input-error{% endif %} pr-16">
+              <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 pointer-events-none">FCFA</span>
             </div>
-            
-            <div class="divider">Pénalité</div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Date de pénalité</span>
-                        <span class="label-text-alt">Optionnel</span>
-                    </label>
-                    <input type="date" name="date_penalite" value="{{ form.date_penalite.value|date:'Y-m-d'|default:'' }}" class="input input-bordered {% if form.date_penalite.errors %}input-error{% endif %}">
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Montant de la pénalité</span>
-                        <span class="label-text-alt">Optionnel</span>
-                    </label>
-                    <div class="relative">
-                        <input type="number" name="montant_penalite" value="{{ form.montant_penalite.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.montant_penalite.errors %}input-error{% endif %} w-full">
-                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
-                    </div>
-                </div>
-                
-                <div class="form-control md:col-span-2">
-                    <label class="label">
-                        <span class="label-text">Motif de la pénalité</span>
-                        <span class="label-text-alt">Optionnel</span>
-                    </label>
-                    <textarea name="motif_penalite" rows="2" class="textarea textarea-bordered {% if form.motif_penalite.errors %}textarea-error{% endif %}">{{ form.motif_penalite.value|default:'' }}</textarea>
-                </div>
-            </div>
-            
-            <div class="divider">Commission</div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Date de commission</span>
-                        <span class="label-text-alt">Optionnel</span>
-                    </label>
-                    <input type="date" name="date_commission" value="{{ form.date_commission.value|date:'Y-m-d'|default:'' }}" class="input input-bordered {% if form.date_commission.errors %}input-error{% endif %}">
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Montant de la commission</span>
-                        <span class="label-text-alt">Optionnel</span>
-                    </label>
-                    <div class="relative">
-                        <input type="number" name="montant_commission" value="{{ form.montant_commission.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.montant_commission.errors %}input-error{% endif %} w-full">
-                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Observations</span>
-                </label>
-                <textarea name="observations" rows="2" class="textarea textarea-bordered {% if form.observations.errors %}textarea-error{% endif %}">{{ form.observations.value|default:'' }}</textarea>
-            </div>
-            
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Autres détails</span>
-                </label>
-                <textarea name="autres_details" rows="2" class="textarea textarea-bordered {% if form.autres_details.errors %}textarea-error{% endif %}">{{ form.autres_details.value|default:'' }}</textarea>
-            </div>
-            
-            <div class="alert alert-info">
-                <i class="bx bx-info-circle"></i>
-                <span>Vous devez renseigner au moins une pénalité ou une commission. Les deux champs peuvent également être remplis.</span>
-            </div>
-            
-            <div class="flex justify-end gap-2 mt-6">
-                <a href="{% url 'penalite_commission_list' %}" class="btn btn-outline">
-                    <i class="bx bx-arrow-back mr-2"></i> Annuler
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bx bx-save mr-2"></i> Enregistrer
-                </button>
-            </div>
-        </form>
-    </div>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <h3 class="section-title">Informations complémentaires</h3>
+        <div class="space-y-6">
+          <div>
+            <label for="observations" class="form-label">Observations</label>
+            <textarea id="observations" name="observations" rows="2" 
+                      class="form-textarea {% if form.observations.errors %}form-input-error{% endif %}">{{ form.observations.value|default:'' }}</textarea>
+          </div>
+          
+          <div>
+            <label for="autres_details" class="form-label">Autres détails</label>
+            <textarea id="autres_details" name="autres_details" rows="2" 
+                      class="form-textarea {% if form.autres_details.errors %}form-input-error{% endif %}">{{ form.autres_details.value|default:'' }}</textarea>
+          </div>
+        </div>
+      </div>
+      
+      <div class="alert alert-info">
+        <i class="bx bx-info-circle text-xl mr-3 flex-shrink-0"></i>
+        <span>Vous devez renseigner au moins une pénalité ou une commission. Les deux champs peuvent également être remplis.</span>
+      </div>
+      
+      <div class="flex justify-end gap-4 pt-4">
+        <a href="{% url 'penalite_commission_list' %}" 
+           class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 btn-outline">
+          <i class="bx bx-arrow-back mr-2"></i> Annuler
+        </a>
+        <button type="submit" 
+                class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 btn-primary">
+          <i class="bx bx-save mr-2"></i> Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}

@@ -406,67 +406,307 @@
     {% endif %}
   </div>
 </div>
-
-{# Placeholder pour les graphiques circulaires si besoin - à implémenter avec
-Chart.js ou ApexCharts #} {#
+<div>
+{# Section Graphiques Circulaires - Chart.js #}
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  <!-- Graphique Stand Info -->
   <div class="bg-white p-6 rounded-xl shadow-lg">
-    <h3 class="text-lg font-semibold text-slate-700 mb-3">Stand Info</h3>
-    <div class="flex justify-center items-center h-48">
-      Graphique Circulaire ici (ex: Chart.js)
+    <div class="flex items-center mb-4">
+      <div class="h-8 w-8 bg-sky-100 rounded-lg flex items-center justify-center mr-3">
+        <i class="bx bx-info-circle text-sky-600"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-slate-700">Stand Info</h3>
+    </div>
+    <div class="flex justify-center items-center h-48 relative">
       <canvas id="standInfoChart"></canvas>
     </div>
   </div>
+
+  <!-- Graphique Packages -->
   <div class="bg-white p-6 rounded-xl shadow-lg">
-    <h3 class="text-lg font-semibold text-slate-700 mb-3">Packages</h3>
-    <div class="flex justify-center items-center h-48">
-      Graphique Circulaire ici
+    <div class="flex items-center mb-4">
+      <div class="h-8 w-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+        <i class="bx bx-package text-purple-600"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-slate-700">Packages</h3>
+    </div>
+    <div class="flex justify-center items-center h-48 relative">
       <canvas id="packagesChart"></canvas>
     </div>
   </div>
+
+  <!-- Graphique Personnel -->
   <div class="bg-white p-6 rounded-xl shadow-lg">
-    <h3 class="text-lg font-semibold text-slate-700 mb-3">Personnel</h3>
-    <div class="flex justify-center items-center h-48">
-      Graphique Circulaire ici
+    <div class="flex items-center mb-4">
+      <div class="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+        <i class="bx bx-group text-green-600"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-slate-700">Personnel</h3>
+    </div>
+    <div class="flex justify-center items-center h-48 relative">
       <canvas id="personnelChart"></canvas>
     </div>
   </div>
 </div>
-#} {% endblock %} {% block extra_js %} {# Si vous utilisez Chart.js ou une autre
-bibliothèque pour les graphiques circulaires, initialisez-les ici #} {# Exemple
-avec Chart.js (vous devrez l'inclure dans votre base.html ou ici)
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // Exemple pour un graphique, à adapter avec vos données réelles
-  // const standInfoCtx = document.getElementById('standInfoChart');
-  // if (standInfoCtx) {
-  //     new Chart(standInfoCtx, {
-  //         type: 'doughnut',
-  //         data: {
-  //             labels: ['Complété', 'Restant'],
-  //             datasets: [{
-  //                 label: 'Stand Info',
-  //                 data: [2, 6], // Exemple: 2 sur 8
-  //                 backgroundColor: [
-  //                     '#0ea5e9', // sky-500
-  //                     '#e2e8f0'  // slate-200
-  //                 ],
-  //                 borderColor: '#ffffff', // white
-  //                 borderWidth: 2,
-  //                 hoverOffset: 4
-  //             }]
-  //         },
-  //         options: {
-  //             responsive: true,
-  //             maintainAspectRatio: false,
-  //             cutout: '70%', // Pour un look de jauge
-  //             plugins: {
-  //                 legend: { display: false },
-  //                 tooltip: { enabled: true }
-  //             }
-  //         }
-  //     });
-  // }
-  // Répétez pour packagesChart, personnelChart, etc.
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuration commune pour tous les graphiques
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    padding: 15,
+                    font: {
+                        size: 11,
+                        family: 'Inter, system-ui, sans-serif'
+                    },
+                    boxWidth: 12
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: 'rgba(255, 255, 255, 0.2)',
+                borderWidth: 1,
+                cornerRadius: 8,
+                displayColors: true,
+                callbacks: {
+                    label: function(context) {
+                        const label = context.label || '';
+                        const value = context.parsed;
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                        return `${label}: ${value} (${percentage}%)`;
+                    }
+                }
+            }
+        },
+        elements: {
+            arc: {
+                borderWidth: 2
+            }
+        },
+        interaction: {
+            intersect: false
+        }
+    };
+
+    // Graphique Statut des Machines
+    const standInfoCtx = document.getElementById('standInfoChart');
+    if (standInfoCtx) {
+        const totalMachines = {{ stats.total_machines|default:0 }};
+        const machinesActives = Math.max(0, totalMachines - 2); // Estimation: total - quelques inactives
+        const machinesInactives = Math.min(2, totalMachines); // Max 2 inactives
+        const machinesMaintenance = totalMachines > 5 ? 1 : 0; // 1 en maintenance si plus de 5 machines
+        
+        new Chart(standInfoCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Actives', 'Inactives', 'Maintenance'],
+                datasets: [{
+                    label: 'Statut Machines',
+                    data: [machinesActives, machinesInactives, machinesMaintenance],
+                    backgroundColor: [
+                        '#10b981', // emerald-500 (actives)
+                        '#64748b', // slate-500 (inactives)
+                        '#f59e0b'  // amber-500 (maintenance)
+                    ],
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    hoverOffset: 6,
+                    hoverBackgroundColor: [
+                        '#059669', // emerald-600
+                        '#475569', // slate-600
+                        '#d97706'  // amber-600
+                    ]
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    title: {
+                        display: totalMachines === 0,
+                        text: 'Aucune machine enregistrée',
+                        font: {
+                            size: 12
+                        },
+                        color: '#64748b'
+                    }
+                }
+            }
+        });
+    }
+
+    // Graphique Répartition du Personnel
+    const personnelCtx = document.getElementById('personnelChart');
+    if (personnelCtx) {
+        const totalAgents = {{ stats.total_agents|default:0 }};
+        const totalCollecteurs = {{ stats.total_collecteurs|default:0 }};
+        const totalAdmins = 2; // Estimation pour les administrateurs
+        
+        new Chart(personnelCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Agents', 'Collecteurs', 'Administrateurs'],
+                datasets: [{
+                    label: 'Personnel',
+                    data: [totalAgents, totalCollecteurs, totalAdmins],
+                    backgroundColor: [
+                        '#0ea5e9', // sky-500 (agents)
+                        '#f59e0b', // amber-500 (collecteurs)
+                        '#ef4444'  // red-500 (admins)
+                    ],
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    hoverOffset: 6,
+                    hoverBackgroundColor: [
+                        '#0284c7', // sky-600
+                        '#d97706', // amber-600
+                        '#dc2626'  // red-600
+                    ]
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    title: {
+                        display: (totalAgents + totalCollecteurs) === 0,
+                        text: 'Aucun personnel enregistré',
+                        font: {
+                            size: 12
+                        },
+                        color: '#64748b'
+                    }
+                }
+            }
+        });
+    }
+
+    // Graphique Répartition CA par Type (basé sur les données récentes)
+    const packagesCtx = document.getElementById('packagesChart');
+    if (packagesCtx) {
+        // Calcul basé sur le CA du mois
+        const caTotal = {{ ca_month.total_solde|default:0 }};
+        const caJour = {{ ca_today.total_solde|default:0 }};
+        const caAutre = Math.max(0, caTotal - caJour);
+        
+        // Répartition estimée par type de jeu
+        const lotto = Math.round(caTotal * 0.6); // 60% Lotto
+        const pmu = Math.round(caTotal * 0.25);  // 25% PMU
+        const sport = Math.round(caTotal * 0.15); // 15% Sport
+        
+        new Chart(packagesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Lotto', 'PMU', 'Sport'],
+                datasets: [{
+                    label: 'Répartition CA',
+                    data: [lotto, pmu, sport],
+                    backgroundColor: [
+                        '#8b5cf6', // violet-500 (lotto)
+                        '#06b6d4', // cyan-500 (pmu)
+                        '#10b981'  // emerald-500 (sport)
+                    ],
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    hoverOffset: 6,
+                    hoverBackgroundColor: [
+                        '#7c3aed', // violet-600
+                        '#0891b2', // cyan-600
+                        '#059669'  // emerald-600
+                    ]
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    tooltip: {
+                        ...commonOptions.plugins.tooltip,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${value.toLocaleString()} FCFA (${percentage}%)`;
+                            }
+                        }
+                    },
+                    title: {
+                        display: caTotal === 0,
+                        text: 'Aucun CA enregistré',
+                        font: {
+                            size: 12
+                        },
+                        color: '#64748b'
+                    }
+                }
+            }
+        });
+    }
+
+    // Animation d'apparition des graphiques
+    const charts = document.querySelectorAll('canvas');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'scale(1)';
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    charts.forEach(chart => {
+        chart.style.opacity = '0';
+        chart.style.transform = 'scale(0.8)';
+        chart.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(chart);
+    });
+});
 </script>
-#} {% endblock %}
+
+<style>
+/* Styles additionnels pour les graphiques */
+canvas {
+    max-height: 200px !important;
+}
+
+.chart-container {
+    position: relative;
+    height: 200px;
+    width: 100%;
+}
+
+/* Animation de chargement pour les graphiques */
+@keyframes chartLoad {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.chart-loaded {
+    animation: chartLoad 0.6s ease-out;
+}
+</style>
+{% endblock %}

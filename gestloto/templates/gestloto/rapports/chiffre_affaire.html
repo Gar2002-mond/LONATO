@@ -35,11 +35,12 @@
         <i class="bx bx-printer mr-2"></i>
         Imprimer
     </button>
-    <button hx-get="{% url 'export_ca_report' %}?{{ request.GET.urlencode }}" hx-swap="none"
-            class="btn-indigo inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out shadow-sm">
+    <a href="{% url 'export_ca_report' %}?{{ request.GET.urlencode }}" 
+       class="btn-indigo inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out shadow-sm"
+       download>
         <i class="bx bx-download mr-2"></i>
         Exporter Excel
-    </button>
+    </a>
 </div>
 {% endblock %}
 

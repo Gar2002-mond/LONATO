@@ -1,196 +1,498 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+    .card-header-gradient {
+        background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+    }
+    
+    .form-section {
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        background-color: white;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .section-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-body {
+        padding: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+    
+    .required-indicator {
+        color: #ef4444;
+        margin-left: 0.25rem;
+    }
+    
+    .form-input,
+    .form-select,
+    .form-textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+    
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+    
+    .input-with-icon {
+        position: relative;
+    }
+    
+    .input-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #64748b;
+    }
+    
+    .result-card {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #86efac;
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+        color: white;
+        transition: all 0.3s;
+    }
+    
+    .btn-save:hover {
+        background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+        transform: translateY(-1px);
+    }
+    
+    .error-message {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
+
 {% block title %}{{ title }} - LONATO GESTLOTO{% endblock %}
 
 {% block breadcrumb_items %}
-<li><a href="{% url 'chiffre_affaire_list' %}">Chiffres d'affaires</a></li>
-<li>{{ title }}</li>
+<li><a href="{% url 'dashboard' %}" class="text-blue-600 hover:text-blue-800">Tableau de bord</a></li>
+<li><a href="{% url 'chiffre_affaire_list' %}" class="text-blue-600 hover:text-blue-800">Chiffres d'affaires</a></li>
+<li><span class="text-gray-500">{{ title }}</span></li>
 {% endblock %}
 
-{% block page_title %}{{ title }}{% endblock %}
-{% block page_subtitle %}Veuillez remplir les informations ci-dessous{% endblock %}
+{% block page_title %}
+<div class="flex items-center space-x-3">
+    <div class="h-10 w-10 bg-gradient-to-br from-blue-500 to-sky-600 rounded-lg flex items-center justify-center">
+        <i class="bx bx-line-chart text-2xl text-white"></i>
+    </div>
+    <span class="text-2xl font-bold text-gray-800">{{ title }}</span>
+</div>
+{% endblock %}
+
+{% block page_subtitle %}
+<div class="flex items-center text-gray-600">
+    <i class="bx bx-info-circle mr-2"></i>
+    <span>Veuillez remplir les informations ci-dessous pour enregistrer un nouveau chiffre d'affaires</span>
+</div>
+{% endblock %}
+
+{% block page_actions %}
+<div class="flex space-x-3">
+    <a href="{% url 'chiffre_affaire_list' %}" 
+       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out shadow-sm">
+        <i class="bx bx-arrow-back mr-2"></i>
+        Retour à la liste
+    </a>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="card bg-base-100 shadow-xl max-w-4xl mx-auto">
-    <div class="card-body">
-        <form method="post" hx-boost="true" class="space-y-6">
-            {% csrf_token %}
+<div class="max-w-5xl mx-auto">
+    {% if form.errors %}
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start">
+            <i class="bx bx-error-circle text-red-500 text-2xl mr-3 mt-0.5"></i>
+            <div>
+                <h3 class="font-semibold text-red-800">Erreur dans le formulaire</h3>
+                <ul class="mt-1 list-disc list-inside text-sm text-red-700">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="post" id="ca-form" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Informations générales -->
+        <div class="form-section">
+            <div class="section-header bg-gradient-to-r from-sky-50 to-blue-50">
+                <div class="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <i class="bx bx-info-circle text-blue-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-800">Informations générales</h2>
+            </div>
             
-            {% if form.errors %}
-            <div class="alert alert-error shadow-lg">
-                <div class="flex items-start">
-                    <i class="bx bx-error-circle text-2xl mr-2"></i>
+            <div class="section-body">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Machine -->
                     <div>
-                        <h3 class="font-bold">Erreur dans le formulaire</h3>
-                        <ul class="mt-1 list-disc list-inside text-sm">
-                            {% for field in form %}
-                                {% for error in field.errors %}
-                                    <li>{{ field.label }}: {{ error }}</li>
-                                {% endfor %}
+                        <label class="form-label">
+                            Machine / Terminal
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <select name="machine" class="form-select {% if form.machine.errors %}border-red-500{% endif %}" required
+                                hx-get="{% url 'machine_info' %}" 
+                                hx-target="#machine-info-dynamic-content" 
+                                hx-trigger="change">
+                            <option value="" disabled {% if not form.machine.value %}selected{% endif %}>-- Sélectionner une machine --</option>
+                            {% for machine_obj in form.fields.machine.queryset %}
+                                <option value="{{ machine_obj.id }}" {% if form.machine.value == machine_obj.id %}selected{% endif %}>
+                                    {{ machine_obj.numero_terminal }} - {{ machine_obj.nom_point_vente }}
+                                </option>
                             {% endfor %}
-                            {% for error in form.non_field_errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
+                        </select>
+                        {% if form.machine.errors %}
+                        <p class="error-message">{{ form.machine.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Info machine -->
+                    <div id="machine-info-dynamic-content" class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                        {% if form.instance and form.instance.machine %}
+                            {% include 'gestloto/chiffres_affaire/partials/machine_info_content.html' with machine=form.instance.machine %}
+                        {% else %}
+                            <div class="flex items-center justify-center h-full text-gray-500">
+                                <i class="bx bx-desktop text-3xl mr-2"></i>
+                                <span>Sélectionnez une machine pour voir les détails</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Date -->
+                    <div>
+                        <label class="form-label">
+                            Date du chiffre d'affaires
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <div class="input-with-icon">
+                            <input type="date" name="date_chiffre_affaire" 
+                                   value="{{ form.date_chiffre_affaire.value|date:'Y-m-d'|default:'' }}" 
+                                   class="form-input {% if form.date_chiffre_affaire.errors %}border-red-500{% endif %}" required>
+                            <i class="bx bx-calendar input-icon"></i>
+                        </div>
+                        {% if form.date_chiffre_affaire.errors %}
+                        <p class="error-message">{{ form.date_chiffre_affaire.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Jour de tirage -->
+                    <div>
+                        <label class="form-label">
+                            Jour de tirage (J1 à J365)
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="jour_tirage" 
+                               value="{{ form.jour_tirage.value|default:'' }}" 
+                               min="1" max="365" 
+                               class="form-input {% if form.jour_tirage.errors %}border-red-500{% endif %}" required>
+                        {% if form.jour_tirage.errors %}
+                        <p class="error-message">{{ form.jour_tirage.errors.0 }}</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-            {% endif %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Machine / Terminal</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <select name="machine" class="select select-bordered {% if form.machine.errors %}select-error{% endif %}" required
-                            hx-get="{% url 'machine_info' %}" hx-target="#machine-info-dynamic-content" hx-trigger="change">
-                        <option value="" disabled {% if not form.machine.value %}selected{% endif %}>-- Sélectionner une machine --</option>
-                        {% for machine_obj in form.fields.machine.queryset %} {# Renamed to machine_obj #}
-                            <option value="{{ machine_obj.id }}" {% if form.machine.value == machine_obj.id %}selected{% endif %}>
-                                {{ machine_obj.numero_terminal }} - {{ machine_obj.nom_point_vente }}
-                            </option>
-                        {% endfor %}
-                    </select>
+        </div>
+        
+        <!-- Données financières -->
+        <div class="form-section">
+            <div class="section-header bg-gradient-to-r from-green-50 to-emerald-50">
+                <div class="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                    <i class="bx bx-money text-green-600"></i>
                 </div>
+                <h2 class="text-lg font-semibold text-gray-800">Données financières</h2>
+            </div>
+            
+            <div class="section-body">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Ventes totales -->
+                    <div>
+                        <label class="form-label">
+                            Ventes totales
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <div class="input-with-icon">
+                            <input type="number" name="ventes_totales" 
+                                   value="{{ form.ventes_totales.value|default:'' }}" 
+                                   min="0" step="0.01" 
+                                   class="form-input {% if form.ventes_totales.errors %}border-red-500{% endif %}" required
+                                   id="ventes-input">
+                            <span class="input-icon">FCFA</span>
+                        </div>
+                        {% if form.ventes_totales.errors %}
+                        <p class="error-message">{{ form.ventes_totales.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Annulations totales -->
+                    <div>
+                        <label class="form-label">
+                            Annulations totales
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <div class="input-with-icon">
+                            <input type="number" name="annulations_totales" 
+                                   value="{{ form.annulations_totales.value|default:'0' }}" 
+                                   min="0" step="0.01" 
+                                   class="form-input {% if form.annulations_totales.errors %}border-red-500{% endif %}" required
+                                   id="annulations-input">
+                            <span class="input-icon">FCFA</span>
+                        </div>
+                        {% if form.annulations_totales.errors %}
+                        <p class="error-message">{{ form.annulations_totales.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Paiements totaux -->
+                    <div>
+                        <label class="form-label">
+                            Paiements totaux
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <div class="input-with-icon">
+                            <input type="number" name="paiements_totaux" 
+                                   value="{{ form.paiements_totaux.value|default:'0' }}" 
+                                   min="0" step="0.01" 
+                                   class="form-input {% if form.paiements_totaux.errors %}border-red-500{% endif %}" required
+                                   id="paiements-input">
+                            <span class="input-icon">FCFA</span>
+                        </div>
+                        {% if form.paiements_totaux.errors %}
+                        <p class="error-message">{{ form.paiements_totaux.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Solde total (calculé) -->
+                    <div>
+                        <label class="form-label flex items-center">
+                            Solde total
+                            <span class="ml-2 text-xs bg-green-100 text-green-800 py-0.5 px-2 rounded-full">Calculé automatiquement</span>
+                        </label>
+                        <div class="result-card">
+                            <div class="flex items-center justify-between">
+                                <input type="number" name="solde_total" id="solde-input"
+                                       value="{{ form.solde_total.value|default:'0' }}" 
+                                       class="bg-transparent border-0 text-xl font-bold text-green-700" readonly>
+                                <span class="text-green-700">FCFA</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Commission -->
+        <div class="form-section">
+            <div class="section-header bg-gradient-to-r from-amber-50 to-orange-50">
+                <div class="h-8 w-8 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
+                    <i class="bx bx-pie-chart-alt-2 text-amber-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-800">Commission</h2>
+            </div>
+            
+            <div class="section-body">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Pourcentage -->
+                    <div>
+                        <label class="form-label">
+                            Pourcentage de commission (%)
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <div class="input-with-icon">
+                            <input type="number" name="pourcentage_commission_potentielle" 
+                                   value="{{ form.pourcentage_commission_potentielle.value|default:'10' }}" 
+                                   min="0" max="100" step="0.01" 
+                                   class="form-input {% if form.pourcentage_commission_potentielle.errors %}border-red-500{% endif %}" required
+                                   id="commission-percent">
+                            <span class="input-icon">%</span>
+                        </div>
+                        {% if form.pourcentage_commission_potentielle.errors %}
+                        <p class="error-message">{{ form.pourcentage_commission_potentielle.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Agent enregistreur -->
+                    <div>
+                        <label class="form-label">
+                            Agent enregistreur
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <select name="agent_enregistreur" 
+                                class="form-select {% if form.agent_enregistreur.errors %}border-red-500{% endif %}" required>
+                            <option value="" disabled {% if not form.agent_enregistreur.value %}selected{% endif %}>-- Sélectionner un agent --</option>
+                            {% for agent in form.fields.agent_enregistreur.queryset %}
+                                <option value="{{ agent.id }}" {% if form.agent_enregistreur.value == agent.id %}selected{% endif %}>
+                                    {{ agent.nom_agent }} {{ agent.prenom_agent }} ({{ agent.reference_agent }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.agent_enregistreur.errors %}
+                        <p class="error-message">{{ form.agent_enregistreur.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Montant commission calculé -->
+                    <div>
+                        <label class="form-label flex items-center">
+                            Montant de la commission
+                            <span class="ml-2 text-xs bg-amber-100 text-amber-800 py-0.5 px-2 rounded-full">Calculé automatiquement</span>
+                        </label>
+                        <div class="result-card" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-color: #fcd34d;">
+                            <div class="flex items-center justify-between">
+                                <input type="text" id="commission-montant" 
+                                       class="bg-transparent border-0 text-xl font-bold text-amber-700" 
+                                       value="0 FCFA" readonly>
+                                <i class="bx bx-coin text-amber-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Observations -->
+        <div class="form-section">
+            <div class="section-header bg-gradient-to-r from-slate-50 to-gray-50">
+                <div class="h-8 w-8 bg-slate-100 rounded-lg flex items-center justify-center mr-3">
+                    <i class="bx bx-message-detail text-slate-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-800">Observations</h2>
+            </div>
+            
+            <div class="section-body">
+                <textarea name="observations" rows="3" 
+                          class="form-textarea {% if form.observations.errors %}border-red-500{% endif %}"
+                          placeholder="Remarques, commentaires ou observations...">{{ form.observations.value|default:'' }}</textarea>
+                {% if form.observations.errors %}
+                <p class="error-message">{{ form.observations.errors.0 }}</p>
+                {% endif %}
                 
-                <!-- Ce div sera la cible pour HTMX pour afficher les détails de la machine -->
-                <div id="machine-info-dynamic-content" class="form-control md:col-span-1"> 
-                    {% if form.instance and form.instance.machine %}
-                        {% include 'gestloto/chiffres_affaire/partials/machine_info_content.html' with machine=form.instance.machine %}
-                    {% else %}
-                        {% include 'gestloto/chiffres_affaire/partials/machine_info_empty.html' %}
+                {% if form.autres_details %}
+                <div class="mt-4">
+                    <label class="form-label">Autres détails</label>
+                    <textarea name="autres_details" rows="2" 
+                            class="form-textarea {% if form.autres_details.errors %}border-red-500{% endif %}">{{ form.autres_details.value|default:'' }}</textarea>
+                    {% if form.autres_details.errors %}
+                    <p class="error-message">{{ form.autres_details.errors.0 }}</p>
                     {% endif %}
                 </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Date du chiffre d'affaires</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="date" name="date_chiffre_affaire" value="{{ form.date_chiffre_affaire.value|date:'Y-m-d'|default:'' }}" class="input input-bordered {% if form.date_chiffre_affaire.errors %}input-error{% endif %}" required>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Jour de tirage (J1 à J365)</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="number" name="jour_tirage" value="{{ form.jour_tirage.value|default:'' }}" min="1" max="365" class="input input-bordered {% if form.jour_tirage.errors %}input-error{% endif %}" required>
-                </div>
+                {% endif %}
             </div>
-            
-            <div class="divider">Données financières</div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Ventes totales</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <div class="relative">
-                        <input type="number" name="ventes_totales" value="{{ form.ventes_totales.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.ventes_totales.errors %}input-error{% endif %} w-full" required
-                               hx-trigger="keyup, change"
-                               hx-post="{% url 'calculate_solde' %}"
-                               hx-target="#solde-total-dynamic-content" {# Changed hx-target #}
-                               hx-include="[name='ventes_totales'], [name='annulations_totales'], [name='paiements_totaux']">
-                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
-                    </div>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Annulations totales</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <div class="relative">
-                        <input type="number" name="annulations_totales" value="{{ form.annulations_totales.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.annulations_totales.errors %}input-error{% endif %} w-full" required
-                               hx-trigger="keyup, change"
-                               hx-post="{% url 'calculate_solde' %}"
-                               hx-target="#solde-total-dynamic-content" {# Changed hx-target #}
-                               hx-include="[name='ventes_totales'], [name='annulations_totales'], [name='paiements_totaux']">
-                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
-                    </div>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Paiements totaux</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <div class="relative">
-                        <input type="number" name="paiements_totaux" value="{{ form.paiements_totaux.value|default:'' }}" min="0" step="0.01" class="input input-bordered {% if form.paiements_totaux.errors %}input-error{% endif %} w-full" required
-                               hx-trigger="keyup, change"
-                               hx-post="{% url 'calculate_solde' %}"
-                               hx-target="#solde-total-dynamic-content" {# Changed hx-target #}
-                               hx-include="[name='ventes_totales'], [name='annulations_totales'], [name='paiements_totaux']">
-                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">FCFA</span>
-                    </div>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Solde total</span>
-                        <span class="label-text-alt text-success">Calculé automatiquement</span>
-                    </label>
-                    <div id="solde-total-dynamic-content" class="relative"> {# Changed ID #}
-                        {% include 'gestloto/chiffres_affaire/partials/solde_total_input.html' with solde_total=form.solde_total.value %}
-                    </div>
-                </div>
-            </div>
-            
-            <div class="divider">Commission</div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Pourcentage de commission potentielle (%)</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <input type="number" name="pourcentage_commission_potentielle" value="{{ form.pourcentage_commission_potentielle.value|default:'' }}" min="0" max="100" step="0.01" class="input input-bordered {% if form.pourcentage_commission_potentielle.errors %}input-error{% endif %}" required>
-                </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Agent enregistreur</span>
-                        <span class="label-text-alt text-error">Requis</span>
-                    </label>
-                    <select name="agent_enregistreur" class="select select-bordered {% if form.agent_enregistreur.errors %}select-error{% endif %}" required>
-                        <option value="" disabled {% if not form.agent_enregistreur.value %}selected{% endif %}>-- Sélectionner un agent --</option>
-                        {% for agent in form.fields.agent_enregistreur.queryset %}
-                            <option value="{{ agent.id }}" {% if form.agent_enregistreur.value == agent.id %}selected{% endif %}>
-                                {{ agent.nom_agent }} {{ agent.prenom_agent }} ({{ agent.reference_agent }})
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Observations</span>
-                </label>
-                <textarea name="observations" rows="2" class="textarea textarea-bordered {% if form.observations.errors %}textarea-error{% endif %}">{{ form.observations.value|default:'' }}</textarea>
-            </div>
-            
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Autres détails</span>
-                </label>
-                <textarea name="autres_details" rows="2" class="textarea textarea-bordered {% if form.autres_details.errors %}textarea-error{% endif %}">{{ form.autres_details.value|default:'' }}</textarea>
-            </div>
-            
-            <div class="divider"></div>
-            
-            <div class="flex justify-end gap-2">
-                <a href="{% url 'chiffre_affaire_list' %}" class="btn btn-outline">
-                    <i class="bx bx-arrow-back mr-2"></i> Annuler
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bx bx-save mr-2"></i> Enregistrer
-                </button>
-            </div>
-        </form>
-    </div>
+        </div>
+        
+        <!-- Boutons d'action -->
+        <div class="flex justify-end space-x-4 pt-4">
+            <a href="{% url 'chiffre_affaire_list' %}" 
+               class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out shadow-sm">
+                <i class="bx bx-x mr-2"></i>
+                Annuler
+            </a>
+            <button type="submit" 
+                   class="btn-save inline-flex items-center px-6 py-3 border border-transparent rounded-lg text-sm font-medium shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out">
+                <i class="bx bx-save mr-2"></i>
+                Enregistrer
+            </button>
+        </div>
+    </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Éléments du formulaire
+    const ventesInput = document.getElementById('ventes-input');
+    const annulationsInput = document.getElementById('annulations-input');
+    const paiementsInput = document.getElementById('paiements-input');
+    const soldeInput = document.getElementById('solde-input');
+    const commissionPercentInput = document.getElementById('commission-percent');
+    const commissionMontantElement = document.getElementById('commission-montant');
+    
+    // Fonction de calcul automatique du solde
+    function calculateResults() {
+        const ventes = parseFloat(ventesInput.value) || 0;
+        const annulations = parseFloat(annulationsInput.value) || 0;
+        const paiements = parseFloat(paiementsInput.value) || 0;
+        const commissionPercent = parseFloat(commissionPercentInput.value) || 0;
+        
+        const solde = ventes - annulations - paiements;
+        const commission = solde * (commissionPercent / 100);
+        
+        soldeInput.value = solde.toFixed(2);
+        commissionMontantElement.value = `${commission.toLocaleString()} FCFA`;
+        
+        // Changer la couleur selon le résultat
+        if (solde >= 0) {
+            soldeInput.classList.remove('text-red-700');
+            soldeInput.classList.add('text-green-700');
+        } else {
+            soldeInput.classList.remove('text-green-700');
+            soldeInput.classList.add('text-red-700');
+        }
+    }
+    
+    // Attacher les événements
+    [ventesInput, annulationsInput, paiementsInput, commissionPercentInput].forEach(input => {
+        if (input) {
+            input.addEventListener('input', calculateResults);
+            input.addEventListener('change', calculateResults);
+        }
+    });
+    
+    // Calcul initial
+    calculateResults();
+    
+    // Animation des éléments du formulaire
+    document.querySelectorAll('.form-section').forEach((section, index) => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        section.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        
+        setTimeout(() => {
+            section.style.opacity = '1';
+            section.style.transform = 'translateY(0)';
+        }, index * 150);
+    });
+});
+</script>
 {% endblock %}
